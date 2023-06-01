@@ -15,8 +15,10 @@ public class Challenge1 : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        outputTexture = new RenderTexture(texResolution, texResolution, 0);
-        outputTexture.enableRandomWrite = true;
+        outputTexture = new RenderTexture(texResolution, texResolution, 0)
+        {
+            enableRandomWrite = true
+        };
         outputTexture.Create();
 
         rend = GetComponent<Renderer>();
@@ -29,11 +31,16 @@ public class Challenge1 : MonoBehaviour
     {
         kernelHandle = shader.FindKernel("Square");
 
-		//Create a Vector4 with parameters x, y, width, height
+        //Create a Vector4 with parameters x, y, width, height
         //Pass this to the shader using SetVector
-        
+        int halfRes = texResolution >> 1;
+        int quaterRes = texResolution >> 2;
+        var rect = new Vector4(quaterRes, quaterRes, halfRes, halfRes);
+
+        shader.SetVector("rect", rect);
+
         shader.SetTexture(kernelHandle, "Result", outputTexture);
-       
+
         rend.material.SetTexture("_MainTex", outputTexture);
 
         DispatchShader(texResolution / 8, texResolution / 8);
