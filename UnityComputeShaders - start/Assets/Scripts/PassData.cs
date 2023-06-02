@@ -11,15 +11,18 @@ public class PassData : MonoBehaviour
     RenderTexture outputTexture;
 
     int circlesHandle;
+    int clearHandle;
 
-    public Color clearColor = new Color();
-    public Color circleColor = new Color();
+    public Color clearColor = Color.blue;
+    public Color circleColor = Color.yellow;
 
     // Use this for initialization
     void Start()
     {
-        outputTexture = new RenderTexture(texResolution, texResolution, 0);
-        outputTexture.enableRandomWrite = true;
+        outputTexture = new RenderTexture(texResolution, texResolution, 0)
+        {
+            enableRandomWrite = true
+        };
         outputTexture.Create();
 
         rend = GetComponent<Renderer>();
@@ -31,21 +34,28 @@ public class PassData : MonoBehaviour
     private void InitShader()
     {
         circlesHandle = shader.FindKernel("Circles");
+        clearHandle = shader.FindKernel("Clear");
 
-        shader.SetInt( "texResolution", texResolution);
-        shader.SetTexture( circlesHandle, "Result", outputTexture);
+        shader.SetInt("texResolution", texResolution);
+        shader.SetVector("clearColor", clearColor);
+        shader.SetVector("circleColor", circleColor);
+
+        shader.SetTexture(circlesHandle, "Result", outputTexture);
+        shader.SetTexture(clearHandle, "Result", outputTexture);
 
         rend.material.SetTexture("_MainTex", outputTexture);
     }
- 
-    private void DispatchKernel(int count)
+
+    private void DispatchKernels(int count)
     {
+        shader.Dispatch(clearHandle, texResolution >> 3, texResolution >> 3, 1);
         shader.Dispatch(circlesHandle, count, 1, 1);
+        shader.SetFloat("time", Time.time);
     }
 
     void Update()
     {
-        DispatchKernel(1);
+        DispatchKernels(10);
     }
 }
 

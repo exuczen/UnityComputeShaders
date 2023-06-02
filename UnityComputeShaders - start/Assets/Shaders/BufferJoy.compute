@@ -4,6 +4,14 @@
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
+struct Circle
+{
+    float2 origin;
+    float2 velocity;
+    float radius;
+};
+
+StructuredBuffer<Circle> circlesBuffer;
 shared RWTexture2D<float4> Result;
 
 float4 clearColor;
@@ -12,61 +20,91 @@ int texResolution;
 float time;
 
 /*Returns pseudo random number in range 0 <= x < 1 */
-float random(float value, float seed = 0.546){
-	float random = (frac(sin(value + seed) * 143758.5453));// + 1.0)/2.0;
-	return random;
+float random(float value, float seed = 0.546)
+{
+    float random = (frac(sin(value + seed) * 143758.5453)); // + 1.0)/2.0;
+    return random;
 }
 
-float2 random2(float value){
-	return float2(
+float2 random2(float value)
+{
+    return float2(
 		random(value, 3.9812),
 		random(value, 7.1536)
 	);
 }
 
-void plot1( int x, int y, int2 centre){
+void plot1(int x, int y, int2 centre)
+{
     Result[uint2(centre.x + x, centre.y + y)] = circleColor;
 }
 
-void plot8( int x, int y, int2 centre ) {
-	plot1(  x,  y, centre );  plot1(  y,  x, centre );
-	plot1(  x, -y, centre );  plot1(  y, -x, centre );
-	plot1( -x, -y, centre );  plot1( -y, -x, centre );
-	plot1( -x,  y, centre );  plot1( -y,  x, centre );
+void plot8(int x, int y, int2 centre)
+{
+    plot1(x, y, centre);
+    plot1(y, x, centre);
+    plot1(x, -y, centre);
+    plot1(y, -x, centre);
+    plot1(-x, -y, centre);
+    plot1(-y, -x, centre);
+    plot1(-x, y, centre);
+    plot1(-y, x, centre);
 }
 
-void drawCircle( int2 centre, int radius ) {
-	int x = 0;
-	int y = radius;
-	int d = 1 - radius;
+void drawCircle(int2 centre, int radius)
+{
+    int x = 0;
+    int y = radius;
+    int d = 1 - radius;
 
-	while (x < y){
-		if (d < 0){
-			d += 2 * x + 3;
-		}else{
-			d += 2 * (x - y) + 5;
-			y--;
-		}
+    while (x < y)
+    {
+        if (d < 0)
+        {
+            d += 2 * x + 3;
+        }
+        else
+        {
+            d += 2 * (x - y) + 5;
+            y--;
+        }
 		
-		plot8(x, y, centre);
+        plot8(x, y, centre);
 
-		x++;
-	}
+        x++;
+    }
 }
 
-[numthreads(32,1,1)]
-void Circles (uint3 id : SV_DispatchThreadID)
+[numthreads(32, 1, 1)]
+void Circles(uint3 id : SV_DispatchThreadID)
 {
-	int2 centre = (int2)(random2((float)id.x + time) * (float)texResolution);
-	int radius = (int)(random((float)id.x) * 30);
-	
-	drawCircle( centre, radius );
+    int2 center = (int2)(circlesBuffer[id.x].origin + circlesBuffer[id.x].velocity * time);
+    int radius = (int)(circlesBuffer[id.x].radius);
+    
+    while (center.x > texResolution)
+    {
+        center.x -= texResolution;
+    }
+    while (center.y > texResolution)
+    {
+        center.y -= texResolution;
+    }
+    while (center.x < 0)
+    {
+        center.x += texResolution;
+    }
+    while (center.y < 0)
+    {
+        center.y += texResolution;
+    }
+
+    drawCircle(center, radius);
 }
 
-[numthreads(8,8,1)]
-void Clear (uint3 id : SV_DispatchThreadID)
+[numthreads(8, 8, 1)]
+void Clear(uint3 id : SV_DispatchThreadID)
 {
-	Result[id.xy] = clearColor;
+    Result[id.xy] = clearColor;
 }
 
 
