@@ -65,8 +65,10 @@ public class BaseCompletePP : MonoBehaviour
 
     protected void CreateTexture(ref RenderTexture textureToMake, int divide = 1)
     {
-        textureToMake = new RenderTexture(texSize.x / divide, texSize.y / divide, 0);
-        textureToMake.enableRandomWrite = true;
+        textureToMake = new RenderTexture(texSize.x / divide, texSize.y / divide, 0)
+        {
+            enableRandomWrite = true
+        };
         textureToMake.Create();
     }
 
@@ -78,10 +80,9 @@ public class BaseCompletePP : MonoBehaviour
 
         if (shader)
         {
-            uint x, y;
-            shader.GetKernelThreadGroupSizes(kernelHandle, out x, out y, out _);
-            groupSize.x = Mathf.CeilToInt((float)texSize.x / (float)x);
-            groupSize.y = Mathf.CeilToInt((float)texSize.y / (float)y);
+            shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out uint y, out _);
+            groupSize.x = Mathf.CeilToInt((float)texSize.x / x);
+            groupSize.y = Mathf.CeilToInt((float)texSize.y / y);
         }
 
         CreateTexture(ref output);

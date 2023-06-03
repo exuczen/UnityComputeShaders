@@ -15,10 +15,13 @@ public class GaussianBlurHighlight : BaseCompletePP
     public float shade = 0.5f;
     public Transform trackedObject;
 
-    Vector4 center;
-    ComputeBuffer weightsBuffer = null;
+    private Vector4 center = default;
+    private ComputeBuffer weightsBuffer = null;
 
-    RenderTexture horzOutput = null;
+    private RenderTexture horzOutput = null;
+
+    private ComputeBuffer horzBuffer = null;
+
     int kernelHorzPassID;
 
     protected override void Init()
@@ -37,7 +40,7 @@ public class GaussianBlurHighlight : BaseCompletePP
         float sum = 0.0f;
         float c = 1 / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
 
-        for (int n=0; n<radius; n++)
+        for (int n = 0; n < radius; n++)
         {
             float weight = c * Mathf.Exp(-0.5f * n * n / (sigma * sigma));
             weights[radius + n] = weight;
@@ -48,15 +51,14 @@ public class GaussianBlurHighlight : BaseCompletePP
                 sum += weight;
         }
         // normalize kernels
-        for (int i=0; i<total; i++) weights[i] /= sum;
-        
+        for (int i = 0; i < total; i++) weights[i] /= sum;
+
         return weights;
     }
 
     private void UpdateWeightsBuffer()
     {
-        if (weightsBuffer != null)
-            weightsBuffer.Dispose();
+        weightsBuffer?.Dispose();
 
         float sigma = (float)blurRadius / 1.5f;
 
@@ -73,17 +75,30 @@ public class GaussianBlurHighlight : BaseCompletePP
         base.CreateTextures();
         shader.SetTexture(kernelHorzPassID, "source", renderedSource);
 
-        CreateTexture(ref horzOutput );
+        CreateTexture(ref horzOutput);
+
+        horzBuffer?.Dispose();
+        horzBuffer = new ComputeBuffer(renderedSource.width * renderedSource.height, 4 * sizeof(float));
 
         shader.SetTexture(kernelHorzPassID, "horzOutput", horzOutput);
         shader.SetTexture(kernelHandle, "horzOutput", horzOutput);
+
+        shader.SetBuffer(kernelHorzPassID, "horzBuffer", horzBuffer);
+        shader.SetBuffer(kernelHandle, "horzBuffer", horzBuffer);
+    }
+
+    protected override void ClearTextures()
+    {
+        base.ClearTextures();
+        horzBuffer?.Dispose();
+        horzBuffer = null;
     }
 
     private void OnValidate()
     {
-        if(!init)
+        if (!init)
             Init();
-           
+
         SetProperties();
 
         UpdateWeightsBuffer();
@@ -141,12 +156,16 @@ public class GaussianBlurHighlight : BaseCompletePP
     protected override void OnDisable()
     {
         base.OnDisable();
-        if (weightsBuffer != null) weightsBuffer.Dispose();
+        weightsBuffer?.Dispose();
+        horzBuffer?.Dispose();
+        horzBuffer = null;
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        if (weightsBuffer != null) weightsBuffer.Dispose();
+        weightsBuffer?.Dispose();
+        horzBuffer?.Dispose();
+        horzBuffer = null;
     }
 }

@@ -2,31 +2,75 @@
 #pragma kernel HorzPass
 #pragma kernel Highlight
 
+
 shared Texture2D<float4> source;
 shared RWTexture2D<float4> horzOutput;
-RWTexture2D<float4> output;
+shared RWTexture2D<float4> output;
 float radius;
 float edgeWidth;
 float shade;
 float4 center;
 int blurRadius;
+shared RWStructuredBuffer<float4> horzBuffer;
 
-float inCircle( float2 pt, float2 center, float radius, float edgeWidth ){
+float inCircle(float2 pt, float2 center, float radius, float edgeWidth)
+{
     float len = length(pt - center);
-    return 1.0 - smoothstep(radius-edgeWidth, radius, len);
+    return 1.0 - smoothstep(radius - edgeWidth, radius, len);
 }
 
 [numthreads(8, 8, 1)]
 void HorzPass(uint3 id : SV_DispatchThreadID)
 {
+    uint width;
+    uint height;
+    source.GetDimensions(width, height);
+
+    int left = max(0, (int)id.x - blurRadius);
+    int count = min(blurRadius, id.x) + min(blurRadius, width - id.x);
+    count = max(count, 1);
+    float4 color = 0;
     
+    uint2 index = uint2((uint)left, id.y);
+    
+    [unroll(100)]
+    for (int x = 0; x < count; x++)
+    {
+        color += source[index];
+        index.x++;
+    }
+    color /= (float)count;
+    
+    //horzOutput[id.xy] = color;
+    horzBuffer[id.x + width * id.y] = color;
 }
 
 [numthreads(8, 8, 1)]
 void Highlight(uint3 id : SV_DispatchThreadID)
 {
-    float4 color = source[id.xy];
-
+    uint width;
+    uint height;
+    source.GetDimensions(width, height);
+    
+    int begY = max(0, (int)id.y - blurRadius);
+    int count = min(blurRadius, id.y) + min(blurRadius, height - id.y);
+    count = max(count, 1);
+    float4 blurColor = 0;
+    
+    int index = id.x + width * begY;
+    
+    [unroll(100)]
+    for (int i = 0; i < count; i++)
+    {
+        blurColor += horzBuffer[index];
+        index += width;
+    }
+    blurColor /= (float)count;
+    
+    float4 sourceColor = source[id.xy];
+    float4 shadedBlurColor = blurColor * shade;
+    float highlight = inCircle((float2)id.xy, center.xy, radius, edgeWidth);
+    float4 color = lerp(shadedBlurColor, sourceColor, highlight);
+    
     output[id.xy] = color;
-
 }
