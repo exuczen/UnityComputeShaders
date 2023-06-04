@@ -17,9 +17,10 @@ public class NightVision : BaseCompletePP
 
     private void OnValidate()
     {
-        if(!init)
+        if (!init)
+        {
             Init();
-           
+        }
         SetProperties();
     }
 

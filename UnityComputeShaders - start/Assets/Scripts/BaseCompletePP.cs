@@ -9,8 +9,8 @@ public class BaseCompletePP : MonoBehaviour
 
     protected string kernelName = "CSMain";
 
-    protected Vector2Int texSize = new Vector2Int(0, 0);
-    protected Vector2Int groupSize = new Vector2Int();
+    protected Vector2Int texSize = Vector2Int.zero;
+    protected Vector2Int groupSize = Vector2Int.zero;
     protected Camera thisCamera;
 
     protected RenderTexture output = null;

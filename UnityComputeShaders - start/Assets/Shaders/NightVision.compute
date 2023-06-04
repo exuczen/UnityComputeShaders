@@ -10,22 +10,47 @@ float4 tintColor;
 float tintStrength;
 float time;
 
-float random (float2 pt, float seed) {
+float random(float2 pt, float seed)
+{
     const float a = 12.9898;
     const float b = 78.233;
     const float c = 43758.543123;
-    return frac(sin(dot(pt, float2(a, b)) + seed) * c );
+    return frac(sin(dot(pt, float2(a, b)) + seed) * c);
 }
 
-float inCircle( float2 pt, float2 center, float radius, float edgeWidth ){
+float inCircle(float2 pt, float2 center, float radius, float edgeWidth)
+{
     float len = length(pt - center);
-    return 1.0 - smoothstep(radius-edgeWidth, radius, len);
+    return 1.0 - smoothstep(radius - edgeWidth, radius, len);
 }
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float3 finalColor = source[id.xy].rgb;
-           
+    uint2 index = (uint2(id.x, id.y) / 3) * 3;
+    
+    float noise = random(id.xy, time);
+    float3 sourceColor = lerp(source[id.xy].rgb * 2, source[index].rgb, noise);
+    
+    float3 grayScale = (sourceColor.r + sourceColor.g + sourceColor.b) / 3.0;
+    float3 tintedColor = grayScale * tintColor.rgb;
+    float3 finalColor = lerp(sourceColor, tintedColor, tintStrength);
+    
+    float uvY = (float)id.y / source.Length.y;
+    float scanline = saturate(smoothstep(0.1, 0.2, frac(uvY * lines + time * 3)) + 0.3);
+    finalColor = lerp(source[id.xy].rgb * 0.5, finalColor, scanline);
+    
+    float3 blackColor = 0.0;
+    float2 center = float2(source.Length * 0.5);
+    float2 xy = (float2)id.xy;
+    
+    center.x -= radius * 0.7;
+    float leftLense = inCircle(xy, center.xy, radius, edgeWidth);
+    center.x += radius * 1.4;
+    float rightLense = inCircle(xy, center.xy, radius, edgeWidth);
+    
+    float inVision = saturate(leftLense + rightLense);
+    finalColor = lerp(blackColor, finalColor, inVision);
+
     output[id.xy] = float4(finalColor, 1);
 }
