@@ -13,8 +13,22 @@ float tintStrength;
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     float4 srcColor = source[id.xy];
-    float4 color = srcColor;
+    float4 color;
 
+    if (id.y < (uint)tintHeight)
+    {
+        float3 grayScaledTintColor = (srcColor.r + srcColor.g + srcColor.b) * 0.33 * tintColor.rgb;
+        float3 shadedTintColor = lerp(srcColor.rgb, grayScaledTintColor, tintStrength) * shade;
+        float srcAmount = smoothstep(tintHeight - edgeWidth, tintHeight, (float)id.y);
+        color = lerp(float4(shadedTintColor, 1), srcColor, srcAmount);
+    }
+    else
+    {
+        color = srcColor;
+    }
     output[id.xy] = color;
-
+    
+    //float tint = (1 - smoothstep(tintHeight - edgeWidth, tintHeight, (float)id.y)) * tintStrength;
+    //float4 shadedTindColor = float4(tintColor.rgb * shade, 1);
+    //output[id.xy] = lerp(srcColor, shadedTindColor, tint);
 }
