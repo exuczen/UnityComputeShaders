@@ -6,11 +6,9 @@ using UnityEngine;
 
 public class ParticleFun : MonoBehaviour
 {
-
     private Vector2 cursorPos;
 
-    // struct
-    struct Particle
+    private struct Particle
     {
         public Vector3 position;
         public Vector3 velocity;
@@ -25,26 +23,37 @@ public class ParticleFun : MonoBehaviour
     [Range(1, 10)]
     public int pointSize = 2;
 
-    int kernelID;
-    ComputeBuffer particleBuffer;
+    private int kernelID;
+    private ComputeBuffer particleBuffer;
 
-    int groupSizeX; 
-    
-    
+    private int groupSizeX;
+
+
     // Use this for initialization
-    void Start()
+    private void Start()
     {
         Init();
     }
 
-    void Init()
+    private void Init()
     {
         // initialize the particles
         Particle[] particleArray = new Particle[particleCount];
 
         for (int i = 0; i < particleCount; i++)
         {
-            //TO DO: Initialize particle
+            //TODO: Initialize particle
+            var pos = new Vector3
+            {
+                x = Random.Range(-1f, 1f),
+                y = Random.Range(-1f, 1f),
+                z = Random.Range(-1f, 1f)
+            };
+            pos = Random.Range(0f, 0.5f) * pos.normalized;
+            pos.z += 3;
+            particleArray[i].position = pos;
+            particleArray[i].velocity = Vector3.zero;
+            particleArray[i].life = Random.Range(1f, 6f);
         }
 
         // create compute buffer
@@ -55,9 +64,8 @@ public class ParticleFun : MonoBehaviour
         // find the id of the kernel
         kernelID = shader.FindKernel("CSParticle");
 
-        uint threadsX;
-        shader.GetKernelThreadGroupSizes(kernelID, out threadsX, out _, out _);
-        groupSizeX = Mathf.CeilToInt((float)particleCount / (float)threadsX);
+        shader.GetKernelThreadGroupSizes(kernelID, out uint threadsX, out _, out _);
+        groupSizeX = Mathf.CeilToInt((float)particleCount / threadsX);
 
         // bind the compute buffer to the shader and the compute shader
         shader.SetBuffer(kernelID, "particleBuffer", particleBuffer);
@@ -66,22 +74,20 @@ public class ParticleFun : MonoBehaviour
         material.SetInt("_PointSize", pointSize);
     }
 
-    void OnRenderObject()
+    private void OnRenderObject()
     {
         material.SetPass(0);
         Graphics.DrawProceduralNow(MeshTopology.Points, 1, particleCount);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
-        if (particleBuffer != null)
-            particleBuffer.Release();
+        particleBuffer?.Release();
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
-
         float[] mousePosition2D = { cursorPos.x, cursorPos.y };
 
         // Send datas to the compute shader
@@ -92,22 +98,21 @@ public class ParticleFun : MonoBehaviour
         shader.Dispatch(kernelID, groupSizeX, 1, 1);
     }
 
-    void OnGUI()
+    private void OnGUI()
     {
-        Vector3 p = new Vector3();
         Camera c = Camera.main;
         Event e = Event.current;
-        Vector2 mousePos = new Vector2();
+        Vector2 mousePos = new()
+        {
+            // Get the mouse position from Event.
+            // Note that the y position from Event is inverted.
+            x = e.mousePosition.x,
+            y = c.pixelHeight - e.mousePosition.y
+        };
 
-        // Get the mouse position from Event.
-        // Note that the y position from Event is inverted.
-        mousePos.x = e.mousePosition.x;
-        mousePos.y = c.pixelHeight - e.mousePosition.y;
-
-        p = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 14));// z = 3.
+        var p = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 14)); //z = 3.
 
         cursorPos.x = p.x;
         cursorPos.y = p.y;
-        
     }
 }
