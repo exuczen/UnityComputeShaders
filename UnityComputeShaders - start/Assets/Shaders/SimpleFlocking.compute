@@ -3,8 +3,8 @@
 
 struct Boid
 {
-	float3 position;
-	float3 direction;
+    float3 position;
+    float3 direction;
 };
 
 RWStructuredBuffer<Boid> boidsBuffer;
@@ -18,10 +18,48 @@ float3 flockPosition;
 float neighbourDistance;
 int boidsCount;
 
-[numthreads(GROUP_SIZE,1,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+float sqrLength(float3 v)
 {
-	
+    return v.x * v.x + v.y + v.y + v.z * v.z;
 }
 
+[numthreads(GROUP_SIZE, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    Boid boid = boidsBuffer[id.x];
+	
+    float3 separation = 0;
+    float3 alignment = 0;
+    float3 cohesion = flockPosition;
+    
+    uint nearbyCount = 1;
+    
+    for (int i = 0; i < boidsCount; i++)
+    {
+        if (i != int(id.x))
+        {
+            Boid boidI = boidsBuffer[i];
+            float3 offset = boid.position - boidI.position;
+            float dist = length(offset);
+            if (dist < neighbourDistance)
+            {
+                dist = max(dist, 0.000001);
+                separation += offset * (1.0 / dist - 1.0 / neighbourDistance);
+                alignment += boidI.direction;
+                cohesion += boidI.position;
+                nearbyCount++;
+            }
+        }
+    }
+    float nearbyCountInv = 1.0 / nearbyCount;
+    alignment *= nearbyCountInv;
+    cohesion *= nearbyCountInv;
+    cohesion = normalize(cohesion - boid.position);
+    
+    float3 direction = alignment + separation + cohesion;
 
+    boid.direction = lerp(direction, normalize(boid.direction), 0.94);
+    boid.position += boid.direction * boidSpeed * deltaTime;
+    
+    boidsBuffer[id.x] = boid;
+}

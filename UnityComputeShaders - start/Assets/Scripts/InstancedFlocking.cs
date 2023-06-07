@@ -12,17 +12,13 @@ public class InstancedFlocking : MonoBehaviour
 
         public Boid(Vector3 pos, Vector3 dir, float offset)
         {
-            position.x = pos.x;
-            position.y = pos.y;
-            position.z = pos.z;
-            direction.x = dir.x;
-            direction.y = dir.y;
-            direction.z = dir.z;
+            position = pos;
+            direction = dir;
             noise_offset = offset;
         }
     }
     const int SIZE_BOID = 7 * sizeof(float);
-    
+
     public ComputeShader shader;
 
     public float rotationSpeed = 1f;
@@ -36,21 +32,20 @@ public class InstancedFlocking : MonoBehaviour
     public Transform target;
 
     int kernelHandle;
-    ComputeBuffer boidsBuffer;
-    ComputeBuffer argsBuffer;
-    uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-    Boid[] boidsArray;
-    int groupSizeX;
-    int numOfBoids;
-    Bounds bounds;
+    private ComputeBuffer boidsBuffer = null;
+    private ComputeBuffer argsBuffer = null;
+    private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
+    private Boid[] boidsArray = null;
+    private int groupSizeX;
+    private int numOfBoids;
+    private Bounds bounds;
 
-    void Start()
+    private void Start()
     {
         kernelHandle = shader.FindKernel("CSMain");
 
-        uint x;
-        shader.GetKernelThreadGroupSizes(kernelHandle, out x, out _, out _);
-        groupSizeX = Mathf.CeilToInt((float)boidsCount / (float)x);
+        shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
+        groupSizeX = Mathf.CeilToInt((float)boidsCount / x);
         numOfBoids = groupSizeX * (int)x;
 
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
@@ -72,13 +67,20 @@ public class InstancedFlocking : MonoBehaviour
         }
     }
 
-    void InitShader()
+    private void InitShader()
     {
         boidsBuffer = new ComputeBuffer(numOfBoids, SIZE_BOID);
         boidsBuffer.SetData(boidsArray);
 
         //Initialize args buffer
+        argsBuffer = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments);
 
+        if (boidMesh)
+        {
+            args[0] = boidMesh.GetIndexCount(0);
+            args[1] = (uint)numOfBoids;
+        }
+        argsBuffer.SetData(args);
 
         shader.SetBuffer(this.kernelHandle, "boidsBuffer", boidsBuffer);
         shader.SetFloat("rotationSpeed", rotationSpeed);
@@ -91,27 +93,21 @@ public class InstancedFlocking : MonoBehaviour
         boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
     }
 
-    void Update()
+    private void Update()
     {
         shader.SetFloat("time", Time.time);
         shader.SetFloat("deltaTime", Time.deltaTime);
 
-        shader.Dispatch(this.kernelHandle, groupSizeX, 1, 1);
+        shader.Dispatch(kernelHandle, groupSizeX, 1, 1);
 
-        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, bounds, argsBuffer, 0);
+        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, bounds, argsBuffer);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
-        if (boidsBuffer != null)
-        {
-            boidsBuffer.Dispose();
-        }
+        boidsBuffer?.Dispose();
 
-        if (argsBuffer != null)
-        {
-            argsBuffer.Dispose();
-        }
+        argsBuffer?.Dispose();
     }
 }
 

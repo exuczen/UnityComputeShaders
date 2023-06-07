@@ -8,15 +8,11 @@ public class SimpleFlocking : MonoBehaviour
     {
         public Vector3 position;
         public Vector3 direction;
-        
+
         public Boid(Vector3 pos)
         {
-            position.x = pos.x;
-            position.y = pos.y;
-            position.z = pos.z;
-            direction.x = 0;
-            direction.y = 0;
-            direction.z = 0;
+            position = pos;
+            direction = Vector3.zero;
         }
     }
 
@@ -42,9 +38,8 @@ public class SimpleFlocking : MonoBehaviour
     {
         kernelHandle = shader.FindKernel("CSMain");
 
-        uint x;
-        shader.GetKernelThreadGroupSizes(kernelHandle, out x, out _, out _);
-        groupSizeX = Mathf.CeilToInt((float)boidsCount / (float)x);
+        shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
+        groupSizeX = Mathf.CeilToInt((float)boidsCount / x);
         numOfBoids = groupSizeX * (int)x;
 
         InitBoids();
@@ -60,7 +55,7 @@ public class SimpleFlocking : MonoBehaviour
         {
             Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
             boidsArray[i] = new Boid(pos);
-            boids[i] = Instantiate(boidPrefab, pos, Quaternion.identity) as GameObject;
+            boids[i] = Instantiate(boidPrefab, pos, Quaternion.identity);
             boidsArray[i].direction = boids[i].transform.forward;
         }
     }
@@ -102,10 +97,7 @@ public class SimpleFlocking : MonoBehaviour
 
     void OnDestroy()
     {
-        if (boidsBuffer!=null)
-        {
-            boidsBuffer.Dispose();
-        }
+        boidsBuffer?.Dispose();
     }
 }
 
