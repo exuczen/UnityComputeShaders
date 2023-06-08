@@ -147,7 +147,41 @@ public class SkinnedFlocking : MonoBehaviour
     {
         boidSMR = boidObject.GetComponentInChildren<SkinnedMeshRenderer>();
 
+        animator = boidObject.GetComponentInChildren<Animator>();
+
+        var animatorStateInfo = animator.GetCurrentAnimatorStateInfo(0);
+
+        var bakedMesh = new Mesh();
+        float sampleTime = 0f;
+
+        numOfFrames = Mathf.ClosestPowerOfTwo((int)(animationClip.frameRate * animationClip.length));
+        float frameDuration = animationClip.length / numOfFrames;
+
         boidMesh = boidSMR.sharedMesh;
+
+        int vertexCount = boidMesh.vertexCount;
+        var vertexAnimationData = new Vector4[vertexCount * numOfFrames];
+
+        for (int i = 0; i < numOfFrames; i++)
+        {
+            animator.Play(animatorStateInfo.shortNameHash, 0, sampleTime);
+            animator.Update(0f);
+
+            boidSMR.BakeMesh(bakedMesh);
+
+            var bakedMeshVertices = bakedMesh.vertices;
+            for (int j = 0; j < vertexCount; j++)
+            {
+                Vector4 vertex = bakedMeshVertices[j];
+                vertex.w = 1f;
+                vertexAnimationData[j * numOfFrames + i] = vertex;
+            }
+            sampleTime += frameDuration;
+        }
+        vertexAnimationBuffer = new ComputeBuffer(vertexCount * numOfFrames, 16);
+        vertexAnimationBuffer.SetData(vertexAnimationData);
+
+        boidMaterial.SetBuffer("vertexAnimation", vertexAnimationBuffer);
 
         boidObject.SetActive(false);
     }

@@ -1,6 +1,7 @@
 Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
 
-   Properties {
+   Properties 
+   {
 		_Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
 		_BumpMap ("Bumpmap", 2D) = "bump" {}
@@ -9,8 +10,8 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
 		_Glossiness ("Smoothness", Range(0,1)) = 1.0
 	}
 
-   SubShader {
- 
+   SubShader 
+   {
 		CGPROGRAM
         #include "UnityCG.cginc"
 
@@ -60,7 +61,8 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
             StructuredBuffer<float4> vertexAnimation; 
          #endif
 
-        float4x4 create_matrix(float3 pos, float3 dir, float3 up) {
+        float4x4 create_matrix(float3 pos, float3 dir, float3 up)
+        {
             float3 zaxis = normalize(dir);
             float3 xaxis = normalize(cross(up, zaxis));
             float3 yaxis = cross(zaxis, xaxis);
@@ -75,18 +77,44 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
         void vert(inout appdata_custom v)
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                int voffset = v.id * numOfFrames;
+                #ifdef FRAME_INTERPOLATION
+                {
+                    v.vertex = lerp(vertexAnimation[voffset + _CurrentFrame], vertexAnimation[voffset + _NextFrame], _FrameInterpolation);
+                }
+                #else
+                {
+                    v.vertex = vertexAnimation[voffset + _CurrentFrame];
+                }
+                #endif
                 v.vertex = mul(_Matrix, v.vertex);
+            }
             #endif
         }
 
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
                 _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
+                _CurrentFrame = boidsBuffer[unity_InstanceID].frame;
+                #ifdef FRAME_INTERPOLATION
+                {
+                    _NextFrame = _CurrentFrame + 1;
+                    if (_NextFrame >= numOfFrames)
+                    {
+                        _NextFrame = 0;
+                    }
+                    _FrameInterpolation = frac(boidsBuffer[unity_InstanceID].frame);
+                }
+                #endif
+            }
             #endif
         }
  
-         void surf (Input IN, inout SurfaceOutputStandard o) {
+         void surf (Input IN, inout SurfaceOutputStandard o)
+         {
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
 			fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
 			o.Albedo = c.rgb;
