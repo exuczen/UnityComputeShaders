@@ -4,9 +4,9 @@
 
 struct Ball
 {
-	float3 position;
-	float3 velocity;
-	float4 color;
+    float3 position;
+    float3 velocity;
+    float4 color;
 };
 
 RWStructuredBuffer<Ball> ballsBuffer;
@@ -23,14 +23,55 @@ float floorY;
 #define LIMITS_MAX_Z limitsXZ.w
 #define LIMITS_MIN_Y floorY
 
-[numthreads(GROUP_SIZE,1,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+[numthreads(GROUP_SIZE, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
 {
-	Ball ball = ballsBuffer[id.x];
+    Ball ball = ballsBuffer[id.x];
 
-	ball.position += ball.velocity * deltaTime;
+    ball.position += ball.velocity * deltaTime;
+	
+    if (ball.position.x < LIMITS_MIN_X || ball.position.x > LIMITS_MAX_X)
+    {
+        ball.position.x = clamp(ball.position.x, LIMITS_MIN_X, LIMITS_MAX_X);
+        ball.velocity.x *= -1;
+    }
+    if (ball.position.z < LIMITS_MIN_Z || ball.position.z > LIMITS_MAX_Z)
+    {
+        ball.position.z = clamp(ball.position.z, LIMITS_MIN_Z, LIMITS_MAX_Z);
+        ball.velocity.z *= -1;
+    }
+    if (ball.position.y < LIMITS_MIN_Y)
+    {
+        ball.position.y = LIMITS_MIN_Y;
+        ball.velocity.xz *= 0.96;
+        ball.velocity.y *= -0.8;
+    }
+    
+    //Collisions with other balls
+    float3 normal;
+    float3 relativeVelocity;
+    
+    const float diameter = 2 * radius;
+    
+    for (int i = id.x + 1; i < ballsCount; i++)
+    {
+        Ball ball2 = ballsBuffer[i];
+        normal = ball.position - ball2.position;
+        const float distance = length(normal);
+        
+        if (distance < diameter)
+        {
+            normal = normalize(normal);
+            
+            ball.position += normal * (diameter - distance);
+            
+            relativeVelocity = ball.velocity - ball2.velocity;
+            
+            ball.velocity -= dot(relativeVelocity, normal) * normal;
+        }
+    }
+    ball.velocity.xz *= 0.98;
+    ball.velocity.y -= 9.8 * deltaTime;
 
-	ballsBuffer[id.x] = ball;
+    ballsBuffer[id.x] = ball;
 }
-
-

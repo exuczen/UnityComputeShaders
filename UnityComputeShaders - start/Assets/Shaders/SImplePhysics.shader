@@ -1,6 +1,8 @@
-﻿Shader "Physics/Simple" { 
+﻿Shader "Physics/Simple" 
+{ 
 
-   Properties {
+   Properties 
+   {
 		_Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
 		_BumpMap ("Bumpmap", 2D) = "bump" {}
@@ -9,7 +11,8 @@
 		_Glossiness ("Smoothness", Range(0,1)) = 1.0
 	}
 
-   SubShader {
+   SubShader 
+   {
         Cull Off
 
 		CGPROGRAM        
