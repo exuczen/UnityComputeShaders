@@ -126,7 +126,7 @@ public class GPUPhysics : MonoBehaviour
 
         for (int i = 0; i < rigidBodyCount; i++)
         {
-            var pos = Random.insideUnitSphere * 0.5f;
+            var pos = Random.insideUnitSphere * 5.0f;
             pos.y += 15f;
             rigidBodiesArray[i] = new RigidBody(pos, pIndex, particlesPerBody);
             pIndex += particlesPerBody;
@@ -236,6 +236,12 @@ public class GPUPhysics : MonoBehaviour
         }
 
         Graphics.DrawMeshInstancedIndirect(CubeMesh, 0, cubeMaterial, bounds, argsBuffer);
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            InitRigidBodies();
+            rigidBodiesBuffer.SetData(rigidBodiesArray);
+        }
     }
 
     private void OnDestroy()
