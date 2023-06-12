@@ -10,7 +10,10 @@ inline float4 quat_concat(float4 q1, float4 q2)
 
 inline float3 quat_mul(float4 q, float3 v)
 {
-    return dot(q.xyz, v) * q.xyz + q.w * q.w * v + 2.0 * q.w * cross(q.xyz, v) - cross(cross(q.xyz, v), q.xyz);
+    //return dot(q.xyz, v) * q.xyz + q.w * q.w * v + 2.0 * q.w * cross(q.xyz, v) - cross(cross(q.xyz, v), q.xyz);
+    float3 u = q.xyz;
+    float s = q.w;
+    return 2.0 * dot(u, v) * u + (s * s - dot(u, u)) * v + 2.0 * s * cross(u, v);
 }
 
 // Kernels
@@ -78,6 +81,7 @@ void GenerateParticleValues(uint3 id : SV_DispatchThreadID)
         particle.offsetPosition = quat_mul(body.quaternion, particle.localPosition);
         particle.position = body.position + particle.offsetPosition;
         particle.velocity = body.velocity + cross(body.angularVelocity, particle.offsetPosition);
+        particle.force = 0;
         particlesBuffer[pIndex++] = particle;
     }
 }
@@ -136,18 +140,18 @@ float3 CollisionReaction(int j_id, int i_id)
 [numthreads(PARTICLE_THREAD_COUNT, 1, 1)]
 void CollisionDetection(uint3 id : SV_DispatchThreadID)
 {
-    float3 force = 0;
+    float3 force = CollisionReaction(-1, id.x);
     
-    for (int i = -1; i < particleCount; i++)
+    int bodyParticleIndex = particlesPerRigidBody * (int)(id.x / particlesPerRigidBody);
+    
+    for (int j = 0; j < bodyParticleIndex; j++)
     {
-        if (i == (int)id.x)
-        {
-            continue;
-        }
-        force += CollisionReaction(i, id.x);
+        force += CollisionReaction(j, id.x);
     }
-    //force.y -= gravityCoefficient;
-    
+    for (j = bodyParticleIndex + particlesPerRigidBody; j < particleCount; j++)
+    {
+        force += CollisionReaction(j, id.x);
+    }
     particlesBuffer[id.x].force = force;
 }
 
@@ -181,13 +185,13 @@ void ComputeMomenta(uint3 id : SV_DispatchThreadID)
         float threshold = 0.000001;
         float bodyMass = particleMass * body.particleCount;
         body.velocity /= 1.0 + deltaTime * frictionCoefficient;
-        body.velocity += linearForceScalar * deltaTime * linearForce * bodyMass; // FUCKUP - there should be division by bodyMass: dv = dt * F / m
+        body.velocity += linearForceScalar * deltaTime * linearForce / bodyMass; // dv = dt * F / m
+        body.velocity.y -= gravityCoefficient * deltaTime;
         if (length(body.velocity) < threshold)
         {
             body.velocity = 0;
         }
         
-        //body.angularVelocity = 1;
         body.angularVelocity /= 1.0 + deltaTime * angularFrictionCoefficient;
         body.angularVelocity += angularForceScalar * deltaTime * angularForceM;
         if (length(body.angularVelocity) < threshold)
@@ -210,7 +214,6 @@ void ComputePositionAndRotation(uint3 id : SV_DispatchThreadID)
     if (id.x < (uint)activeCount)
     {
         RigidBody body = rigidBodiesBuffer[id.x];
-        body.velocity.y -= gravityCoefficient * deltaTime;
         body.position += body.velocity * deltaTime;
         float4 omega = float4(body.angularVelocity, 0);
         body.quaternion = normalize(body.quaternion + deltaTime * 0.5 * quat_concat(omega, body.quaternion));

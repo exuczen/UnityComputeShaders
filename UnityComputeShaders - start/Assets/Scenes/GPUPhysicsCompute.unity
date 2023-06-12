@@ -264,7 +264,7 @@ MonoBehaviour:
   gravityCoefficient: 9.8
   frictionCoefficient: 0.1
   angularFrictionCoefficient: 0.1
-  angularForceScalar: 100
+  angularForceScalar: 300
   linearForceScalar: 100
   rigidBodyCount: 10
   stepsPerUpdate: 10

@@ -136,6 +136,8 @@ public class GPUPhysicsCompute : MonoBehaviour
     {
         particleDiameter = scale / particlesPerEdge;
 
+        // (particlesPerEdge - 1) * particleDiameter = (scale / particleDiameter - 1) * particleDiameter = scale - particleDiameter
+        //
         // initial local particle positions within a rigidbody
         int index = 0;
         float c = (particleDiameter - scale) * 0.5f;
@@ -205,6 +207,7 @@ public class GPUPhysicsCompute : MonoBehaviour
         shader.SetBuffer(kernelGenerateParticleValues, "particlesBuffer", particlesBuffer);
 
         // kernel 1 Collision Detection
+        shader.SetBuffer(kernelCollisionDetection, "rigidBodiesBuffer", rigidBodiesBuffer);
         shader.SetBuffer(kernelCollisionDetection, "particlesBuffer", particlesBuffer);
 
         // kernel 2 Computation of Momenta
@@ -248,6 +251,34 @@ public class GPUPhysicsCompute : MonoBehaviour
         }
 
         Graphics.DrawMeshInstancedIndirect(CubeMesh, 0, cubeMaterial, bounds, argsBuffer);
+
+        // DEBUG
+        //{
+        //    rigidBodiesBuffer.GetData(rigidBodiesArray);
+        //    particlesBuffer.GetData(particlesArray);
+        //    var body = rigidBodiesArray[0];
+        //    if (body.angularVelocity != Vector3.zero)
+        //    {
+        //        int forceParticleCount = 0;
+        //        for (int i = 0; i < body.particleCount; i++)
+        //        {
+        //            var particle = particlesArray[i];
+        //            if (particle.force != default)
+        //            {
+        //                forceParticleCount++;
+        //            }
+        //        }
+        //        if (forceParticleCount > 0)
+        //        {
+        //            Debug.Log($"{GetType().Name}.Update: angularVelocity: {body.angularVelocity} forceParticleCount: {forceParticleCount}");
+        //        }
+        //    }
+        //}
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            InitRigidBodies();
+            rigidBodiesBuffer.SetData(rigidBodiesArray);
+        }
     }
 
     private void OnDestroy()
