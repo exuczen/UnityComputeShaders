@@ -1,11 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 public class GPUPhysicsCubes : MonoBehaviour
 {
-    struct RigidBody
+    private static readonly int SIZE_RIGIDBODY = Marshal.SizeOf<RigidBody>(); //13 * sizeof(float) + 2 * sizeof(int);
+    private static readonly int SIZE_PARTICLE = Marshal.SizeOf<Particle>(); //15 * sizeof(float);
+
+    private struct RigidBody
     {
         public Vector3 position;
         public Quaternion quaternion;
@@ -24,9 +28,7 @@ public class GPUPhysicsCubes : MonoBehaviour
         }
     };
 
-    int SIZE_RIGIDBODY = 13 * sizeof(float) + 2 * sizeof(int);
-
-    struct Particle
+    private struct Particle
     {
         public Vector3 position;
         public Vector3 velocity;
@@ -41,26 +43,24 @@ public class GPUPhysicsCubes : MonoBehaviour
         }
     };
 
-    int SIZE_PARTICLE = 15 * sizeof(float);
-
     public bool debugWireframe;
 
     // set from editor
-    public Mesh cubeMesh
+    public Mesh CubeMesh
     {
         get
         {
             return debugWireframe ? CjLib.PrimitiveMeshFactory.BoxWireframe() : CjLib.PrimitiveMeshFactory.BoxFlatShaded();
         }
     }
-    public Mesh sphereMesh
+    public Mesh SphereMesh
     {
         get
         {
             return CjLib.PrimitiveMeshFactory.SphereWireframe(6, 6);
         }
     }
-    public Mesh lineMesh
+    public Mesh LineMesh
     {
         get
         {
@@ -84,7 +84,7 @@ public class GPUPhysicsCubes : MonoBehaviour
     public float angularFrictionCoefficient;
     public float angularForceScalar;
     public float linearForceScalar;
-    public Vector3Int gridSize = new Vector3Int(5, 5, 5);
+    public Vector3Int gridSize = new(5, 5, 5);
     public Vector3 gridPosition;//centre of grid
     public bool useGrid = true;
     public int rigidBodyCount = 1000;
@@ -94,14 +94,14 @@ public class GPUPhysicsCubes : MonoBehaviour
     // calculated
     private Vector3 cubeScale;
 
-    int particlesPerBody;
-    float particleDiameter;
+    private int particlesPerBody;
+    private float particleDiameter;
 
-    RigidBody[] rigidBodiesArray;
-    Particle[] particlesArray;
+    private RigidBody[] rigidBodiesArray;
+    private Particle[] particlesArray;
 
-    ComputeBuffer rigidBodiesBuffer;
-    ComputeBuffer particlesBuffer;
+    private ComputeBuffer rigidBodiesBuffer;
+    private ComputeBuffer particlesBuffer;
     private ComputeBuffer argsBuffer;
     private ComputeBuffer argsSphereBuffer;
     private ComputeBuffer argsLineBuffer;
@@ -120,11 +120,11 @@ public class GPUPhysicsCubes : MonoBehaviour
     private int groupsPerGridCell;
     private int deltaTimeID;
 
-    int activeCount = 0;
+    private int activeCount = 0;
 
     private int frameCounter;
 
-    void Start()
+    private void Start()
     {
         Application.targetFrameRate = 300;
 
@@ -144,7 +144,7 @@ public class GPUPhysicsCubes : MonoBehaviour
 
     }
 
-    void InitArrays()
+    private void InitArrays()
     {
         particlesPerBody = particlesPerEdge * particlesPerEdge * particlesPerEdge;
 
@@ -152,7 +152,7 @@ public class GPUPhysicsCubes : MonoBehaviour
         particlesArray = new Particle[rigidBodyCount * particlesPerBody];
     }
 
-    void InitRigidBodies()
+    private void InitRigidBodies()
     {
         int pIndex = 0;
 
@@ -165,7 +165,7 @@ public class GPUPhysicsCubes : MonoBehaviour
         }
     }
 
-    void InitParticles()
+    private void InitParticles()
     {
         particleDiameter = scale / particlesPerEdge;
 
@@ -177,7 +177,7 @@ public class GPUPhysicsCubes : MonoBehaviour
         // initial local particle positions within a rigidbody
         int index = 0;
         float centerer = scale * -0.5f + particleDiameter * 0.5f;
-        Vector3 offset = new Vector3(centerer, centerer, centerer);
+        var offset = new Vector3(centerer, centerer, centerer);
 
         for (int x = 0; x < particlesPerEdge; x++)
         {
@@ -199,7 +199,7 @@ public class GPUPhysicsCubes : MonoBehaviour
         Debug.Log("particleCount: " + rigidBodyCount * particlesPerBody);
     }
 
-    void InitBuffers()
+    private void InitBuffers()
     {
         rigidBodiesBuffer = new ComputeBuffer(rigidBodyCount, SIZE_RIGIDBODY);
         rigidBodiesBuffer.SetData(rigidBodiesArray);
@@ -212,7 +212,7 @@ public class GPUPhysicsCubes : MonoBehaviour
         voxelGridBuffer = new ComputeBuffer(numGridCells, 8 * sizeof(int));
     }
 
-    void InitShader()
+    private void InitShader()
     {
         deltaTimeID = Shader.PropertyToID("deltaTime");
 
@@ -279,12 +279,12 @@ public class GPUPhysicsCubes : MonoBehaviour
         shader.SetBuffer(kernelCollisionDetection, "voxelGridBuffer", voxelGridBuffer);
     }
 
-    void InitInstancing()
+    private void InitInstancing()
     {
         // Setup Indirect Renderer
         cubeMaterial.SetBuffer("rigidBodiesBuffer", rigidBodiesBuffer);
 
-        uint[] args = new uint[] { cubeMesh.GetIndexCount(0), (uint)1, 0, 0, 0 };
+        uint[] args = new uint[] { CubeMesh.GetIndexCount(0), (uint)1, 0, 0, 0 };
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         argsBuffer.SetData(args);
 
@@ -292,11 +292,11 @@ public class GPUPhysicsCubes : MonoBehaviour
         {
             int numOfParticles = rigidBodyCount * particlesPerBody;
 
-            uint[] sphereArgs = new uint[] { sphereMesh.GetIndexCount(0), (uint)numOfParticles, 0, 0, 0 };
+            uint[] sphereArgs = new uint[] { SphereMesh.GetIndexCount(0), (uint)numOfParticles, 0, 0, 0 };
             argsSphereBuffer = new ComputeBuffer(1, sphereArgs.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
             argsSphereBuffer.SetData(sphereArgs);
 
-            uint[] lineArgs = new uint[] { lineMesh.GetIndexCount(0), (uint)numOfParticles, 0, 0, 0 };
+            uint[] lineArgs = new uint[] { LineMesh.GetIndexCount(0), (uint)numOfParticles, 0, 0, 0 };
             argsLineBuffer = new ComputeBuffer(1, lineArgs.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
             argsLineBuffer.SetData(lineArgs);
 
@@ -307,14 +307,14 @@ public class GPUPhysicsCubes : MonoBehaviour
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (activeCount < rigidBodyCount && frameCounter++ > 5)
         {
             activeCount++;
             frameCounter = 0;
             shader.SetInt("activeCount", activeCount);
-            uint[] args = new uint[] { cubeMesh.GetIndexCount(0), (uint)activeCount, 0, 0, 0 };
+            uint[] args = new uint[] { CubeMesh.GetIndexCount(0), (uint)activeCount, 0, 0, 0 };
             argsBuffer.SetData(args);
         }
 
@@ -340,33 +340,29 @@ public class GPUPhysicsCubes : MonoBehaviour
 
         if (debugWireframe)
         {
-            Graphics.DrawMeshInstancedIndirect(sphereMesh, 0, sphereMaterial, bounds, argsSphereBuffer);
-            Graphics.DrawMeshInstancedIndirect(lineMesh, 0, lineMaterial, bounds, argsLineBuffer);
+            Graphics.DrawMeshInstancedIndirect(SphereMesh, 0, sphereMaterial, bounds, argsSphereBuffer);
+            Graphics.DrawMeshInstancedIndirect(LineMesh, 0, lineMaterial, bounds, argsLineBuffer);
         }
         else
         {
-            Graphics.DrawMeshInstancedIndirect(cubeMesh, 0, cubeMaterial, bounds, argsBuffer);
+            Graphics.DrawMeshInstancedIndirect(CubeMesh, 0, cubeMaterial, bounds, argsBuffer);
+        }
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            InitRigidBodies();
+            rigidBodiesBuffer.SetData(rigidBodiesArray);
         }
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         rigidBodiesBuffer.Release();
         particlesBuffer.Release();
 
         voxelGridBuffer.Release();
 
-        if (argsSphereBuffer != null)
-        {
-            argsSphereBuffer.Release();
-        }
-        if (argsLineBuffer != null)
-        {
-            argsLineBuffer.Release();
-        }
-        if (argsBuffer != null)
-        {
-            argsBuffer.Release();
-        }
+        argsSphereBuffer?.Release();
+        argsLineBuffer?.Release();
+        argsBuffer?.Release();
     }
 }

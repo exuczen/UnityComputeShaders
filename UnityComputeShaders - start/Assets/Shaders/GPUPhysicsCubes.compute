@@ -126,7 +126,10 @@ float particleDiameter;
 [numthreads(CLEAR_GRID_THREAD_COUNT, 1, 1)]
 void ClearGrid(uint3 id : SV_DispatchThreadID)
 {
-	
+    Voxel clearVoxel;
+    clearVoxel.vox1 = -1;
+    clearVoxel.vox2 = -1;
+    voxelGridBuffer[id.x] = clearVoxel;
 }
 
 // Returns the grid index for particle p
@@ -153,9 +156,48 @@ int GetGridIndex(int3 loc)
 }
 
 [numthreads(PARTICLE_THREAD_COUNT, 1, 1)]
-void PopulateGrid(uint3 id : SV_DispatchThreadID)
+ void PopulateGrid(uint3 id : SV_DispatchThreadID)
 {
-	
+    int index = GetParticleGridIndex(id.x);
+    if (index >= 0 && index < gridMax)
+    {
+        bool result = false;
+        Voxel voxel = voxelGridBuffer[index];
+        
+        if (voxel.vox1.x < 0)
+        {
+            voxel.vox1.x = id.x;
+        }
+        else if (voxel.vox1.y < 0)
+        {
+            voxel.vox1.y = id.x;
+        }
+        else if (voxel.vox1.z < 0)
+        {
+            voxel.vox1.z = id.x;
+        }
+        else if (voxel.vox1.w < 0)
+        {
+            voxel.vox1.w = id.x;
+        }
+        else if (voxel.vox2.x < 0)
+        {
+            voxel.vox2.x = id.x;
+        }
+        else if (voxel.vox2.y < 0)
+        {
+            voxel.vox2.y = id.x;
+        }
+        else if (voxel.vox2.z < 0)
+        {
+            voxel.vox2.z = id.x;
+        }
+        else if (voxel.vox2.w < 0)
+        {
+            voxel.vox2.w = id.x;
+        }
+        voxelGridBuffer[index] = voxel;
+    }
 }
 
 /////////////////////////
@@ -217,7 +259,30 @@ float3 CollisionReaction(int j_id, int i_id)
 float3 ForceFromGridCell(int i, int x, int y, int z)
 {
     float3 force = 0;
-	
+    
+    if (x >= 0 && y >= 0 && z >= 0 && x < gridDimensions.x && y < gridDimensions.y && z < gridDimensions.z)
+    {
+        int index = GetGridIndex(x, y, z);
+        if (index >= 0 && index < gridMax)
+        {
+            Voxel voxel = voxelGridBuffer[index];
+            int i_bodyIndex = i / particlesPerRigidBody;
+            
+            for (int j = 0; j < 4; j++)
+            {
+                int j_vox1 = voxel.vox1[j];
+                if (j_vox1 >= 0 && j_vox1 != i && (j_vox1 / particlesPerRigidBody) != i_bodyIndex)
+                {
+                    force += CollisionReaction(j_vox1, i);
+                }
+                int j_vox2 = voxel.vox2[j];
+                if (j_vox2 >= 0 && j_vox2 != i && (j_vox2 / particlesPerRigidBody) != i_bodyIndex)
+                {
+                    force += CollisionReaction(j_vox2, i);
+                }
+            }
+        }
+    }
     return force;
 }
 
@@ -225,25 +290,38 @@ float gravityCoefficient;
 [numthreads(PARTICLE_THREAD_COUNT, 1, 1)]
 void CollisionDetectionWithGrid(uint3 id : SV_DispatchThreadID)
 {
-    float3 force = 0;
-	
+    float3 force = CollisionReaction(-1, id.x);
+    
+    int3 loc = GetParticleGridLocation(id.x);
+    
+    for (int x = loc.x - 1; x <= loc.x + 1; x++)
+    {
+        for (int y = loc.y - 1; y <= loc.y + 1; y++)
+        {
+            for (int z = loc.z - 1; z <= loc.z + 1; z++)
+            {
+                force += ForceFromGridCell(id.x, x, y, z);
+            }
+        }
+    }
     particlesBuffer[id.x].force = force;
 }
 
 [numthreads(PARTICLE_THREAD_COUNT, 1, 1)]
 void CollisionDetection(uint3 id : SV_DispatchThreadID)
 {
-    float3 force = 0;
-
-    for (int i = -1; i < particleCount; i++)
+    float3 force = CollisionReaction(-1, id.x);
+    
+    int bodyParticleIndex = particlesPerRigidBody * (int)(id.x / particlesPerRigidBody);
+    
+    for (int j = 0; j < bodyParticleIndex; j++)
     {
-        if (i == (int)id.x)
-            continue;
-        force += CollisionReaction(i, id.x);
+        force += CollisionReaction(j, id.x);
     }
-
-    force.y -= gravityCoefficient;
-
+    for (j = bodyParticleIndex + particlesPerRigidBody; j < particleCount; j++)
+    {
+        force += CollisionReaction(j, id.x);
+    }
     particlesBuffer[id.x].force = force;
 }
 
@@ -281,7 +359,8 @@ void ComputeMomenta(uint3 id : SV_DispatchThreadID)
 
         float cubeMass = particleMass * body.particleCount;
         body.velocity /= 1.0 + deltaTime * frictionCoefficient;
-        body.velocity += linearForceScalar * deltaTime * linearForce * cubeMass;
+        body.velocity += linearForceScalar * deltaTime * linearForce / cubeMass;
+        body.velocity.y -= gravityCoefficient * deltaTime;
         if (length(body.velocity) < threshold)
         {
             body.velocity = 0;
