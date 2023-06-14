@@ -12,8 +12,8 @@ RWStructuredBuffer<GrassClump> clumpsBuffer;
 float time;
 float maxLean;
 
-[numthreads(THREADGROUPSIZE,1,1)]
-void LeanGrass (uint3 id : SV_DispatchThreadID)
+[numthreads(THREADGROUPSIZE, 1, 1)]
+void LeanGrass(uint3 id : SV_DispatchThreadID)
 {
     GrassClump clump = clumpsBuffer[id.x];
 
