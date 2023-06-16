@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class Challenge6 : MonoBehaviour
 {
-    struct GrassClump
+    private static readonly int SIZE_GRASS_CLUMP = 10 * sizeof(float);
+
+    private struct GrassClump
     {
         public Vector3 position;
         public float lean;
@@ -12,7 +14,7 @@ public class Challenge6 : MonoBehaviour
         public Quaternion quaternion;
         public float noise;
 
-        public GrassClump( Vector3 pos)
+        public GrassClump(Vector3 pos)
         {
             position.x = pos.x;
             position.y = pos.y;
@@ -24,44 +26,48 @@ public class Challenge6 : MonoBehaviour
             trample = 0;
         }
     }
-    int SIZE_GRASS_CLUMP = 10 * sizeof(float);
 
     public Mesh mesh;
     public Material material;
     public Material visualizeNoise;
     public bool viewNoise = false;
     public ComputeShader shader;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float density;
-    [Range(0.1f,3)]
+    [Range(0.1f, 3)]
     public float scale;
     [Range(10, 45)]
     public float maxLean;
     public Transform trampler;
-    [Range(0.1f,2)]
+    [Range(0.1f, 2)]
     public float trampleRadius = 0.5f;
-    //TO DO: Add wind direction (0-360), speed (0-2)  and scale (10-1000)
+    //TODO: Add wind direction (0-360), speed (0-2)  and scale (10-1000)
+    [Range(0, 2)]
+    public float windSpeed = 0.2f;
+    [Range(0, 360)]
+    public float windDirection = 130f;
+    [Range(10, 1000)]
+    public float windScale = 100f;
 
-    ComputeBuffer clumpsBuffer;
-    ComputeBuffer argsBuffer;
-    GrassClump[] clumpsArray;
-    uint[] argsArray = new uint[] { 0, 0, 0, 0, 0 };
-    Bounds bounds;
-    int timeID;
-    int tramplePosID;
-    int groupSize;
-    int kernelUpdateGrass;
-    Vector4 pos = new Vector4();
-    Material groundMaterial;
+    private ComputeBuffer clumpsBuffer;
+    private ComputeBuffer argsBuffer;
+    private GrassClump[] clumpsArray;
+    private readonly uint[] argsArray = new uint[] { 0, 0, 0, 0, 0 };
+    private Bounds bounds;
+    private int timeID;
+    private int tramplePosID;
+    private int groupSize;
+    private int kernelUpdateGrass;
+    private Material groundMaterial;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         bounds = new Bounds(Vector3.zero, new Vector3(30, 30, 30));
 
         MeshRenderer renderer = GetComponent<MeshRenderer>();
         groundMaterial = renderer.material;
-        
+
         InitShader();
     }
 
@@ -73,8 +79,14 @@ public class Challenge6 : MonoBehaviour
 
             renderer.material = (viewNoise) ? visualizeNoise : groundMaterial;
 
-            //TO DO: Set wind vector
-            Vector4 wind = new Vector4();
+            //TODO: Set wind vector
+            var wind = new Vector4
+            {
+                x = Mathf.Cos(windDirection * Mathf.Deg2Rad),
+                y = Mathf.Sin(windDirection * Mathf.Deg2Rad),
+                z = windSpeed,
+                w = windScale
+            };
             shader.SetVector("wind", wind);
             visualizeNoise.SetVector("wind", wind);
         }
@@ -84,8 +96,8 @@ public class Challenge6 : MonoBehaviour
     {
         MeshFilter mf = GetComponent<MeshFilter>();
         Bounds bounds = mf.sharedMesh.bounds;
-        Vector2 size = new Vector2(bounds.extents.x * transform.localScale.x, bounds.extents.z * transform.localScale.z);
-        
+        var size = new Vector2(bounds.extents.x * transform.localScale.x, bounds.extents.z * transform.localScale.z);
+
         Vector2 clumps = size;
         Vector3 vec = transform.localScale / 0.1f * density;
         clumps.x *= vec.x;
@@ -95,16 +107,15 @@ public class Challenge6 : MonoBehaviour
 
         kernelUpdateGrass = shader.FindKernel("UpdateGrass");
 
-        uint threadGroupSize;
-        shader.GetKernelThreadGroupSizes(kernelUpdateGrass, out threadGroupSize, out _, out _);
-        groupSize = Mathf.CeilToInt((float)total / (float)threadGroupSize);
+        shader.GetKernelThreadGroupSizes(kernelUpdateGrass, out uint threadGroupSize, out _, out _);
+        groupSize = Mathf.CeilToInt((float)total / threadGroupSize);
         int count = groupSize * (int)threadGroupSize;
 
         clumpsArray = new GrassClump[count];
 
-        for(int i=0; i<count; i++)
+        for (int i = 0; i < count; i++)
         {
-            Vector3 pos = new Vector3(Random.value * size.x * 2 - size.x, 0, Random.value * size.y * 2 - size.y);
+            var pos = new Vector3(Random.value * size.x * 2 - size.x, 0, Random.value * size.y * 2 - size.y);
             clumpsArray[i] = new GrassClump(pos);
         }
 
@@ -114,8 +125,14 @@ public class Challenge6 : MonoBehaviour
         shader.SetBuffer(kernelUpdateGrass, "clumpsBuffer", clumpsBuffer);
         shader.SetFloat("maxLean", maxLean * Mathf.PI / 180);
         shader.SetFloat("trampleRadius", trampleRadius);
-        //TO DO: Set wind vector
-        Vector4 wind = new Vector4();
+        //TODO: Set wind vector
+        var wind = new Vector4
+        {
+            x = Mathf.Cos(windDirection * Mathf.Deg2Rad),
+            y = Mathf.Sin(windDirection * Mathf.Deg2Rad),
+            z = windSpeed,
+            w = windScale
+        };
         shader.SetVector("wind", wind);
         timeID = Shader.PropertyToID("time");
         tramplePosID = Shader.PropertyToID("tramplePos");
@@ -132,15 +149,15 @@ public class Challenge6 : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         shader.SetFloat(timeID, Time.time);
-        pos = trampler.position;
-        shader.SetVector(tramplePosID, pos);
+        shader.SetVector(tramplePosID, trampler.position);
 
         shader.Dispatch(kernelUpdateGrass, groupSize, 1, 1);
 
-        if (!viewNoise) {
+        if (!viewNoise)
+        {
             Graphics.DrawMeshInstancedIndirect(mesh, 0, material, bounds, argsBuffer);
         }
     }

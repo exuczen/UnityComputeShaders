@@ -20,10 +20,11 @@ float time;
 
 #include "noiseSimplex.cginc"
 
-float4 MapVector(float3 v1, float3 v2){
+float4 MapVector(float3 v1, float3 v2)
+{
     v1 = normalize(v1);
     v2 = normalize(v2);
-    float3 v = v1+v2;
+    float3 v = v1 + v2;
     v = normalize(v);
     float4 q = 0;
     q.w = dot(v, v2);
@@ -31,22 +32,28 @@ float4 MapVector(float3 v1, float3 v2){
     return q;
 }
 
-[numthreads(THREADGROUPSIZE,1,1)]
-void UpdateGrass (uint3 id : SV_DispatchThreadID)
+[numthreads(THREADGROUPSIZE, 1, 1)]
+void UpdateGrass(uint3 id : SV_DispatchThreadID)
 {
     GrassClump clump = clumpsBuffer[id.x];
 
     float3 relativePosition = clump.position - tramplePos.xyz;
     float dist = length(relativePosition);
 
-    if (dist<trampleRadius){
-        clump.trample = (trampleRadius - dist)/trampleRadius;
-        clump.quaternion = MapVector(float3(0,1,0), relativePosition);
-    }else if (clump.trample!=0){
+    if (dist < trampleRadius)
+    {
+        clump.trample = (trampleRadius - dist) / trampleRadius;
+        clump.quaternion = MapVector(float3(0, 1, 0), relativePosition);
+    }
+    else if (clump.trample != 0)
+    {
         clump.trample *= 0.98;
     }
 
-    //TO DO: Set clump.lean based on wind and perlin noise
+    //TODO: Set clump.lean based on wind and perlin noise
+    float2 offset = (clump.position.xz + wind.xy * time * wind.z) * wind.w;
+    float noise = perlin(offset.x, offset.y) * 2 - 1;
+    clump.lean = noise * maxLean * clump.noise;
 
     clumpsBuffer[id.x] = clump;
 }
