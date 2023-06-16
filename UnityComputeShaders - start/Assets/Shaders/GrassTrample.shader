@@ -95,8 +95,11 @@
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 v.vertex.xyz *= _Scale;
                 float4 rotatedVertex = mul(_Matrix, v.vertex);
+                float4 trampledVertex = mul(_TrampleMatrix, v.vertex);
                 v.vertex.xyz += _Position;
+                trampledVertex = lerp(v.vertex, trampledVertex, v.texcoord.y);
                 v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
+                v.vertex = lerp(v.vertex, trampledVertex, _Trample);
             #endif
         }
 
@@ -106,6 +109,8 @@
                 GrassClump clump = clumpsBuffer[unity_InstanceID];
                 _Position = clump.position;
                 _Matrix = create_matrix(clump.position, clump.lean);       
+                _Trample = clump.trample;
+                _TrampleMatrix = quaternion_to_matrix(clump.quaternion);
             #endif
         }
 

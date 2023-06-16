@@ -1,9 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class GrassTrample : MonoBehaviour
 {
+    private readonly static int SIZE_GRASS_CLUMP = Marshal.SizeOf<GrassClump>(); //10 * sizeof(float);
+
     struct GrassClump
     {
         public Vector3 position;
@@ -12,7 +15,7 @@ public class GrassTrample : MonoBehaviour
         public Quaternion quaternion;
         public float noise;
 
-        public GrassClump( Vector3 pos)
+        public GrassClump(Vector3 pos)
         {
             position.x = pos.x;
             position.y = pos.y;
@@ -24,47 +27,46 @@ public class GrassTrample : MonoBehaviour
             quaternion = Quaternion.identity;
         }
     }
-    int SIZE_GRASS_CLUMP = 10 * sizeof(float);
 
     public Mesh mesh;
     public Material material;
     public ComputeShader shader;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float density;
-    [Range(0.1f,3)]
+    [Range(0.1f, 3)]
     public float scale;
     [Range(0.5f, 3)]
     public float speed;
     [Range(10, 45)]
     public float maxLean;
     public Transform trampler;
-    [Range(0.1f,2)]
+    [Range(0.1f, 2)]
     public float trampleRadius = 0.5f;
 
-    ComputeBuffer clumpsBuffer;
-    ComputeBuffer argsBuffer;
-    GrassClump[] clumpsArray;
-    uint[] argsArray = new uint[] { 0, 0, 0, 0, 0 };
-    Bounds bounds;
-    int timeID;
-    int tramplePosID;
-    int groupSize;
-    int kernelUpdateGrass;
-    Vector4 pos = new Vector4();
+    private ComputeBuffer clumpsBuffer;
+    private ComputeBuffer argsBuffer;
+    private GrassClump[] clumpsArray;
+    private readonly uint[] argsArray = new uint[] { 0, 0, 0, 0, 0 };
+    private Bounds bounds;
+    private int timeID;
+    private int tramplePosID;
+    private int groupSize;
+    private int kernelUpdateGrass;
+    private Vector4 pos = new Vector4();
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         bounds = new Bounds(Vector3.zero, new Vector3(30, 30, 30));
         InitShader();
     }
 
-    void InitShader()
+    private void InitShader()
     {
         MeshFilter mf = GetComponent<MeshFilter>();
         Bounds bounds = mf.sharedMesh.bounds;
-        Vector2 size = new Vector2(bounds.extents.x * transform.localScale.x, bounds.extents.z * transform.localScale.z);
-        
+        var size = new Vector2(bounds.extents.x * transform.localScale.x, bounds.extents.z * transform.localScale.z);
+
         Vector2 clumps = size;
         Vector3 vec = transform.localScale / 0.1f * density;
         clumps.x *= vec.x;
@@ -74,16 +76,15 @@ public class GrassTrample : MonoBehaviour
 
         kernelUpdateGrass = shader.FindKernel("UpdateGrass");
 
-        uint threadGroupSize;
-        shader.GetKernelThreadGroupSizes(kernelUpdateGrass, out threadGroupSize, out _, out _);
-        groupSize = Mathf.CeilToInt((float)total / (float)threadGroupSize);
+        shader.GetKernelThreadGroupSizes(kernelUpdateGrass, out uint threadGroupSize, out _, out _);
+        groupSize = Mathf.CeilToInt((float)total / threadGroupSize);
         int count = groupSize * (int)threadGroupSize;
 
         clumpsArray = new GrassClump[count];
 
-        for(int i=0; i<count; i++)
+        for (int i = 0; i < count; i++)
         {
-            Vector3 pos = new Vector3(Random.value * size.x * 2 - size.x, 0, Random.value * size.y * 2 - size.y);
+            var pos = new Vector3(Random.Range(-size.x, size.x), 0, Random.Range(-size.y, size.y));
             clumpsArray[i] = new GrassClump(pos);
         }
 
@@ -106,8 +107,7 @@ public class GrassTrample : MonoBehaviour
         material.SetFloat("_Scale", scale);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         shader.SetFloat(timeID, Time.time);
         pos = trampler.position;

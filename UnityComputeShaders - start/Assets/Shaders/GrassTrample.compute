@@ -17,10 +17,11 @@ float speed;
 float4 tramplePos;
 float trampleRadius;
 
-float4 MapVector(float3 v1, float3 v2){
+float4 MapVector(float3 v1, float3 v2)
+{
     v1 = normalize(v1);
     v2 = normalize(v2);
-    float3 v = v1+v2;
+    float3 v = v1 + v2;
     v = normalize(v);
     float4 q = 0;
     q.w = dot(v, v2);
@@ -28,14 +29,25 @@ float4 MapVector(float3 v1, float3 v2){
     return q;
 }
 
-[numthreads(THREADGROUPSIZE,1,1)]
-void UpdateGrass (uint3 id : SV_DispatchThreadID)
+[numthreads(THREADGROUPSIZE, 1, 1)]
+void UpdateGrass(uint3 id : SV_DispatchThreadID)
 {
     GrassClump clump = clumpsBuffer[id.x];
 
-    //TO DO: set trample and the quaternion for the clump
-
-    clump.lean = sin(time*speed) * maxLean * clump.noise;
+    //TODO: set trample and the quaternion for the clump
+    float3 ray = clump.position - tramplePos.xyz;
+    float dist = length(ray);
+    
+    if (dist < trampleRadius)
+    {
+        clump.trample = (1 - dist / trampleRadius) * 0.9;
+        clump.quaternion = MapVector(float3(0, 1, 0), ray / dist);
+    }
+    else
+    {
+        clump.trample *= 0.98;
+    }
+    clump.lean = sin(time * speed) * maxLean * clump.noise;
 
     clumpsBuffer[id.x] = clump;
 }
