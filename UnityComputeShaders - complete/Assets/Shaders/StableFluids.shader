@@ -48,8 +48,8 @@ Shader "Custom/StableFluids"
 
     half4 frag_render(v2f_img i) : SV_Target
     {
-        //half3 rgb = tex2D(_MainTex, i.uv).rgb;
-        half3 rgb = tex2D(_VelocityField, i.uv).xyx;
+        half3 rgb = tex2D(_MainTex, i.uv).rgb;
+        //half3 rgb = tex2D(_VelocityField, i.uv).xyx;
 
         return half4(rgb, 1);
     }

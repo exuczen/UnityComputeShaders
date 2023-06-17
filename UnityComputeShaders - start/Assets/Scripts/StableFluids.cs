@@ -13,7 +13,7 @@ public class StableFluids : MonoBehaviour
     public Texture2D initial;
     public ComputeShader compute;
     public Material material;
-   
+
     Vector2 previousInput;
 
     int kernelAdvect;
@@ -42,13 +42,36 @@ public class StableFluids : MonoBehaviour
 
     RenderTexture CreateRenderTexture(int componentCount, int width = 0, int height = 0)
     {
-        RenderTexture rt = new RenderTexture(width, height, 0);
-        rt.enableRandomWrite = true;
+        RenderTextureFormat format;
+        if (componentCount == 1)
+        {
+            format = RenderTextureFormat.RHalf;
+        }
+        else if (componentCount == 2)
+        {
+            format = RenderTextureFormat.RGHalf;
+        }
+        else
+        {
+            format = RenderTextureFormat.ARGBHalf;
+        }
+        if (width <= 0)
+        {
+            width = resolutionX;
+        }
+        if (height <= 0)
+        {
+            height = resolutionY;
+        };
+        var rt = new RenderTexture(width, height, 0, format)
+        {
+            enableRandomWrite = true
+        };
         rt.Create();
         return rt;
     }
 
-    
+
     void OnValidate()
     {
         resolution = Mathf.Max(resolution, 8);
@@ -64,17 +87,57 @@ public class StableFluids : MonoBehaviour
 
     void InitBuffers()
     {
-        
+        vfbRTV1 = CreateRenderTexture(2);
+        vfbRTV2 = CreateRenderTexture(2);
+        vfbRTV3 = CreateRenderTexture(2);
+        vfbRTP1 = CreateRenderTexture(1);
+        vfbRTP2 = CreateRenderTexture(1);
+        colorRT1 = CreateRenderTexture(4, Screen.width, Screen.height);
+        colorRT2 = CreateRenderTexture(4, Screen.width, Screen.height);
     }
 
     void InitShader()
     {
-        
+        kernelAdvect = compute.FindKernel("Advect");
+        kernelForce = compute.FindKernel("Force");
+        kernelProjectSetup = compute.FindKernel("ProjectSetup");
+        kernelProject = compute.FindKernel("Project");
+        kernelDiffuse1 = compute.FindKernel("Diffuse1");
+        kernelDiffuse2 = compute.FindKernel("Diffuse2");
+
+        compute.SetTexture(kernelAdvect, "U_in", vfbRTV1);
+        compute.SetTexture(kernelAdvect, "W_out", vfbRTV2);
+
+        compute.SetTexture(kernelDiffuse2, "B2_in", vfbRTV1);
+
+        compute.SetTexture(kernelForce, "W_in", vfbRTV2);
+        compute.SetTexture(kernelForce, "W_out", vfbRTV3);
+
+        compute.SetTexture(kernelProjectSetup, "W_in", vfbRTV3);
+        compute.SetTexture(kernelProjectSetup, "DivW_out", vfbRTV2);
+        compute.SetTexture(kernelProjectSetup, "P_out", vfbRTP1);
+
+        compute.SetTexture(kernelDiffuse1, "B1_in", vfbRTV2);
+
+        compute.SetTexture(kernelProject, "W_in", vfbRTV3);
+        compute.SetTexture(kernelProject, "P_in", vfbRTP1);
+        compute.SetTexture(kernelProject, "U_out", vfbRTV1);
+
+        compute.SetFloat("ForceExponent", exponent);
+
+        material.SetFloat("_ForceExponent", exponent);
+        material.SetTexture("_VelocityField", vfbRTV1);
     }
 
     void OnDestroy()
     {
-        
+        Destroy(vfbRTV1);
+        Destroy(vfbRTV2);
+        Destroy(vfbRTV3);
+        Destroy(vfbRTP1);
+        Destroy(vfbRTP2);
+        Destroy(colorRT1);
+        Destroy(colorRT2);
     }
 
     void Update()
@@ -83,7 +146,7 @@ public class StableFluids : MonoBehaviour
         float dx = 1.0f / resolutionY;
 
         // Input point
-        Vector2 input = new Vector2(
+        var input = new Vector2(
             (Input.mousePosition.x - Screen.width * 0.5f) / Screen.height,
             (Input.mousePosition.y - Screen.height * 0.5f) / Screen.height
         );
@@ -93,14 +156,71 @@ public class StableFluids : MonoBehaviour
         compute.SetFloat("DeltaTime", dt);
 
         //Add code here
+        compute.Dispatch(kernelAdvect, threadCountX, threadCountY, 1);
 
+        float difalpha = dx * dx / (viscosity * dt);
+        compute.SetFloat("Alpha", difalpha);
+        compute.SetFloat("Beta", 4 + difalpha);
+        Graphics.CopyTexture(vfbRTV2, vfbRTV1);
 
+        for (int i = 0; i < 20; i++)
+        {
+            compute.SetTexture(kernelDiffuse2, "X2_in", vfbRTV2);
+            compute.SetTexture(kernelDiffuse2, "X2_out", vfbRTV3);
+            compute.Dispatch(kernelDiffuse2, threadCountX, threadCountY, 1);
+
+            compute.SetTexture(kernelDiffuse2, "X2_in", vfbRTV3);
+            compute.SetTexture(kernelDiffuse2, "X2_out", vfbRTV2);
+            compute.Dispatch(kernelDiffuse2, threadCountX, threadCountY, 1);
+        }
+
+        compute.SetVector("ForceOrigin", input);
+
+        if (Input.GetMouseButton(1))
+        {
+            compute.SetVector("ForceVector", 0.025f * force * Random.insideUnitCircle);
+        }
+        else if (Input.GetMouseButton(0))
+        {
+            compute.SetVector("ForceVector", force * (input - previousInput));
+        }
+        else
+        {
+            compute.SetVector("ForceVector", Vector4.zero);
+        }
+        compute.Dispatch(kernelForce, threadCountX, threadCountY, 1);
+
+        compute.Dispatch(kernelProjectSetup, threadCountX, threadCountY, 1);
+
+        compute.SetFloat("Alpha", -dx * dx);
+        compute.SetFloat("Beta", 4);
+
+        for (int i = 0; i < 20; i++)
+        {
+            compute.SetTexture(kernelDiffuse1, "X1_in", vfbRTP1);
+            compute.SetTexture(kernelDiffuse1, "X1_out", vfbRTP2);
+            compute.Dispatch(kernelDiffuse1, threadCountX, threadCountY, 1);
+
+            compute.SetTexture(kernelDiffuse1, "X1_in", vfbRTP2);
+            compute.SetTexture(kernelDiffuse1, "X1_out", vfbRTP1);
+            compute.Dispatch(kernelDiffuse1, threadCountX, threadCountY, 1);
+        }
+
+        compute.Dispatch(kernelProject, threadCountX, threadCountY, 1);
+
+        var offs = Vector2.one * (Input.GetMouseButton(1) ? 0 : 1e+7f);
+        material.SetVector("_ForceOrigin", input + offs);
+        Graphics.Blit(colorRT1, colorRT2, material, 0);
+
+        (colorRT2, colorRT1) = (colorRT1, colorRT2);
 
         previousInput = input;
     }
 
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        //Graphics.Blit(vfbRTV3, destination, material, 1);
+        //Graphics.Blit(colorRT1, destination, material, 0);
         Graphics.Blit(colorRT1, destination, material, 1);
     }
 }

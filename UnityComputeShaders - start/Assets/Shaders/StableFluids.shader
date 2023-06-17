@@ -44,12 +44,18 @@ Shader "Custom/StableFluids"
         color = lerp(color, dye, saturate(amp * 100));
 
         return half4(color, 1);
+
+        //return half4(tex2D(_MainTex, i.uv).rgb, 1);
     }
 
     half4 frag_render(v2f_img i) : SV_Target
     {
-        //half3 rgb = tex2D(_MainTex, i.uv).rgb;
-        half3 rgb = tex2D(_VelocityField, i.uv).xyx;
+        half3 rgb = tex2D(_MainTex, i.uv).rgb;
+        //half3 rgb = tex2D(_VelocityField, i.uv).xyx;
+
+        //half3 rgb0 = tex2D(_MainTex, i.uv).rgb;
+        //half3 rgb1 = tex2D(_VelocityField, i.uv).xyx;
+        //half3 rgb = rgb0 * rgb1;
 
         return half4(rgb, 1);
     }
