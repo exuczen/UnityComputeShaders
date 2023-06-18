@@ -1,16 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class SPHFluid : MonoBehaviour
 {
+    private static readonly int SIZE_SPHPARTICLE = Marshal.SizeOf<SPHParticle>(); //11 * sizeof(float);
+    private static readonly int SIZE_SPHCOLLIDER = Marshal.SizeOf<SPHCollider>(); //11 * sizeof(float);
+
     private struct SPHParticle
     {
         public Vector3 position;
 
         public Vector3 velocity;
         public Vector3 force;
-        
+
         public float density;
         public float pressure;
 
@@ -23,7 +27,6 @@ public class SPHFluid : MonoBehaviour
             pressure = 0.0f;
         }
     }
-    int SIZE_SPHPARTICLE = 11 * sizeof(float);
 
     private struct SPHCollider
     {
@@ -40,7 +43,6 @@ public class SPHFluid : MonoBehaviour
             scale = new Vector2(_transform.lossyScale.x / 2f, _transform.lossyScale.y / 2f);
         }
     }
-    int SIZE_SPHCOLLIDER = 11 * sizeof(float);
 
     public float particleRadius = 1;
     public float smoothingRadius = 1;
@@ -55,47 +57,44 @@ public class SPHFluid : MonoBehaviour
     public Material material;
 
     // Consts
-    private static Vector4 GRAVITY = new Vector4(0.0f, -9.81f, 0.0f, 2000.0f);
+    private static readonly Vector4 GRAVITY = new(0.0f, -9.81f, 0.0f, 2000.0f);
     private const float DT = 0.0008f;
     private const float BOUND_DAMPING = -0.5f;
-    const float GAS = 2000.0f;
+    private const float GAS = 2000.0f;
 
     private float smoothingRadiusSq;
 
     // Data
-    SPHParticle[] particlesArray;
-    ComputeBuffer particlesBuffer;
-    SPHCollider[] collidersArray;
-    ComputeBuffer collidersBuffer;
-    uint[] argsArray = { 0, 0, 0, 0, 0 };
-    ComputeBuffer argsBuffer;
+    private SPHParticle[] particlesArray;
+    private ComputeBuffer particlesBuffer;
+    private SPHCollider[] collidersArray;
+    private ComputeBuffer collidersBuffer;
+    private readonly uint[] argsArray = { 0, 0, 0, 0, 0 };
+    private ComputeBuffer argsBuffer;
 
-    Bounds bounds = new Bounds(Vector3.zero, Vector3.one * 0);
+    private Bounds bounds = new(Vector3.zero, Vector3.one * 0);
 
-    int kernelComputeDensityPressure;
-    int kernelComputeForces;
-    int kernelIntegrate;
-    int kernelComputeColliders;
+    private int kernelComputeDensityPressure;
+    private int kernelComputeForces;
+    private int kernelIntegrate;
+    private int kernelComputeColliders;
 
-    int groupSize;
-    
+    private int groupSize;
+
     private void Start()
     {
         InitSPH();
         InitShader();
     }
 
-    void UpdateColliders()
+    private void UpdateColliders()
     {
         // Get colliders
         GameObject[] collidersGO = GameObject.FindGameObjectsWithTag("SPHCollider");
         if (collidersArray == null || collidersArray.Length != collidersGO.Length)
         {
             collidersArray = new SPHCollider[collidersGO.Length];
-            if (collidersBuffer != null)
-            {
-                collidersBuffer.Dispose();
-            }
+            collidersBuffer?.Dispose();
             collidersBuffer = new ComputeBuffer(collidersArray.Length, SIZE_SPHCOLLIDER);
         }
         for (int i = 0; i < collidersArray.Length; i++)
@@ -118,8 +117,7 @@ public class SPHFluid : MonoBehaviour
         Graphics.DrawMeshInstancedIndirect(particleMesh, 0, material, bounds, argsBuffer);
     }
 
-
-    void InitShader()
+    private void InitShader()
     {
         kernelComputeForces = shader.FindKernel("ComputeForces");
         kernelIntegrate = shader.FindKernel("Integrate");
@@ -165,9 +163,8 @@ public class SPHFluid : MonoBehaviour
     {
         kernelComputeDensityPressure = shader.FindKernel("ComputeDensityPressure");
 
-        uint numThreadsX;
-        shader.GetKernelThreadGroupSizes(kernelComputeDensityPressure, out numThreadsX, out _, out _);
-        groupSize = Mathf.CeilToInt((float)particleCount / (float)numThreadsX);
+        shader.GetKernelThreadGroupSizes(kernelComputeDensityPressure, out uint numThreadsX, out _, out _);
+        groupSize = Mathf.CeilToInt((float)particleCount / numThreadsX);
         int amount = (int)numThreadsX * groupSize;
 
         particlesArray = new SPHParticle[amount];
@@ -176,13 +173,15 @@ public class SPHFluid : MonoBehaviour
 
         for (int i = 0; i < amount; i++)
         {
-            Vector3 pos = new Vector3();
-            pos.x = (i % rowSize) + Random.Range(-0.1f, 0.1f) - center;
-            pos.y = 2 + (float)((i / rowSize) / rowSize) * 1.1f;
-            pos.z = ((i / rowSize) % rowSize) + Random.Range(-0.1f, 0.1f) - center;
+            var pos = new Vector3
+            {
+                x = (i % rowSize) + Random.Range(-0.1f, 0.1f) - center,
+                y = 2 + (i / rowSize) / rowSize * 1.1f,
+                z = ((i / rowSize) % rowSize) + Random.Range(-0.1f, 0.1f) - center
+            };
             pos *= particleRadius;
 
-            particlesArray[i] = new SPHParticle( pos );
+            particlesArray[i] = new SPHParticle(pos);
         }
     }
 
