@@ -112,12 +112,16 @@ public class Challenge7 : MonoBehaviour
         //TO DO: 1 - Setup the correct force origin.
         //The StableFluids.compute shader wants the input to have the origin at the centre of the quad.
         //The public property forceOrigin has uv coordinates, with the origin at bottom left
+        var inputForceOrigin = forceOrigin - 0.5f * Vector2.one;
+        compute.SetVector("ForceOrigin", inputForceOrigin);
 
+        material.SetVector("_ForceOrigin", inputForceOrigin);
         material.SetFloat("_ForceExponent", exponent);
         material.SetTexture("_VelocityField", vfbRTV1);
 
         //TO DO: 2 - Get the material attached to this object and set colorRT1 as its _MainTex property
-        
+        var renderer = GetComponent<MeshRenderer>();
+        renderer.material.SetTexture("_MainTex", colorRT1);
     }
 
     void OnDestroy()
@@ -163,6 +167,12 @@ public class Challenge7 : MonoBehaviour
         }
 
         //TO DO: 3 - Add random vector to the forceVector
+        var deltaForce = new Vector2
+        {
+            x = Random.Range(-10f, 10f),
+            y = Random.Range(-3f, 3f)
+        };
+        compute.SetVector("ForceVector", forceVector * Random.value + deltaForce);
 
         // Add external force
         compute.Dispatch(kernelForce, threadCountX, threadCountY, 1);

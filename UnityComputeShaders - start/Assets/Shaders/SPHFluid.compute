@@ -87,6 +87,7 @@ void ComputeDensityPressure(uint3 id : SV_DispatchThreadID)
         
         if (distSqr < smoothingRadiusSq)
         {
+            //POLY6 = 315.0f / (65.0f * PI * Mathf.Pow(Radius, 9.0f));
             //particle.density += mass * 315.0f * pow(smoothingRadiusSq - distSqr, 3.0f) / (64.0f * PI * pow(smoothingRadius, 9.0f));
             particle.density += mass * (315.0f / (64.0f * PI * pow(smoothingRadius, 9.0f))) * pow(smoothingRadiusSq - distSqr, 3.0f);
         }

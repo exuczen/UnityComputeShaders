@@ -41,7 +41,7 @@ Shader "Custom/Challenge7a"
 
         // Smoke (inject smoke)
         //TO DO: 4 - Set the smoke color including a suitable alpha value
-        float4 smoke = 0;
+        float4 smoke = float4(0.8, 0.8, 1.0, 0.7);
 
         // Blend smoke with the color from the buffer.   
         float2 pos = (i.uv - 0.5) * aspect;
