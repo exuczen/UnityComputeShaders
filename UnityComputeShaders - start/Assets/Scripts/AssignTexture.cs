@@ -16,7 +16,8 @@ public class AssignTexture : MonoBehaviour
     {
         outputTexture = new RenderTexture(texResolution, texResolution, 0)
         {
-            enableRandomWrite = true
+            enableRandomWrite = true,
+            filterMode = FilterMode.Point
         };
         outputTexture.Create();
 
