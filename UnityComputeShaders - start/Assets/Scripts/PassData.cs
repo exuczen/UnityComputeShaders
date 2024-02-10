@@ -7,21 +7,22 @@ public class PassData : MonoBehaviour
     public ComputeShader shader;
     public int texResolution = 1024;
 
-    Renderer rend;
-    RenderTexture outputTexture;
+    private Renderer rend;
+    private RenderTexture outputTexture;
 
-    int circlesHandle;
-    int clearHandle;
+    private int circlesHandle;
+    private int clearHandle;
 
     public Color clearColor = Color.blue;
     public Color circleColor = Color.yellow;
 
     // Use this for initialization
-    void Start()
+    private void Start()
     {
         outputTexture = new RenderTexture(texResolution, texResolution, 0)
         {
-            enableRandomWrite = true
+            enableRandomWrite = true,
+            filterMode = FilterMode.Point
         };
         outputTexture.Create();
 
@@ -53,7 +54,7 @@ public class PassData : MonoBehaviour
         shader.SetFloat("time", Time.time);
     }
 
-    void Update()
+    private void Update()
     {
         DispatchKernels(10);
     }

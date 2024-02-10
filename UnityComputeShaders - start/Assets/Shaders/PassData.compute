@@ -67,12 +67,34 @@ void drawCircle(int2 centre, int radius)
     }
 }
 
+void drawJeskoCircle(int2 c, int r)
+{
+    int t1 = r >> 4;
+    int x = r;
+    int y = 0;
+    
+    while (x >= y)
+    {
+        plot8(x, y, c);
+        
+        y++;
+        t1 += y;
+        int t2 = t1 - x;
+        if (t2 >= 0)
+        {
+            t1 = t2;
+            x--;
+        }
+    }
+}
+
 [numthreads(32, 1, 1)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
     int2 centre = (int2)(random2(id.x + time) * texResolution);
     int radius = (int)(random(id.x) * 30);
-    drawCircle(centre, radius);
+    //drawCircle(centre, radius);
+    drawJeskoCircle(centre, radius);
 }
 
 [numthreads(8, 8, 1)]
