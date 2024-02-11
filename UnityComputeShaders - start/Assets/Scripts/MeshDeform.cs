@@ -28,7 +28,7 @@ public class MeshDeform : MonoBehaviour
     private ComputeBuffer initialBuffer = null;
 
     // Use this for initialization
-    void Start()
+    private void Start()
     {
         if (InitData())
         {

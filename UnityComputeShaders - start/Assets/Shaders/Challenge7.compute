@@ -52,7 +52,7 @@ void Advect(uint2 tid : SV_DispatchThreadID)
 
     float2 uv = (tid + 0.5) / dim;
     float2 duv = U_in[tid] * float2((float)dim.y / dim.x, 1) * DeltaTime;
-    uint2 sid = (uint2)((uv-duv) * dim);
+    uint2 sid = (uint2)((uv - duv) * dim);
 
     W_out[tid] = U_in[sid];
 }
@@ -91,7 +91,8 @@ void Project(uint2 tid : SV_DispatchThreadID)
     uint2 dim;
     W_in.GetDimensions(dim.x, dim.y);
 
-    if (any(tid == 0) || any(tid == dim - 1)) return;
+    if (any(tid == 0) || any(tid == dim - 1))
+        return;
 
     float P1 = P_in[max(tid - int2(1, 0), 1)];
     float P2 = P_in[min(tid + int2(1, 0), dim - 2)];
@@ -102,10 +103,14 @@ void Project(uint2 tid : SV_DispatchThreadID)
 
     U_out[tid] = u;
 
-    if (tid.x == 1) U_out[int2(0, tid.y)] = -u;
-    if (tid.y == 1) U_out[int2(tid.x, 0)] = -u;
-    if (tid.x == dim.x - 2) U_out[int2(dim.x - 1, tid.y)] = -u;
-    if (tid.y == dim.y - 2) U_out[int2(tid.x, dim.y - 1)] = -u;
+    if (tid.x == 1)
+        U_out[int2(0, tid.y)] = -u;
+    if (tid.y == 1)
+        U_out[int2(tid.x, 0)] = -u;
+    if (tid.x == dim.x - 2)
+        U_out[int2(dim.x - 1, tid.y)] = -u;
+    if (tid.y == dim.y - 2)
+        U_out[int2(tid.x, dim.y - 1)] = -u;
 }
 
 // Jacobi method with a scalar field

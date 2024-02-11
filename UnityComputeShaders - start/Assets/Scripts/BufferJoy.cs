@@ -5,11 +5,11 @@ public class BufferJoy : MonoBehaviour
     public ComputeShader shader;
     public int texResolution = 1024;
 
-    Renderer rend;
-    RenderTexture outputTexture;
+    private Renderer rend;
+    private RenderTexture outputTexture;
 
-    int circlesHandle;
-    int clearHandle;
+    private int circlesHandle;
+    private int clearHandle;
 
     public Color clearColor = new();
     public Color circleColor = new();
@@ -29,8 +29,10 @@ public class BufferJoy : MonoBehaviour
     // Use this for initialization
     private void Start()
     {
-        outputTexture = new RenderTexture(texResolution, texResolution, 0);
-        outputTexture.enableRandomWrite = true;
+        outputTexture = new RenderTexture(texResolution, texResolution, 0)
+        {
+            enableRandomWrite = true
+        };
         outputTexture.Create();
 
         rend = GetComponent<Renderer>();

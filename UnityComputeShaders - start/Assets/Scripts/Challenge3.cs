@@ -15,8 +15,6 @@ public class Challenge3 : BaseCompletePP
     public float tintStrength;
     public Color tintColor = Color.white;
 
-    private Vector4 center = default;
-
     private void OnValidate()
     {
         if (!init)

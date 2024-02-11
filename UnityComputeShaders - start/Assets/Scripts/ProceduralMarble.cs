@@ -16,8 +16,10 @@ public class ProceduralMarble : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        outputTexture = new RenderTexture(texResolution, texResolution, 0);
-        outputTexture.enableRandomWrite = true;
+        outputTexture = new RenderTexture(texResolution, texResolution, 0)
+        {
+            enableRandomWrite = true
+        };
         outputTexture.Create();
 
         rend = GetComponent<Renderer>();
