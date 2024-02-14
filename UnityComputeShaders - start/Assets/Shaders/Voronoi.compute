@@ -1,0 +1,158 @@
+﻿#define CIRCLE_THREADS 1024
+#define CLEAR_THREADS 8
+
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Points
+#pragma kernel Circles
+#pragma kernel Diamonds
+#pragma kernel FillCircles
+#pragma kernel Clear
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+shared RWTexture2D<float4> Result;
+shared RWStructuredBuffer<int2> PointsBuffer;
+
+float CircleRadiusF;
+int TexResolution;
+int PointsCount;
+int Radius;
+int RadiusSqr;
+float4 ClearColor;
+float4 CircleColor;
+float Time;
+
+/*Returns pseudo random number in range 0 <= x < 1 */
+float random(float value, float seed = 0.546)
+{
+    float random = (frac(sin(value + seed) * 143758.5453)); // + 1.0)/2.0;
+    return random;
+}
+
+float2 random2(float value)
+{
+    return float2(
+		random(value, 3.9812),
+		random(value, 7.1536)
+	);
+}
+
+void plot1(int x, int y, int2 c, float4 color)
+{
+    uint2 xy = uint2(c.x + x, c.y + y);
+    if (Result[xy].w == 0)
+    {
+        Result[xy] = color;
+    }
+}
+
+void plot8(int x, int y, int2 center, float4 color)
+{
+    plot1(x, y, center, color);
+    plot1(y, x, center, color);
+    plot1(x, -y, center, color);
+    plot1(y, -x, center, color);
+    plot1(-x, -y, center, color);
+    plot1(-y, -x, center, color);
+    plot1(-x, y, center, color);
+    plot1(-y, x, center, color);
+}
+
+void drawCircle(int2 c, int r)
+{
+    int x = 0;
+    int y = r;
+    int d = 1 - r;
+
+    while (x < y)
+    {
+        if (d < 0)
+        {
+            d += 2 * x + 3;
+        }
+        else
+        {
+            d += 2 * (x - y) + 5;
+            y--;
+        }
+		
+        float4 color = float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
+        plot8(x, y, c, color);
+
+        x++;
+    }
+}
+
+void drawJeskoCircle(int2 c, int r)
+{
+    int t1 = r >> 4;
+    int x = r;
+    int y = 0;
+    
+    while (x >= y)
+    {
+        float4 color = float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
+        plot8(x, y, c, color);
+        
+        y++;
+        t1 += y;
+        int t2 = t1 - x;
+        if (t2 >= 0)
+        {
+            t1 = t2;
+            x--;
+        }
+    }
+}
+
+void drawDiamond(int2 c, int r)
+{
+    int x = r;
+    int y = 0;
+    
+    while (x >= y)
+    {
+        plot8(x, y, c, CircleColor);
+        
+        y++;
+        x--;
+    }
+}
+
+[numthreads(CIRCLE_THREADS, 1, 1)]
+void Points(uint3 id : SV_DispatchThreadID)
+{
+    PointsBuffer[id.x] = (int2)(random2(id.x + Time) * TexResolution);
+}
+
+[numthreads(CIRCLE_THREADS, 1, 1)]
+void Circles(uint3 id : SV_DispatchThreadID)
+{
+    drawJeskoCircle(PointsBuffer[id.x], Radius);
+    drawCircle(PointsBuffer[id.x], Radius);
+}
+
+[numthreads(CIRCLE_THREADS, 1, 1)]
+void Diamonds(uint3 id : SV_DispatchThreadID)
+{
+    drawDiamond(PointsBuffer[id.x], Radius);
+}
+
+[numthreads(31, 31, 1)]
+void FillCircles(uint3 id : SV_DispatchThreadID)
+{
+    int2 center = int2(15, 15);
+    int2 ray = (int2)id.xy - center;
+    uint2 xy = PointsBuffer[id.z] + ray;
+    
+    if (Result[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
+    {
+        Result[xy] = float4(abs(ray.x) / CircleRadiusF, abs(ray.y) / CircleRadiusF, 1.0, 1.0);
+    }
+}
+
+[numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
+void Clear(uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = ClearColor;
+}
