@@ -1,5 +1,5 @@
 ﻿#define CIRCLE_THREADS 1024
-#define CLEAR_THREADS 8
+#define CLEAR_THREADS 32
 
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel Points
@@ -37,6 +37,11 @@ float2 random2(float value)
 	);
 }
 
+float4 getCirclePixel(int x, int y)
+{
+    return float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
+}
+
 void plot1(int x, int y, int2 c, float4 color)
 {
     uint2 xy = uint2(c.x + x, c.y + y);
@@ -58,28 +63,27 @@ void plot8(int x, int y, int2 center, float4 color)
     plot1(-y, x, center, color);
 }
 
-void drawCircle(int2 c, int r)
+void drawMidpointCircle(int2 c, int r)
 {
-    int x = 0;
-    int y = r;
+    int x = r;
+    int y = 0;
     int d = 1 - r;
 
-    while (x < y)
+    while (x >= y)
     {
         if (d < 0)
         {
-            d += 2 * x + 3;
+            d += (y << 1) + 3;
         }
         else
         {
-            d += 2 * (x - y) + 5;
-            y--;
+            d += ((y - x) << 1) + 5;
+            x--;
         }
-		
-        float4 color = float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
-        plot8(x, y, c, color);
+        
+        plot8(x, y, c, getCirclePixel(y, x));
 
-        x++;
+        y++;
     }
 }
 
@@ -91,8 +95,7 @@ void drawJeskoCircle(int2 c, int r)
     
     while (x >= y)
     {
-        float4 color = float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
-        plot8(x, y, c, color);
+        plot8(x, y, c, getCirclePixel(y, x));
         
         y++;
         t1 += y;
@@ -103,6 +106,26 @@ void drawJeskoCircle(int2 c, int r)
             x--;
         }
     }
+}
+
+void drawHornCircle(int2 c, int r)
+{
+    int d = -r;
+    int x = r;
+    int y = 0;
+    
+    while (y <= x)
+    {
+        plot8(x, y, c, getCirclePixel(y, x));
+        d += (y << 1) + 1;
+        y++;
+        if (d > 0)
+        {
+            d += -(x << 1) + 2;
+            x--;
+        }
+    }
+    
 }
 
 void drawDiamond(int2 c, int r)
@@ -128,8 +151,9 @@ void Points(uint3 id : SV_DispatchThreadID)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
-    drawJeskoCircle(PointsBuffer[id.x], Radius);
-    drawCircle(PointsBuffer[id.x], Radius);
+    //drawJeskoCircle(PointsBuffer[id.x], Radius);
+    drawMidpointCircle(PointsBuffer[id.x], Radius);
+    drawHornCircle(PointsBuffer[id.x], Radius);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
@@ -147,7 +171,7 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
     
     if (Result[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
     {
-        Result[xy] = float4(abs(ray.x) / CircleRadiusF, abs(ray.y) / CircleRadiusF, 1.0, 1.0);
+        Result[xy] = getCirclePixel(ray.x, ray.y);
     }
 }
 

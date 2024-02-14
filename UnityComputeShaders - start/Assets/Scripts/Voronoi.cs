@@ -16,7 +16,8 @@ public class Voronoi : MonoBehaviour
     [SerializeField, Range(1, 65536)]
     private int pointsCount = 16;
 
-    private int threadGroupsCount = 1; //[Range(1, 65535)]
+    private int circleThreadGroupCount = 1; //[Range(1, 65535)]
+    private int clearThreadGroupCount = 1;
 
     private Renderer rend;
     private RenderTexture outputTexture;
@@ -64,13 +65,16 @@ public class Voronoi : MonoBehaviour
         fillCirclesHandle = shader.FindKernel("FillCircles");
 
         shader.GetKernelThreadGroupSizes(circlesHandle, out uint numthreadsX, out _, out _);
-        threadGroupsCount = Mathf.Clamp(pointsCount / (int)numthreadsX, 1, 65535);
+        circleThreadGroupCount = Mathf.Clamp(pointsCount / (int)numthreadsX, 1, 65535);
 
-        //shader.GetKernelThreadGroupSizes(circlesHandle, out _, out _, out uint numthreadsZ);
-        ////shader.GetKernelThreadGroupSizes(fillCirclesHandle, out _, out _, out uint numthreadsZ);
-        //threadGroupsCount = Mathf.Clamp(pointsCount / (int)numthreadsZ, 1, 65535);
+        ////shader.GetKernelThreadGroupSizes(circlesHandle, out _, out _, out uint numthreadsZ);
+        //shader.GetKernelThreadGroupSizes(fillCirclesHandle, out _, out _, out uint numthreadsZ);
+        //circleThreadGroupCount = Mathf.Clamp(pointsCount / (int)numthreadsZ, 1, 65535);
 
-        Debug.Log($"{GetType().Name}.InitData: threadGroupsCount: {threadGroupsCount}");
+        shader.GetKernelThreadGroupSizes(clearHandle, out numthreadsX, out _, out _);
+        clearThreadGroupCount = TexResolution / (int)numthreadsX;
+
+        Debug.Log($"{GetType().Name}.InitData: circleThreadGroupCount: {circleThreadGroupCount}");
     }
 
     private void InitShader()
@@ -102,18 +106,18 @@ public class Voronoi : MonoBehaviour
         int radiusID = Shader.PropertyToID("Radius");
         int radiusSqrID = Shader.PropertyToID("RadiusSqr");
 
-        shader.Dispatch(clearHandle, TexResolution >> 3, TexResolution >> 3, 1);
-        shader.Dispatch(pointsHandle, threadGroupsCount, 1, 1);
-        //shader.Dispatch(pointsHandle, 1, 1, threadGroupsCount);
+        shader.Dispatch(clearHandle, clearThreadGroupCount, clearThreadGroupCount, 1);
+        shader.Dispatch(pointsHandle, circleThreadGroupCount, 1, 1);
+        //shader.Dispatch(pointsHandle, 1, 1, circleThreadGroupCount);
 
         for (int i = 1; i < CircleRadius; i++)
         {
             shader.SetInt(radiusID, i);
             shader.SetInt(radiusSqrID, i * i);
-            shader.Dispatch(circlesHandle, threadGroupsCount, 1, 1);
-            //shader.Dispatch(circlesHandle, 1, 1, threadGroupsCount);
-            //shader.Dispatch(diamondsHandle, 1, 1, threadGroupsCount);
-            //shader.Dispatch(fillCirclesHandle, 1, 1, threadGroupsCount);
+            shader.Dispatch(circlesHandle, circleThreadGroupCount, 1, 1);
+            //shader.Dispatch(circlesHandle, 1, 1, circleThreadGroupCount);
+            //shader.Dispatch(diamondsHandle, 1, 1, circleThreadGroupCount);
+            //shader.Dispatch(fillCirclesHandle, 1, 1, circleThreadGroupCount);
         }
         shader.SetFloat("Time", Time.time);
     }
