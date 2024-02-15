@@ -65,14 +65,14 @@ public class Voronoi : MonoBehaviour
         fillCirclesHandle = shader.FindKernel("FillCircles");
 
         shader.GetKernelThreadGroupSizes(circlesHandle, out uint numthreadsX, out _, out _);
-        circleThreadGroupCount = Mathf.Clamp(pointsCount / (int)numthreadsX, 1, 65535);
+        circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + numthreadsX - 1) / numthreadsX), 1, 65535);
 
         ////shader.GetKernelThreadGroupSizes(circlesHandle, out _, out _, out uint numthreadsZ);
         //shader.GetKernelThreadGroupSizes(fillCirclesHandle, out _, out _, out uint numthreadsZ);
-        //circleThreadGroupCount = Mathf.Clamp(pointsCount / (int)numthreadsZ, 1, 65535);
+        //circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + numthreadsZ - 1) / numthreadsZ), 1, 65535);
 
         shader.GetKernelThreadGroupSizes(clearHandle, out numthreadsX, out _, out _);
-        clearThreadGroupCount = TexResolution / (int)numthreadsX;
+        clearThreadGroupCount = (int)((TexResolution + numthreadsX - 1) / numthreadsX);
 
         Debug.Log($"{GetType().Name}.InitData: circleThreadGroupCount: {circleThreadGroupCount}");
     }
