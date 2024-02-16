@@ -3,18 +3,17 @@ using System.Collections;
 
 public class ProceduralMarble : MonoBehaviour
 {
-
     public ComputeShader shader;
     public int texResolution = 256;
 
-    Renderer rend;
-    RenderTexture outputTexture;
+    private Renderer rend = null;
+    private RenderTexture outputTexture = null;
 
-    int kernelHandle;
-    bool marble = true;
+    private int kernelHandle;
+    private bool marble = true;
 
     // Use this for initialization
-    void Start()
+    private void Start()
     {
         outputTexture = new RenderTexture(texResolution, texResolution, 0)
         {
@@ -32,12 +31,12 @@ public class ProceduralMarble : MonoBehaviour
     {
         kernelHandle = shader.FindKernel("CSMain");
 
-        shader.SetInt("texResolution", texResolution);
+        shader.SetInt("TexResolution", texResolution);
         shader.SetTexture(kernelHandle, "Result", outputTexture);
 
         rend.material.SetTexture("_MainTex", outputTexture);
 
-        shader.SetBool("marble", marble);
+        shader.SetBool("Marble", marble);
         marble = !marble;
 
         DispatchShader(texResolution / 8, texResolution / 8);
@@ -52,10 +51,10 @@ public class ProceduralMarble : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.U))
         {
-            shader.SetBool("marble", marble);
+            shader.SetBool("Marble", marble);
             marble = !marble;
-            DispatchShader(texResolution / 8, texResolution / 8);
         }
+        shader.SetFloat("Time", Time.time);
+        DispatchShader(texResolution / 8, texResolution / 8);
     }
 }
-

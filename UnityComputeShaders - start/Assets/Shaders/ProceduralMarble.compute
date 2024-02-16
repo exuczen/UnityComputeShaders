@@ -4,24 +4,26 @@
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 RWTexture2D<float4> Result;
-int texResolution;
-int marble;
+int TexResolution;
+int Marble;
+float Time;
 
 #include "noiseSimplex.cginc"
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float3 pos = (((float3)id) / (float)texResolution) * 2.0;
+    float3 pos = (((float3)id) / (float)TexResolution) * 2.0;
     float scale = 800.0;
     float3 color;
     float noise;
+    float shift = 100 * Time;
 
     pos *= scale;
 
-    if (marble)
+    if (Marble)
     {
-        float d = perlin(pos.x, pos.y) * scale;
+        float d = perlin(pos.x, pos.y) * scale + shift;
         float u = pos.x + d;
         float v = pos.y + d;
         d = perlin(u, v) * scale;
@@ -30,7 +32,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     }
     else
     {
-        noise = perlin(pos.x, pos.y);
+        noise = perlin(pos.x + shift, pos.y + shift);
         color = float3(1, 1, 1) * noise;
     }
 
