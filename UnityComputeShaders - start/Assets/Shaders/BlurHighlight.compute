@@ -2,6 +2,7 @@
 #pragma kernel HorzPass
 #pragma kernel Highlight
 
+#define USE_HORIZONTAL_BUFFER 0
 
 shared Texture2D<float4> source;
 shared RWTexture2D<float4> horzOutput;
@@ -11,7 +12,9 @@ float edgeWidth;
 float shade;
 float4 center;
 int blurRadius;
+#if USE_HORIZONTAL_BUFFER
 shared RWStructuredBuffer<float4> horzBuffer;
+#endif
 
 float inCircle(float2 pt, float2 center, float radius, float edgeWidth)
 {
@@ -41,8 +44,11 @@ void HorzPass(uint3 id : SV_DispatchThreadID)
     }
     color /= (float)count;
     
-    //horzOutput[id.xy] = color;
+#if USE_HORIZONTAL_BUFFER
     horzBuffer[id.x + width * id.y] = color;
+#else
+    horzOutput[id.xy] = color;
+#endif
 }
 
 [numthreads(8, 8, 1)]
@@ -57,6 +63,7 @@ void Highlight(uint3 id : SV_DispatchThreadID)
     count = max(count, 1);
     float4 blurColor = 0;
     
+#if USE_HORIZONTAL_BUFFER
     int index = id.x + width * begY;
     
     [unroll(100)]
@@ -65,6 +72,17 @@ void Highlight(uint3 id : SV_DispatchThreadID)
         blurColor += horzBuffer[index];
         index += width;
     }
+#else
+    uint2 index = uint2(id.x, begY);
+    
+    [unroll(100)]
+    for (int i = 0; i < count; i++)
+    {
+        blurColor += horzOutput[index];
+        index.y++;
+    }
+#endif
+    
     blurColor /= (float)count;
     
     float4 sourceColor = source[id.xy];

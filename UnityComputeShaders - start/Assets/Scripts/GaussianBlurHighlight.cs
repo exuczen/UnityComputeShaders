@@ -22,7 +22,7 @@ public class GaussianBlurHighlight : BaseCompletePP
 
     private ComputeBuffer horzBuffer = null;
 
-    int kernelHorzPassID;
+    private int kernelHorzPassID;
 
     protected override void Init()
     {
@@ -30,10 +30,9 @@ public class GaussianBlurHighlight : BaseCompletePP
         kernelName = "Highlight";
         kernelHorzPassID = shader.FindKernel("HorzPass");
         base.Init();
-
     }
 
-    float[] SetWeightsArray(int radius, float sigma)
+    private float[] SetWeightsArray(int radius, float sigma)
     {
         int total = radius * 2 + 1;
         float[] weights = new float[total];
