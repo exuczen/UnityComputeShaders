@@ -8,6 +8,8 @@
 #pragma kernel FillCircles
 #pragma kernel Clear
 
+#include "Random.cginc"
+
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 shared RWTexture2D<float4> Result;
@@ -21,21 +23,6 @@ int RadiusSqr;
 float4 ClearColor;
 float4 CircleColor;
 float Time;
-
-/*Returns pseudo random number in range 0 <= x < 1 */
-float random(float value, float seed = 0.546)
-{
-    float random = (frac(sin(value + seed) * 143758.5453)); // + 1.0)/2.0;
-    return random;
-}
-
-float2 random2(float value)
-{
-    return float2(
-		random(value, 3.9812),
-		random(value, 7.1536)
-	);
-}
 
 float4 getCirclePixel(int x, int y)
 {

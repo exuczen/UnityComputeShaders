@@ -19,21 +19,6 @@ float4 circleColor;
 int texResolution;
 float time;
 
-/*Returns pseudo random number in range 0 <= x < 1 */
-float random(float value, float seed = 0.546)
-{
-    float random = (frac(sin(value + seed) * 143758.5453)); // + 1.0)/2.0;
-    return random;
-}
-
-float2 random2(float value)
-{
-    return float2(
-		random(value, 3.9812),
-		random(value, 7.1536)
-	);
-}
-
 void plot1(int x, int y, int2 centre)
 {
     Result[uint2(centre.x + x, centre.y + y)] = circleColor;

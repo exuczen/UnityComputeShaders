@@ -1,6 +1,8 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
+#include "Random.cginc"
+
 Texture2D<float4> source;
 RWTexture2D<float4> output;
 float radius;
@@ -9,14 +11,6 @@ int lines;
 float4 tintColor;
 float tintStrength;
 float time;
-
-float random(float2 pt, float seed)
-{
-    const float a = 12.9898;
-    const float b = 78.233;
-    const float c = 43758.543123;
-    return frac(sin(dot(pt, float2(a, b)) + seed) * c);
-}
 
 float inCircle(float2 pt, float2 center, float radius, float edgeWidth)
 {
@@ -29,7 +23,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 {
     uint2 index = (uint2(id.x, id.y) / 3) * 3;
     
-    float noise = random(id.xy, time);
+    float noise = twiceRandom((float2)id.xy, time);
     float3 sourceColor = lerp(source[id.xy].rgb * 2, source[index].rgb, noise);
     
     float3 grayScale = (sourceColor.r + sourceColor.g + sourceColor.b) / 3.0;

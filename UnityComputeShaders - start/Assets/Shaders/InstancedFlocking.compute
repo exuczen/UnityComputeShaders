@@ -1,10 +1,7 @@
 ﻿#pragma kernel CSMain
 #define GROUP_SIZE 256
 
-float hash(float n)
-{
-    return frac(sin(n) * 43758.5453);
-}
+#include "Random.cginc"
 
 // The noise function returns a value in the range 0 -> 1
 float noise1(float3 x)
