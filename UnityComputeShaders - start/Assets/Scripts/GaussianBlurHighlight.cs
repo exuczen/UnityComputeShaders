@@ -39,19 +39,23 @@ public class GaussianBlurHighlight : BaseCompletePP
         float sum = 0.0f;
         float c = 1 / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
 
-        for (int n = 0; n < radius; n++)
+        float setWeight(int n)
         {
             float weight = c * Mathf.Exp(-0.5f * n * n / (sigma * sigma));
             weights[radius + n] = weight;
             weights[radius - n] = weight;
-            if (n != 0)
-                sum += weight * 2.0f;
-            else
-                sum += weight;
+            return weight;
+        }
+        sum += setWeight(0);
+        for (int n = 1; n < radius; n++)
+        {
+            sum += setWeight(n) * 2.0f;
         }
         // normalize kernels
-        for (int i = 0; i < total; i++) weights[i] /= sum;
-
+        for (int i = 0; i < total; i++)
+        {
+            weights[i] /= sum;
+        }
         return weights;
     }
 
