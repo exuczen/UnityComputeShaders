@@ -32,6 +32,7 @@ public class NightVision : BaseCompletePP
         shader.SetVector("tintColor", tint);
         shader.SetFloat("tintStrength", tintStrength);
         shader.SetInt("lines", lines);
+        shader.SetInts("texSize", texSize.x, texSize.y);
     }
 
     protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
