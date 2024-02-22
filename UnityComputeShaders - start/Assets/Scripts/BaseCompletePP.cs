@@ -1,11 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [RequireComponent(typeof(Camera))]
 public class BaseCompletePP : MonoBehaviour
 {
-    public ComputeShader shader = null;
+    [SerializeField]
+    protected bool updateInEditor = true;
+    [SerializeField]
+    protected ComputeShader shader = null;
 
     protected string kernelName = "CSMain";
 
@@ -96,12 +102,24 @@ public class BaseCompletePP : MonoBehaviour
     {
         Init();
         //CreateTextures();
+#if UNITY_EDITOR
+        if (!EditorApplication.isPlaying)
+        {
+            EditorApplication.update += OnEditorUpdate;
+        }
+#endif
     }
 
     protected virtual void OnDisable()
     {
         ClearTextures();
         init = false;
+#if UNITY_EDITOR
+        if (!EditorApplication.isPlaying)
+        {
+            EditorApplication.update -= OnEditorUpdate;
+        }
+#endif
     }
 
     protected virtual void OnDestroy()
@@ -143,5 +161,13 @@ public class BaseCompletePP : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
+    private void OnEditorUpdate()
+    {
+        if (updateInEditor && !EditorApplication.isPlaying)
+        {
+            EditorApplication.QueuePlayerLoopUpdate();
+        }
+    }
+#endif
 }
-
