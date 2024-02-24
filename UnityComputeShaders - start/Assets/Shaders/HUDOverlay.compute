@@ -15,24 +15,37 @@ float getDelta(float x)
     return (sin(x) + 1.0) / 2.0;
 }
 
+float onLine(float line_y, float y, float line_width, float edge_width)
+{
+    float line_half_width = line_width * 0.5;
+    //return step(line_y - line_half_width - edge_width, y) - step(line_y + line_half_width + edge_width, y);
+    return smoothstep(line_y - line_half_width - edge_width, line_y - line_half_width, y) - smoothstep(line_y + line_half_width, line_y + line_half_width + edge_width, y);
+}
+
 float sweep(float2 pt, float2 center, float radius, float line_width, float edge_thickness)
 {
     float2 d = pt - center;
     float theta = time;
-    float2 p = float2(cos(theta), -sin(theta)) * radius;
-    float h = clamp(dot(d, p) / dot(p, p), 0.0, 1.0);
-    //h = dot(d,p)/dot(p,p);
-    float l = length(d - p * h);
-
+    float2 p = float2(cos(theta), -sin(theta));
+    //float h = clamp(dot(d, p), 0.0, radius);
+    //float l = length(d - p * h);
+    float r = dot(d, p);
+    float l = dot(d, float2(p.y, -p.x));
+    
     float gradient = 0;
     const float gradientAngle = PI * 0.5;
     
     if (length(d) < radius)
     {
-        float angle = fmod(theta + atan2(d.y, d.x), PI2);
+        float angle = fmod(theta + PI2 + atan2(d.y, d.x), PI2);
         gradient = clamp(gradientAngle - angle, 0, gradientAngle) / gradientAngle * 0.5;
     }
-    return gradient + 1.0 - smoothstep(line_width, line_width + edge_thickness, l);
+    //float inCircle = 1.0 - smoothstep(line_width, line_width + edge_thickness, l);
+    //float onLine = 1.0;
+    //float onLine = smoothstep(-10 * line_width - edge_thickness, 0 * line_width, l) - smoothstep(0, 10 * line_width + edge_thickness, l);
+    float onLine = smoothstep(-line_width - edge_thickness, 0, l) - step(0, l);
+    float inCircle = step(0, r) - step(radius, r);
+    return gradient + onLine * inCircle;
 }
 
 float circle(float2 pt, float2 center, float radius, float line_width, float edge_thickness)
@@ -40,14 +53,9 @@ float circle(float2 pt, float2 center, float radius, float line_width, float edg
     pt -= center;
     float len = length(pt);
     //Change true to false to soften the edge
-    float result = smoothstep(radius - line_width / 2.0 - edge_thickness, radius - line_width / 2.0, len) - smoothstep(radius + line_width / 2.0, radius + line_width / 2.0 + edge_thickness, len);
-
-    return result;
-}
-
-float onLine(float x, float y, float line_width, float edge_width)
-{
-    return smoothstep(x - line_width / 2.0 - edge_width, x - line_width / 2.0, y) - smoothstep(x + line_width / 2.0, x + line_width / 2.0 + edge_width, y);
+    //float result = smoothstep(radius - line_width / 2.0 - edge_thickness, radius - line_width / 2.0, len) - smoothstep(radius + line_width / 2.0, radius + line_width / 2.0 + edge_thickness, len);
+    //return result;
+    return onLine(radius, len, line_width, edge_thickness);
 }
 
 float polygon(float2 pt, float2 center, float radius, int sides, float rotate, float edge_thickness)
@@ -67,8 +75,10 @@ float polygon(float2 pt, float2 center, float radius, int sides, float rotate, f
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float width = source.Length.x;
-    float height = source.Length.y;
+    float width; //= source.Length.x;
+    float height; //= source.Length.y;
+    source.GetDimensions(width, height);
+    
     float3 white = 1;
     
     float2 uv = (float2)id.xy;
@@ -87,14 +97,14 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     }
 
     float3 color = onLine(uv.y, center.y, 0.002, 0.001) * axisColor.rgb; //xAxis
+    color += onLine(uv.x, center.x, 0.002, 0.001) * axisColor.rgb; //yAxis
     //TODO: Add code here
-    color += onLine(uv.x, center.x, 0.002, 0.001) * axisColor.rgb; //yAxis 
     color += circle(uv, center, 0.45, 0.002, 0.001) * axisColor.rgb;
     color += circle(uv, center, 0.3, 0.002, 0.001) * axisColor.rgb;
     color += circle(uv, center, 0.15, 0.002, 0.001) * axisColor.rgb;
     color += sweep(uv, center, 0.45, 0.003, 0.001) * sweepColor.rgb;
     
-    float offset = sin(time * 4) * 0.05 + 0.5;
+    float offset = sin(time * 4) * 0.05 + 0.516;
     color += polygon(uv, float2(center.x + offset, center.y), 0.008, 3, 0, 0.001) * white;
     color += polygon(uv, float2(center.x - offset, center.y), 0.008, 3, PI, 0.001) * white;
     
