@@ -2,6 +2,7 @@
 #pragma kernel CSMain
 
 #include "Random.cginc"
+#include "Geometry.cginc"
 
 Texture2D<float4> source;
 RWTexture2D<float4> output;
@@ -12,12 +13,6 @@ float4 tintColor;
 float tintStrength;
 float time;
 int2 texSize;
-
-float inCircle(float2 pt, float2 center, float radius, float edgeWidth)
-{
-    float len = length(pt - center);
-    return 1.0 - smoothstep(radius - edgeWidth, radius, len);
-}
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)

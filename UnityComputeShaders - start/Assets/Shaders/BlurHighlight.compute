@@ -4,6 +4,8 @@
 
 #define USE_HORIZONTAL_BUFFER 0
 
+#include "Geometry.cginc"
+
 shared Texture2D<float4> source;
 shared RWTexture2D<float4> horzOutput;
 shared RWTexture2D<float4> output;
@@ -15,12 +17,6 @@ int blurRadius;
 #if USE_HORIZONTAL_BUFFER
 shared RWStructuredBuffer<float4> horzBuffer;
 #endif
-
-float inCircle(float2 pt, float2 center, float radius, float edgeWidth)
-{
-    float len = length(pt - center);
-    return 1.0 - smoothstep(radius - edgeWidth, radius, len);
-}
 
 [numthreads(8, 8, 1)]
 void HorzPass(uint3 id : SV_DispatchThreadID)

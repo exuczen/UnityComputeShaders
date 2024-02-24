@@ -2,7 +2,8 @@
 #pragma kernel CSMain
 
 #define PI 3.14159265359
-#define PI2 6.28318530718
+
+#include "Geometry.cginc"
 
 Texture2D<float4> source;
 RWTexture2D<float4> output;
@@ -56,20 +57,6 @@ float circle(float2 pt, float2 center, float radius, float line_width, float edg
     //float result = smoothstep(radius - line_width / 2.0 - edge_thickness, radius - line_width / 2.0, len) - smoothstep(radius + line_width / 2.0, radius + line_width / 2.0 + edge_thickness, len);
     //return result;
     return onLine(radius, len, line_width, edge_thickness);
-}
-
-float polygon(float2 pt, float2 center, float radius, int sides, float rotate, float edge_thickness)
-{
-    pt -= center;
-
-    // Angle and radius from the current pixel 
-    float theta = atan2(pt.y, pt.x) + rotate;
-    float rad = PI2 / float(sides);
-
-    // Shaping function that modulate the distance    
-    float d = cos(floor(0.5 + theta / rad) * rad - theta) * length(pt);
-
-    return 1.0 - smoothstep(radius, radius + edge_thickness, d);
 }
 
 [numthreads(8, 8, 1)]
