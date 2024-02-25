@@ -7,8 +7,10 @@
 #pragma kernel Diamonds
 #pragma kernel FillCircles
 #pragma kernel Clear
+#pragma kernel Line
 
 #include "Utils/Random.cginc"
+#include "Utils/Geometry.cginc"
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -160,6 +162,12 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
     {
         Result[xy] = getCirclePixel(ray.x, ray.y);
     }
+}
+
+[numthreads(1, 1, 1)]
+void Line(uint3 id : SV_DispatchThreadID)
+{
+    drawLine(Result, PointsBuffer[0], PointsBuffer[1], 1);
 }
 
 [numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]

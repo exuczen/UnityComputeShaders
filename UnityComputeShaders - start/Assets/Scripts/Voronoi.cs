@@ -27,6 +27,7 @@ public class Voronoi : MonoBehaviour
     private int diamondsHandle;
     private int fillCirclesHandle;
     private int clearHandle;
+    private int lineHandle;
 
     private ComputeBuffer pointsBuffer = null;
 
@@ -63,6 +64,7 @@ public class Voronoi : MonoBehaviour
         clearHandle = shader.FindKernel("Clear");
         diamondsHandle = shader.FindKernel("Diamonds");
         fillCirclesHandle = shader.FindKernel("FillCircles");
+        lineHandle = shader.FindKernel("Line");
 
         shader.GetKernelThreadGroupSizes(circlesHandle, out uint numthreadsX, out _, out _);
         circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + numthreadsX - 1) / numthreadsX), 1, 65535);
@@ -85,8 +87,8 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat("CircleRadiusF", CircleRadius);
         shader.SetInt("PointsCount", pointsCount);
 
-        int[] textureHandles = new int[4] { clearHandle, circlesHandle, diamondsHandle, fillCirclesHandle };
-        int[] pointsHandles = new int[4] { pointsHandle, circlesHandle, diamondsHandle, fillCirclesHandle };
+        int[] textureHandles = new int[] { clearHandle, circlesHandle, diamondsHandle, fillCirclesHandle, lineHandle };
+        int[] pointsHandles = new int[] { pointsHandle, circlesHandle, diamondsHandle, fillCirclesHandle, lineHandle };
 
         for (int i = 0; i < textureHandles.Length; i++)
         {
@@ -119,6 +121,8 @@ public class Voronoi : MonoBehaviour
             //shader.Dispatch(diamondsHandle, 1, 1, circleThreadGroupCount);
             //shader.Dispatch(fillCirclesHandle, 1, 1, circleThreadGroupCount);
         }
+        shader.Dispatch(lineHandle, 1, 1, 1);
+
         shader.SetFloat("Time", Time.time);
     }
 
