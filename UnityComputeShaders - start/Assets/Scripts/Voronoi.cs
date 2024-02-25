@@ -92,13 +92,13 @@ public class Voronoi : MonoBehaviour
 
         for (int i = 0; i < textureHandles.Length; i++)
         {
-            shader.SetTexture(textureHandles[i], "Result", outputTexture);
+            shader.SetTexture(textureHandles[i], "output", outputTexture);
         }
         pointsBuffer = new ComputeBuffer(pointsCount, 2 * sizeof(int));
 
         for (int i = 0; i < pointsHandles.Length; i++)
         {
-            shader.SetBuffer(pointsHandles[i], "PointsBuffer", pointsBuffer);
+            shader.SetBuffer(pointsHandles[i], "pointsBuffer", pointsBuffer);
         }
         rend.material.SetTexture("_MainTex", outputTexture);
     }

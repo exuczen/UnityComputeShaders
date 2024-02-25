@@ -14,8 +14,8 @@
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-shared RWTexture2D<float4> Result;
-shared RWStructuredBuffer<int2> PointsBuffer;
+shared RWTexture2D<float4> output;
+shared RWStructuredBuffer<int2> pointsBuffer;
 
 float CircleRadiusF;
 int TexResolution;
@@ -34,9 +34,9 @@ float4 getCirclePixel(int x, int y)
 void plot1(int x, int y, int2 c, float4 color)
 {
     uint2 xy = uint2(c.x + x, c.y + y);
-    if (Result[xy].w == 0)
+    if (output[xy].w == 0)
     {
-        Result[xy] = color;
+        output[xy] = color;
     }
 }
 
@@ -134,21 +134,21 @@ void drawDiamond(int2 c, int r)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Points(uint3 id : SV_DispatchThreadID)
 {
-    PointsBuffer[id.x] = (int2)(random2(id.x + Time) * TexResolution);
+    pointsBuffer[id.x] = (int2)(random2(id.x + Time) * TexResolution);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
     //drawJeskoCircle(PointsBuffer[id.x], Radius);
-    drawMidpointCircle(PointsBuffer[id.x], Radius);
-    drawHornCircle(PointsBuffer[id.x], Radius);
+    drawMidpointCircle(pointsBuffer[id.x], Radius);
+    drawHornCircle(pointsBuffer[id.x], Radius);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Diamonds(uint3 id : SV_DispatchThreadID)
 {
-    drawDiamond(PointsBuffer[id.x], Radius);
+    drawDiamond(pointsBuffer[id.x], Radius);
 }
 
 [numthreads(31, 31, 1)]
@@ -156,22 +156,22 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
 {
     int2 center = int2(15, 15);
     int2 ray = (int2)id.xy - center;
-    uint2 xy = PointsBuffer[id.z] + ray;
+    uint2 xy = pointsBuffer[id.z] + ray;
     
-    if (Result[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
+    if (output[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
     {
-        Result[xy] = getCirclePixel(ray.x, ray.y);
+        output[xy] = getCirclePixel(ray.x, ray.y);
     }
 }
 
 [numthreads(1, 1, 1)]
 void Line(uint3 id : SV_DispatchThreadID)
 {
-    drawLine(Result, PointsBuffer[0], PointsBuffer[1], 1);
+    drawLine(output, pointsBuffer[0], pointsBuffer[1], 1);
 }
 
 [numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
 void Clear(uint3 id : SV_DispatchThreadID)
 {
-    Result[id.xy] = ClearColor;
+    output[id.xy] = ClearColor;
 }
