@@ -4,6 +4,7 @@
 #define PI 3.14159265359
 
 #include "Geometry.cginc"
+#include "Easing.hlsl"
 
 Texture2D<float4> source;
 RWTexture2D<float4> output;
@@ -91,7 +92,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     color += circle(uv, center, 0.15, 0.002, 0.001) * axisColor.rgb;
     color += sweep(uv, center, 0.45, 0.003, 0.001) * sweepColor.rgb;
     
-    float offset = sin(time * 4) * 0.05 + 0.516;
+    //float offset = sin(time * 4) * 0.05 + 0.516;
+    float offset = ease_out_sine(1 - abs(1 - 2 * frac(time))) * 0.05 + 0.466;
     color += polygon(uv, float2(center.x + offset, center.y), 0.008, 3, 0, 0.001) * white;
     color += polygon(uv, float2(center.x - offset, center.y), 0.008, 3, PI, 0.001) * white;
     
