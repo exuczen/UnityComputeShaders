@@ -2,7 +2,7 @@
 #define THREADGROUPSIZE 128 
 #pragma kernel BendGrass
 
-#include "noiseSimplex.cginc"
+#include "Utils/NoiseSimplex.cginc"
 
 struct GrassBlade
 {

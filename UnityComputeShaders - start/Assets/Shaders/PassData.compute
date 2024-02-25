@@ -2,7 +2,7 @@
 #pragma kernel Circles
 #pragma kernel Clear
 
-#include "Random.cginc"
+#include "Utils/Random.cginc"
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture

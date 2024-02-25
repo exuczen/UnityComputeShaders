@@ -18,7 +18,7 @@ float4 tramplePos;
 float trampleRadius;
 float time;
 
-#include "noiseSimplex.cginc"
+#include "Utils/NoiseSimplex.cginc"
 
 float4 MapVector(float3 v1, float3 v2)
 {

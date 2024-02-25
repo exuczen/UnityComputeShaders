@@ -1,6 +1,6 @@
 ﻿#pragma kernel OrbitingStars
 
-#include "Random.cginc"
+#include "Utils/Random.cginc"
 
 RWStructuredBuffer<float3> posBuffer;
 float time;

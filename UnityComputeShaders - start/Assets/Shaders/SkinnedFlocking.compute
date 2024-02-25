@@ -1,7 +1,7 @@
 ﻿#pragma kernel CSMain
 #define GROUP_SIZE 256
 
-#include "Random.cginc"
+#include "Utils/Random.cginc"
 
 struct Boid
 {

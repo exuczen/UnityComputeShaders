@@ -2,7 +2,7 @@
 #define GROUP_SIZE 256
 #define PI2 6.28318530718
 
-#include "Random.cginc"
+#include "Utils/Random.cginc"
 
 struct Boid
 {

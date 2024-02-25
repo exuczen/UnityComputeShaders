@@ -13,7 +13,8 @@ float noiseScale;
 float ringScale;
 float contrast;
 
-#include "noiseSimplex.cginc"
+#include "Utils/NoiseSimplex.cginc"
+
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {

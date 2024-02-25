@@ -5,7 +5,7 @@
 #pragma kernel Circle
 #pragma kernel Square
 
-#include "Geometry.cginc"
+#include "Utils/Geometry.cginc"
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture

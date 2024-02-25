@@ -1,8 +1,8 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-#include "noiseSimplex.cginc"
-#include "Geometry.cginc"
+#include "Utils/NoiseSimplex.cginc"
+#include "Utils/Geometry.cginc"
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture

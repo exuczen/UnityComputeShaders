@@ -3,8 +3,8 @@
 
 #define PI 3.14159265359
 
-#include "Geometry.cginc"
-#include "Easing.hlsl"
+#include "Utils/Geometry.cginc"
+#include "Utils/Easing.hlsl"
 
 Texture2D<float4> source;
 RWTexture2D<float4> output;

@@ -15,7 +15,7 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "noiseSimplex.cginc"
+            #include "Utils/NoiseSimplex.cginc"
             
             #include "UnityCG.cginc"
 
