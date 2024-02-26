@@ -73,10 +73,9 @@ void Highlight(uint3 id : SV_DispatchThreadID)
     }
 #endif
 
-    float4 srcColor = source[id.xy];
+    float4 sourceColor = source[id.xy];
     float4 shadedBlurColor = blurColor * shade;
-    float highlight = inCircle((float2)id.xy, center.xy, radius, edgeWidth);
-    float4 color = lerp(shadedBlurColor, srcColor, highlight);
+    float4 color = lerpCircleColor(shadedBlurColor, sourceColor, id.xy, center.xy, radius, edgeWidth);
 
     output[id.xy] = color;
 }

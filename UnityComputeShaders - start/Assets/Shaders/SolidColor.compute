@@ -42,10 +42,13 @@ void Circle(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void Square(uint3 id : SV_DispatchThreadID)
 {
-    int beg = texResolution >> 2;
-    int end = texResolution - beg;
-    int x = (int)id.x;
-    int y = (int)id.y;
-    float res = x >= beg && x <= end && y >= beg && y <= end ? 1.0 : 0.0;
+    //int beg = texResolution >> 2;
+    //int end = texResolution - beg;
+    //int x = (int)id.x;
+    //int y = (int)id.y;
+    //float res = x >= beg && x <= end && y >= beg && y <= end ? 1.0 : 0.0;
+    int halfRes = texResolution >> 1;
+    int quarterRes = texResolution >> 2;
+    float res = inRect(id.xy, float4(quarterRes, quarterRes, halfRes, halfRes));
     Result[id.xy] = float4(res, res, 0.0, 1.0);
 }

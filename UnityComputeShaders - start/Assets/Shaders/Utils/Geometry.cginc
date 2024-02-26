@@ -1,6 +1,14 @@
 ﻿#define PI 3.14159265359
 #define PI2 6.28318530718
 
+//Return 1 if pt is in the rect parameter and 0 otherwise
+float inRect(float2 pt, float4 rect)
+{
+    float horz = step(rect.x, pt.x) - step(rect.x + rect.z, pt.x);
+    float verz = step(rect.y, pt.y) - step(rect.y + rect.w, pt.y);
+    return horz * verz;
+}
+
 float inCircle(float2 pt, float radius)
 {
     return 1.0 - step(radius, length(pt));
@@ -10,6 +18,12 @@ float inCircle(float2 pt, float2 center, float radius, float edgeWidth)
 {
     float len = length(pt - center);
     return 1.0 - smoothstep(radius - edgeWidth, radius, len);
+}
+
+float4 lerpCircleColor(float4 outColor, float4 inColor, float2 pt, float2 center, float radius, float edgeWidth)
+{
+    float t = inCircle(pt, center, radius, edgeWidth);
+    return lerp(outColor, inColor, t);
 }
 
 float polygon(float2 pt, float2 center, float radius, int sides, float rotate, float edge_thickness)
