@@ -72,6 +72,9 @@ public class StarGlow : MonoBehaviour
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        //Graphics.Blit(source, destination, material, 0);
+        //return;
+
         var brightnessTex = RenderTexture.GetTemporary(source.width / divide, source.height / divide, source.depth, source.format);
         var blurredTex1 = RenderTexture.GetTemporary(brightnessTex.descriptor);
         var blurredTex2 = RenderTexture.GetTemporary(brightnessTex.descriptor);
@@ -79,6 +82,7 @@ public class StarGlow : MonoBehaviour
 
         material.SetVector(brightnessSettingsID, new Vector3(threshold, intensity, attenuation));
         Graphics.Blit(source, brightnessTex, material, 1);
+        //Graphics.Blit(brightnessTex, destination, material, 0);
 
         float angle = 360f / numOfStreaks;
         for (int x = 1; x <= numOfStreaks; x++)
@@ -98,13 +102,13 @@ public class StarGlow : MonoBehaviour
             }
             Graphics.Blit(blurredTex1, compositeTex, material, 3);
         }
+        //Graphics.Blit(compositeTex, destination, material, 0);
 
-        //material.EnableKeyword(StarGlow.CompositeTypes[compositeType]);
         material.SetColor(compositeColorID, color);
         material.SetTexture(compositeTexID, compositeTex);
 
+        //material.EnableKeyword(StarGlow.CompositeTypes[compositeType]);
         Graphics.Blit(source, destination, material, 4);
-
         //material.DisableKeyword(StarGlow.CompositeTypes[compositeType]);
 
         RenderTexture.ReleaseTemporary(brightnessTex);

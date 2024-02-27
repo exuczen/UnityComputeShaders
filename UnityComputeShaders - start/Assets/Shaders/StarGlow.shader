@@ -52,6 +52,7 @@
             fixed4 frag(v2f_img input) : SV_Target
             {
                 float4 color = tex2D(_MainTex, input.uv);
+                //return step(BRIGHTNESS_THRESHOLD, (color.r + color.g + color.b) / 3.0f) * color;
                 return max(color - BRIGHTNESS_THRESHOLD, 0) * INTENSITY;
             }
 
@@ -82,7 +83,7 @@
 
                 o.pos       = UnityObjectToClipPos(v.vertex);
                 o.uv        = v.texcoord;
-                o.power     = pow(4, _Iteration - 1);
+                o.power     = 1 << ((_Iteration - 1) << 1); //pow(4, _Iteration - 1);
                 o.offset    = _MainTex_TexelSize.xy * _Offset * o.power;
 
                 return o;
