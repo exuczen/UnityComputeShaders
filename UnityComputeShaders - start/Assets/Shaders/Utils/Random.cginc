@@ -1,3 +1,7 @@
+#define XORSHIFT_RANGE_INV 1.0 / 4294967296.0
+
+uint rng_state;
+
 float hash(float n)
 {
     return frac(sin(n) * 43758.5453);
@@ -49,6 +53,30 @@ float twiceRandom(float2 pt, float seed)
     const float b = 78.233;
     const float c = 43758.543123;
     return frac(sin(dot(random2(pt), float2(a, b)) + seed) * c);
+}
+
+/* http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
+float rand_xorshift()
+{
+	// Xorshift algorithm from George Marsaglia's paper
+    rng_state ^= (rng_state << 13);
+    rng_state ^= (rng_state >> 17);
+    rng_state ^= (rng_state << 5);
+    return rng_state * XORSHIFT_RANGE_INV;
+}
+
+float3 randomUnitVector3(uint seed)
+{
+    rng_state = seed;
+    float3 v = float3(rand_xorshift(), rand_xorshift(), rand_xorshift());
+    return normalize(v - 0.5);
+}
+
+float3 randomMinMaxLengthVector3(uint seed, float min, float max)
+{
+    float3 v = randomUnitVector3(seed);
+    float l = lerp(min, max, rand_xorshift());
+    return l * v;
 }
 
 // The noise function returns a value in the range -1.0f -> 1.0f 
