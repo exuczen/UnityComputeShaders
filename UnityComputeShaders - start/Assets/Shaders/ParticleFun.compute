@@ -13,13 +13,13 @@ RWStructuredBuffer<Particle> particleBuffer;
 
 // Variables set from the CPU 
 float deltaTime;
-float2 mousePosition;
+float3 mousePosition;
 
 void respawn(uint id)
 {
     float3 normalF3 = randomMinMaxLengthVector3(id, 0.0, 0.8);
     
-    particleBuffer[id].position = float3(normalF3.x + mousePosition.x, normalF3.y + mousePosition.y, normalF3.z + 3.0);
+    particleBuffer[id].position = mousePosition + normalF3;
 	// reset the life of this particle
     particleBuffer[id].life = 4;
     particleBuffer[id].velocity = float3(0, 0, 0);
@@ -31,7 +31,7 @@ void CSParticle(uint3 id : SV_DispatchThreadID)
     Particle particle = particleBuffer[id.x];
     particle.life -= deltaTime;
     
-    float3 delta = float3(mousePosition.xy, 3) - particle.position;
+    float3 delta = mousePosition - particle.position;
     float3 dir = normalize(delta);
     
     particle.velocity += dir;

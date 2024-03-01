@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class QuadParticles : MonoBehaviour
 {
-    private Vector2 cursorPos;
-
     struct Particle
     {
         public Vector3 position;
@@ -38,6 +36,8 @@ public class QuadParticles : MonoBehaviour
     private ComputeBuffer vertexBuffer = null;
 
     private int groupSizeX;
+
+    private Vector3 cursorPosition;
 
     // Use this for initialization
     private void Start()
@@ -117,11 +117,9 @@ public class QuadParticles : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        float[] mousePosition2D = { cursorPos.x, cursorPos.y };
-
         // Send datas to the compute shader
         shader.SetFloat("deltaTime", Time.deltaTime);
-        shader.SetFloats("mousePosition", mousePosition2D);
+        shader.SetVector("mousePosition", cursorPosition);
 
         // Update the Particles
         shader.Dispatch(kernelID, groupSizeX, 1, 1);
@@ -138,10 +136,6 @@ public class QuadParticles : MonoBehaviour
             x = e.mousePosition.x,
             y = c.pixelHeight - e.mousePosition.y
         };
-
-        var p = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 14));
-
-        cursorPos.x = p.x;
-        cursorPos.y = p.y;
+        cursorPosition = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 10));
     }
 }
