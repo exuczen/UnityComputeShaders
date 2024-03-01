@@ -144,16 +144,26 @@ void drawDiamond(int2 c, int r)
     }
 }
 
+void respawnParticle(uint i)
+{
+    float seedValue = i + Time;
+    particlesBuffer[i].position = (int2)(random2(seedValue) * TexResolution);
+    particlesBuffer[i].endTime = Time + random(seedValue);
+}
+
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
-    particlesBuffer[id.x].position = (int2)(random2(id.x + Time) * TexResolution);
+    respawnParticle(id.x);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Particles(uint3 id : SV_DispatchThreadID)
 {
-    particlesBuffer[id.x].position = (int2)(random2(id.x + Time) * TexResolution);
+    if (Time > particlesBuffer[id.x].endTime)
+    {
+        respawnParticle(id.x);
+    }
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
