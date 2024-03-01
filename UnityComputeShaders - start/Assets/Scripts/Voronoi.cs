@@ -22,20 +22,21 @@ public class Voronoi : MonoBehaviour
     private Renderer rend;
     private RenderTexture outputTexture;
 
-    private int pointsKernel;
     private int circlesKernel;
     private int diamondsKernel;
     private int fillCirclesKernel;
     private int clearKernel;
     private int lineKernel;
+    private int randomParticlesKernel;
+    private int particlesKernel;
 
-    private ComputeBuffer pointsBuffer = null;
+    private ComputeBuffer particlesBuffer = null;
 
     public void Init()
     {
         if (Application.isPlaying)
         {
-            pointsBuffer?.Release();
+            particlesBuffer?.Release();
 
             InitData();
             InitShader();
@@ -59,12 +60,13 @@ public class Voronoi : MonoBehaviour
 
     private void InitData()
     {
-        pointsKernel = shader.FindKernel("Points");
         circlesKernel = shader.FindKernel("Circles");
         clearKernel = shader.FindKernel("Clear");
         diamondsKernel = shader.FindKernel("Diamonds");
         fillCirclesKernel = shader.FindKernel("FillCircles");
         lineKernel = shader.FindKernel("Line");
+        randomParticlesKernel = shader.FindKernel("RandomParticles");
+        particlesKernel = shader.FindKernel("Particles");
 
         shader.GetKernelThreadGroupSizes(circlesKernel, out uint numthreadsX, out _, out _);
         circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + numthreadsX - 1) / numthreadsX), 1, 65535);
@@ -87,18 +89,18 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat("CircleRadiusF", CircleRadius);
         shader.SetInt("PointsCount", pointsCount);
 
-        int[] textureKernels = new int[] { clearKernel, circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel };
-        int[] pointsKernels = new int[] { pointsKernel, circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel };
+        int[] textureKernels = new int[] { circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel, clearKernel };
+        int[] pointsKernels = new int[] { circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel, randomParticlesKernel, particlesKernel };
 
         for (int i = 0; i < textureKernels.Length; i++)
         {
             shader.SetTexture(textureKernels[i], "output", outputTexture);
         }
-        pointsBuffer = new ComputeBuffer(pointsCount, 2 * sizeof(int));
+        particlesBuffer = new ComputeBuffer(pointsCount, 2 * sizeof(int) + sizeof(float));
 
         for (int i = 0; i < pointsKernels.Length; i++)
         {
-            shader.SetBuffer(pointsKernels[i], "pointsBuffer", pointsBuffer);
+            shader.SetBuffer(pointsKernels[i], "particlesBuffer", particlesBuffer);
         }
         rend.material.SetTexture("_MainTex", outputTexture);
     }
@@ -109,8 +111,8 @@ public class Voronoi : MonoBehaviour
         int radiusSqrID = Shader.PropertyToID("RadiusSqr");
 
         shader.Dispatch(clearKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
-        shader.Dispatch(pointsKernel, circleThreadGroupCount, 1, 1);
-        //shader.Dispatch(pointsKernel, 1, 1, circleThreadGroupCount);
+        shader.Dispatch(randomParticlesKernel, circleThreadGroupCount, 1, 1);
+        //shader.Dispatch(randomParticlesKernel, 1, 1, circleThreadGroupCount);
 
         for (int i = 1; i < CircleRadius; i++)
         {
@@ -133,7 +135,7 @@ public class Voronoi : MonoBehaviour
 
     private void OnDestroy()
     {
-        pointsBuffer.Dispose();
+        particlesBuffer?.Dispose();
     }
 }
 

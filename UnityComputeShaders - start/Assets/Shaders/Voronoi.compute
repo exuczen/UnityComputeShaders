@@ -2,20 +2,28 @@
 #define CLEAR_THREADS 32
 
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel Points
+//#pragma kernel Points
 #pragma kernel Circles
 #pragma kernel Diamonds
 #pragma kernel FillCircles
 #pragma kernel Clear
 #pragma kernel Line
+#pragma kernel RandomParticles
+#pragma kernel Particles
 
 #include "Utils/Random.cginc"
 #include "Utils/Geometry.cginc"
 
+struct Particle
+{
+    int2 position;
+    float endTime;
+};
+
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 shared RWTexture2D<float4> output;
-shared RWStructuredBuffer<int2> pointsBuffer;
+shared RWStructuredBuffer<Particle> particlesBuffer;
 
 float CircleRadiusF;
 int TexResolution;
@@ -25,6 +33,11 @@ int RadiusSqr;
 float4 ClearColor;
 float4 CircleColor;
 float Time;
+
+int2 getParticlePosition(uint i)
+{
+    return particlesBuffer[i].position;
+}
 
 float4 getCirclePixel(int x, int y)
 {
@@ -132,23 +145,29 @@ void drawDiamond(int2 c, int r)
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
-void Points(uint3 id : SV_DispatchThreadID)
+void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
-    pointsBuffer[id.x] = (int2)(random2(id.x + Time) * TexResolution);
+    particlesBuffer[id.x].position = (int2)(random2(id.x + Time) * TexResolution);
+}
+
+[numthreads(CIRCLE_THREADS, 1, 1)]
+void Particles(uint3 id : SV_DispatchThreadID)
+{
+    particlesBuffer[id.x].position = (int2)(random2(id.x + Time) * TexResolution);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
-    //drawJeskoCircle(PointsBuffer[id.x], Radius);
-    drawMidpointCircle(pointsBuffer[id.x], Radius);
-    drawHornCircle(pointsBuffer[id.x], Radius);
+    //drawJeskoCircle(getParticlePosition(id.x), Radius);
+    drawMidpointCircle(getParticlePosition(id.x), Radius);
+    drawHornCircle(getParticlePosition(id.x), Radius);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Diamonds(uint3 id : SV_DispatchThreadID)
 {
-    drawDiamond(pointsBuffer[id.x], Radius);
+    drawDiamond(getParticlePosition(id.x), Radius);
 }
 
 [numthreads(31, 31, 1)]
@@ -156,7 +175,7 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
 {
     int2 center = int2(15, 15);
     int2 ray = (int2)id.xy - center;
-    uint2 xy = pointsBuffer[id.z] + ray;
+    uint2 xy = getParticlePosition(id.z) + ray;
     
     if (output[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
     {
@@ -167,7 +186,7 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
 [numthreads(1, 1, 1)]
 void Line(uint3 id : SV_DispatchThreadID)
 {
-    drawLine(output, pointsBuffer[0], pointsBuffer[1], 1);
+    drawLine(output, getParticlePosition(0), getParticlePosition(1), 1);
 }
 
 [numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
