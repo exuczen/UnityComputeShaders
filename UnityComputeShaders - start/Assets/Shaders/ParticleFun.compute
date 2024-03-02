@@ -7,6 +7,7 @@ struct Particle
     float3 position;
     float3 velocity;
     float life;
+    uint randomSeed;
 };
 
 RWStructuredBuffer<Particle> particleBuffer;
@@ -17,12 +18,14 @@ float3 mousePosition;
 
 void respawn(uint id)
 {
-    float3 normalF3 = randomMinMaxLengthVector3(id, 0.0, 0.8);
+    rng_state = particleBuffer[id].randomSeed;
+    float3 normalF3 = randomMinMaxLengthVector3(0.0, 0.8);
     
     particleBuffer[id].position = mousePosition + normalF3;
 	// reset the life of this particle
     particleBuffer[id].life = 4;
     particleBuffer[id].velocity = float3(0, 0, 0);
+    particleBuffer[id].randomSeed = rng_state;
 }
 
 [numthreads(256, 1, 1)]

@@ -28,7 +28,8 @@ float halfSize;
 
 void respawn(uint id)
 {
-    float3 normalF3 = randomMinMaxLengthVector3(id, 0.0, 0.8);
+    rng_state = id;
+    float3 normalF3 = randomMinMaxLengthVector3(0.0, 0.8);
     
     particleBuffer[id].position = mousePosition + normalF3;
 	// reset the life of this particle

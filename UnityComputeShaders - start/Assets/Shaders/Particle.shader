@@ -29,6 +29,7 @@
 				float3 position;
 				float3 velocity;
 				float life;
+				uint randomSeed;
 			};
 
 			StructuredBuffer<Particle> particleBuffer;

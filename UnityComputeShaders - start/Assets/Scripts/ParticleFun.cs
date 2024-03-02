@@ -11,9 +11,10 @@ public class ParticleFun : MonoBehaviour
         public Vector3 position;
         public Vector3 velocity;
         public float life;
+        public uint randomSeed;
     }
 
-    const int SIZE_PARTICLE = 7 * sizeof(float);
+    const int SIZE_PARTICLE = 7 * sizeof(float) + sizeof(uint);
 
     public int particleCount = 1000000;
     public Material material;
@@ -36,6 +37,8 @@ public class ParticleFun : MonoBehaviour
 
     private void Init()
     {
+        GetCursorPosition();
+
         // initialize the particles
         Particle[] particleArray = new Particle[particleCount];
 
@@ -49,10 +52,11 @@ public class ParticleFun : MonoBehaviour
                 z = Random.Range(-1f, 1f)
             };
             pos = Random.Range(0f, 0.5f) * pos.normalized;
-            pos.z += 3;
+            pos.z += cursorPosition.z;
             particleArray[i].position = pos;
             particleArray[i].velocity = Vector3.zero;
             particleArray[i].life = Random.Range(1f, 6f);
+            particleArray[i].randomSeed = (uint)i;
         }
 
         // create compute buffer
@@ -97,15 +101,17 @@ public class ParticleFun : MonoBehaviour
 
     private void OnGUI()
     {
+        GetCursorPosition();
+    }
+
+    private Vector3 GetCursorPosition()
+    {
         Camera c = Camera.main;
         Event e = Event.current;
-        Vector2 mousePos = new()
-        {
-            // Get the mouse position from Event.
-            // Note that the y position from Event is inverted.
-            x = e.mousePosition.x,
-            y = c.pixelHeight - e.mousePosition.y
-        };
+        // Get the mouse position from Event.
+        // Note that the y position from Event is inverted.
+        Vector2 mousePos = e != null ? new(e.mousePosition.x, c.pixelHeight - e.mousePosition.y) : Input.mousePosition;
         cursorPosition = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 7));
+        return cursorPosition;
     }
 }

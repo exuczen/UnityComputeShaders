@@ -47,6 +47,8 @@ public class QuadParticles : MonoBehaviour
 
     private void Init()
     {
+        GetCursorPosition();
+
         // find the id of the kernel
         kernelID = shader.FindKernel("CSMain");
 
@@ -60,18 +62,19 @@ public class QuadParticles : MonoBehaviour
         int numVertices = numParticles * 6;
         var vertexArray = new Vertex[numVertices];
 
-        Vector3 pos = new();
-
         int index;
 
         for (int i = 0; i < numParticles; i++)
         {
-            pos.Set(Random.value * 2 - 1.0f, Random.value * 2 - 1.0f, Random.value * 2 - 1.0f);
-            pos.Normalize();
-            pos *= Random.value;
-            pos *= 0.5f;
-
-            particleArray[i].position.Set(pos.x, pos.y, pos.z + 3);
+            var pos = new Vector3
+            {
+                x = Random.Range(-1f, 1f),
+                y = Random.Range(-1f, 1f),
+                z = Random.Range(-1f, 1f)
+            };
+            pos = Random.Range(0f, 0.5f) * pos.normalized;
+            pos.z += cursorPosition.z;
+            particleArray[i].position = pos;
             particleArray[i].velocity.Set(0, 0, 0);
 
             // Initial life value
@@ -127,15 +130,17 @@ public class QuadParticles : MonoBehaviour
 
     private void OnGUI()
     {
+        GetCursorPosition();
+    }
+
+    private Vector3 GetCursorPosition()
+    {
         Camera c = Camera.main;
         Event e = Event.current;
-        Vector2 mousePos = new()
-        {
-            // Get the mouse position from Event.
-            // Note that the y position from Event is inverted.
-            x = e.mousePosition.x,
-            y = c.pixelHeight - e.mousePosition.y
-        };
+        // Get the mouse position from Event.
+        // Note that the y position from Event is inverted.
+        Vector2 mousePos = e != null ? new(e.mousePosition.x, c.pixelHeight - e.mousePosition.y) : Input.mousePosition;
         cursorPosition = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 10));
+        return cursorPosition;
     }
 }

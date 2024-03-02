@@ -7,6 +7,17 @@ float hash(float n)
     return frac(sin(n) * 43758.5453);
 }
 
+/* http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
+uint wang_hash(uint seed)
+{
+    seed = (seed ^ 61) ^ (seed >> 16);
+    seed *= 9;
+    seed = seed ^ (seed >> 4);
+    seed *= 0x27d4eb2d;
+    seed = seed ^ (seed >> 15);
+    return seed;
+}
+
 /* Returns pseudo random number in range 0 <= x < 1 */
 float random(float value, float seed = 0.546)
 {
@@ -55,27 +66,44 @@ float twiceRandom(float2 pt, float seed)
     return frac(sin(dot(random2(pt), float2(a, b)) + seed) * c);
 }
 
+/* https://en.wikipedia.org/wiki/Linear_congruential_generator */
+uint get_lgc(uint seed)
+{
+    return 1664525 * seed + 1013904223;
+}
+
 /* http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
-float rand_xorshift()
+void set_rng_state(uint seed)
+{
+    rng_state = get_lgc(seed);
+}
+
+/* http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
+float random_xorshift()
 {
 	// Xorshift algorithm from George Marsaglia's paper
     rng_state ^= (rng_state << 13);
     rng_state ^= (rng_state >> 17);
     rng_state ^= (rng_state << 5);
     return rng_state * XORSHIFT_RANGE_INV;
+
 }
 
-float3 randomUnitVector3(uint seed)
+float2 random2_xorshift()
 {
-    rng_state = seed;
-    float3 v = float3(rand_xorshift(), rand_xorshift(), rand_xorshift());
+    return float2(random_xorshift(), random_xorshift());
+}
+
+float3 randomUnitVector3()
+{
+    float3 v = float3(random_xorshift(), random_xorshift(), random_xorshift());
     return normalize(v - 0.5);
 }
 
-float3 randomMinMaxLengthVector3(uint seed, float min, float max)
+float3 randomMinMaxLengthVector3(float min, float max)
 {
-    float3 v = randomUnitVector3(seed);
-    float l = lerp(min, max, rand_xorshift());
+    float3 v = randomUnitVector3();
+    float l = lerp(min, max, random_xorshift());
     return l * v;
 }
 
