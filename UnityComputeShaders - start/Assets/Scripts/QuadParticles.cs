@@ -11,6 +11,7 @@ public class QuadParticles : MonoBehaviour
         public Vector3 position;
         public Vector3 velocity;
         public float life;
+        public uint randomSeed;
     }
 
     struct Vertex
@@ -20,7 +21,7 @@ public class QuadParticles : MonoBehaviour
         public float life;
     }
 
-    const int SIZE_PARTICLE = 7 * sizeof(float);
+    const int SIZE_PARTICLE = 7 * sizeof(float) + sizeof(uint);
     const int SIZE_VERTEX = 6 * sizeof(float);
 
     public int particleCount = 10000;
@@ -62,8 +63,6 @@ public class QuadParticles : MonoBehaviour
         int numVertices = numParticles * 6;
         var vertexArray = new Vertex[numVertices];
 
-        int index;
-
         for (int i = 0; i < numParticles; i++)
         {
             var pos = new Vector3
@@ -76,17 +75,18 @@ public class QuadParticles : MonoBehaviour
             pos.z += cursorPosition.z;
             particleArray[i].position = pos;
             particleArray[i].velocity.Set(0, 0, 0);
+            particleArray[i].randomSeed = (uint)i;
 
             // Initial life value
             particleArray[i].life = Random.value * 5.0f + 1.0f;
 
-            index = i * 6;
-            vertexArray[index + 0].uv.Set(0, 0);
-            vertexArray[index + 1].uv.Set(0, 1);
-            vertexArray[index + 2].uv.Set(1, 1);
-            vertexArray[index + 3].uv.Set(0, 0);
-            vertexArray[index + 4].uv.Set(1, 1);
-            vertexArray[index + 5].uv.Set(1, 0);
+            int index = i * 6;
+            vertexArray[index++].uv.Set(0, 0);
+            vertexArray[index++].uv.Set(0, 1);
+            vertexArray[index++].uv.Set(1, 1);
+            vertexArray[index++].uv.Set(0, 0);
+            vertexArray[index++].uv.Set(1, 1);
+            vertexArray[index++].uv.Set(1, 0);
         }
 
         // create compute buffers
@@ -140,7 +140,7 @@ public class QuadParticles : MonoBehaviour
         // Get the mouse position from Event.
         // Note that the y position from Event is inverted.
         Vector2 mousePos = e != null ? new(e.mousePosition.x, c.pixelHeight - e.mousePosition.y) : Input.mousePosition;
-        cursorPosition = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 10));
+        cursorPosition = c.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, c.nearClipPlane + 7));
         return cursorPosition;
     }
 }

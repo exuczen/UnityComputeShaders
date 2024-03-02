@@ -11,7 +11,7 @@
 			Tags
 			{ 
 				"Queue" = "Transparent"
-				"RenderType" = "Opaque"
+				"RenderType" = "Transparent"
 				"IgnoreProjector" = "True"
 			}
 			Blend SrcAlpha OneMinusSrcAlpha
@@ -26,13 +26,6 @@
 
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 5.0
-		
-			struct v2f
-			{
-				float4 position : SV_POSITION;
-				float4 color : COLOR;
-				float2 uv: TEXCOORD0;
-			};
 
 			struct Vertex
 			{
@@ -42,6 +35,13 @@
 			};
 
 			StructuredBuffer<Vertex> vertexBuffer;
+		
+			struct v2f
+			{
+				float4 position : SV_POSITION;
+				float4 color : COLOR;
+				float2 uv: TEXCOORD0;
+			};
 
 			sampler2D _MainTex;
 		
@@ -51,6 +51,7 @@
 
 				int index = instance_id * 6 + vertex_id;
 				float life = vertexBuffer[index].life * 0.25;
+
 				o.color = fixed4(1 - life + 0.1, life + 0.1, 1, life);
 				o.position = UnityObjectToClipPos(float4(vertexBuffer[index].position, 1));
 				o.uv = vertexBuffer[index].uv;

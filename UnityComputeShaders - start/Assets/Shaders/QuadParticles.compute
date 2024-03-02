@@ -8,6 +8,7 @@ struct Particle
     float3 position;
     float3 velocity;
     float life;
+    uint randomSeed;
 };
 
 struct Vertex
@@ -28,13 +29,14 @@ float halfSize;
 
 void respawn(uint id)
 {
-    rng_state = id;
+    rng_state = particleBuffer[id].randomSeed;
     float3 normalF3 = randomMinMaxLengthVector3(0.0, 0.8);
     
     particleBuffer[id].position = mousePosition + normalF3;
 	// reset the life of this particle
     particleBuffer[id].life = 4;
     particleBuffer[id].velocity = float3(0, 0, 0);
+    particleBuffer[id].randomSeed = rng_state;
 }
 
 [numthreads(256, 1, 1)]
@@ -58,14 +60,17 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         respawn(id.x);
         p = particleBuffer[id.x];
     }
+    
     float3 ppos = p.position;
-    int index = id.x * 6;
-    vertexBuffer[index + 0].position = float3(ppos.x - halfSize, ppos.y - halfSize, ppos.z);
-    vertexBuffer[index + 1].position = float3(ppos.x - halfSize, ppos.y + halfSize, ppos.z);
-    vertexBuffer[index + 2].position = float3(ppos.x + halfSize, ppos.y + halfSize, ppos.z);
-    vertexBuffer[index + 3].position = float3(ppos.x - halfSize, ppos.y - halfSize, ppos.z);
-    vertexBuffer[index + 4].position = float3(ppos.x + halfSize, ppos.y + halfSize, ppos.z);
-    vertexBuffer[index + 5].position = float3(ppos.x + halfSize, ppos.y - halfSize, ppos.z);
+    int indexOffset = id.x * 6;
+    int index = indexOffset;
+    vertexBuffer[index++].position = float3(ppos.x - halfSize, ppos.y - halfSize, ppos.z);
+    vertexBuffer[index++].position = float3(ppos.x - halfSize, ppos.y + halfSize, ppos.z);
+    vertexBuffer[index++].position = float3(ppos.x + halfSize, ppos.y + halfSize, ppos.z);
+    vertexBuffer[index++].position = float3(ppos.x - halfSize, ppos.y - halfSize, ppos.z);
+    vertexBuffer[index++].position = float3(ppos.x + halfSize, ppos.y + halfSize, ppos.z);
+    vertexBuffer[index++].position = float3(ppos.x + halfSize, ppos.y - halfSize, ppos.z);
+    index = indexOffset;
     
     for (int i = 0; i < 6; i++)
     {
