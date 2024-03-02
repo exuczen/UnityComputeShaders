@@ -25,13 +25,13 @@ float random(float value, float seed = 0.546)
     return random;
 }
 
-float2 random2(float2 pt)
-{
-    return float2(
-		random(pt.x, 3.9812),
-		random(pt.y, 7.1536)
-	);
-}
+//float2 random2(float2 pt)
+//{
+//    return float2(
+//		random(pt.x, 3.9812),
+//		random(pt.y, 7.1536)
+//	);
+//}
 
 float2 random2(float value)
 {
@@ -58,13 +58,13 @@ float random(float2 pt, float seed)
     return frac(sin(dot(pt, float2(a, b)) + seed) * c);
 }
 
-float twiceRandom(float2 pt, float seed)
-{
-    const float a = 12.9898;
-    const float b = 78.233;
-    const float c = 43758.543123;
-    return frac(sin(dot(random2(pt), float2(a, b)) + seed) * c);
-}
+//float twiceRandom(float2 pt, float seed)
+//{
+//    const float a = 12.9898;
+//    const float b = 78.233;
+//    const float c = 43758.543123;
+//    return frac(sin(dot(random2(pt), float2(a, b)) + seed) * c);
+//}
 
 /* https://en.wikipedia.org/wiki/Linear_congruential_generator */
 uint get_lgc(uint seed)
@@ -86,7 +86,6 @@ float random_xorshift()
     rng_state ^= (rng_state >> 17);
     rng_state ^= (rng_state << 5);
     return rng_state * XORSHIFT_RANGE_INV;
-
 }
 
 float2 random2_xorshift()

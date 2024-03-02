@@ -13,5 +13,5 @@ float time;
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     float4 white = 1;
-    Result[id.xy] = random(((float2)id.xy) / (float)texResolution, time) * white;
+    Result[id.xy] = random((float2)id.xy / (float)texResolution, time) * white;
 }
