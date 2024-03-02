@@ -90,6 +90,29 @@ void drawMidpointCircle(int2 c, int r)
     }
 }
 
+void drawMidpoint2Circle(int2 c, int r)
+{
+    int x = r;
+    int y = 0;
+    int d = 1 - r;
+    
+    while (x > y)
+    {
+        plot8(x, y, c, getCirclePixel(y, x));
+        
+        y++;
+        if (d <= 0)
+        {
+            d += (y << 1) + 1;
+        }
+        else
+        {
+            x--;
+            d += ((y - x) << 1) + 1;
+        }
+    }
+}
+
 void drawJeskoCircle(int2 c, int r)
 {
     int t1 = r >> 4;
@@ -181,6 +204,7 @@ void Circles(uint3 id : SV_DispatchThreadID)
 {
     //drawJeskoCircle(getParticlePosition(id.x), Radius);
     drawMidpointCircle(getParticlePosition(id.x), Radius);
+    //drawMidpoint2Circle(getParticlePosition(id.x), Radius);
     drawHornCircle(getParticlePosition(id.x), Radius);
 }
 
