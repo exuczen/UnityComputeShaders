@@ -26,6 +26,7 @@ float4 getCirclePixel(int x, int y)
 void plot1(int x, int y, int2 c, float4 color)
 {
     uint2 xy = uint2(c.x + x, c.y + y);
+    
     if (output[xy].w == 0)
     {
         output[xy] = color;
