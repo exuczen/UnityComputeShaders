@@ -8,6 +8,8 @@ public class Voronoi : MonoBehaviour
     private const int TexResolution = 128;
     private const int CircleRadius = 16;
 
+    private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
+
     [SerializeField]
     private ComputeShader shader = null;
     [SerializeField]
@@ -32,12 +34,14 @@ public class Voronoi : MonoBehaviour
     private int particlesKernel;
 
     private ComputeBuffer particlesBuffer = null;
+    private ComputeBuffer colorsBuffer = null;
 
     public void Init()
     {
         if (Application.isPlaying)
         {
             particlesBuffer?.Release();
+            colorsBuffer?.Release();
 
             InitData();
             InitShader();
@@ -95,9 +99,13 @@ public class Voronoi : MonoBehaviour
         int[] textureKernels = new int[] { circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel, clearKernel };
         int[] pointsKernels = new int[] { circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel, randomParticlesKernel, particlesKernel };
 
+        colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
+        colorsBuffer.SetData(CircleColors);
+
         for (int i = 0; i < textureKernels.Length; i++)
         {
             shader.SetTexture(textureKernels[i], "output", outputTexture);
+            shader.SetBuffer(textureKernels[i], "colorsBuffer", colorsBuffer);
         }
         particlesBuffer = new ComputeBuffer(pointsCount, ParticleSize);
 
@@ -141,6 +149,7 @@ public class Voronoi : MonoBehaviour
     private void OnDestroy()
     {
         particlesBuffer?.Dispose();
+        colorsBuffer?.Dispose();
     }
 }
 

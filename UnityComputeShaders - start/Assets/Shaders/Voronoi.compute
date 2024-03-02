@@ -72,16 +72,16 @@ void Particles(uint3 id : SV_DispatchThreadID)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
-    //drawJeskoCircle(getParticlePosition(id.x), Radius);
-    drawMidpointCircle(getParticlePosition(id.x), Radius);
-    //drawMidpoint2Circle(getParticlePosition(id.x), Radius);
-    drawHornCircle(getParticlePosition(id.x), Radius);
+    //drawJeskoCircle(getParticlePosition(id.x), Radius, id.x);
+    drawMidpointCircle(getParticlePosition(id.x), Radius, id.x);
+    //drawMidpoint2Circle(getParticlePosition(id.x), Radius, id.x);
+    drawHornCircle(getParticlePosition(id.x), Radius, id.x);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Diamonds(uint3 id : SV_DispatchThreadID)
 {
-    drawDiamond(getParticlePosition(id.x), Radius);
+    drawDiamond(getParticlePosition(id.x), Radius, id.x);
 }
 
 [numthreads(31, 31, 1)]

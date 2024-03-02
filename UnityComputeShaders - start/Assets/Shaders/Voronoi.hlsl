@@ -1,7 +1,13 @@
 ﻿// Create a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
 shared RWTexture2D<float4> output;
+shared StructuredBuffer<float4> colorsBuffer;
 
 float CircleRadiusF;
+
+float4 getColor(int id)
+{
+    return colorsBuffer[id % colorsBuffer.Length];
+}
 
 float4 getCirclePixel(int x, int y)
 {
@@ -17,8 +23,11 @@ void plot1(int x, int y, int2 c, float4 color)
     }
 }
 
-void plot8(int x, int y, int2 center, float4 color)
+void plot8(int x, int y, int2 center, int colorID)
 {
+    //float4 color = getColor(colorID);
+    float4 color = getCirclePixel(y, x);
+    
     plot1(x, y, center, color);
     plot1(y, x, center, color);
     plot1(x, -y, center, color);
@@ -29,7 +38,7 @@ void plot8(int x, int y, int2 center, float4 color)
     plot1(-y, x, center, color);
 }
 
-void drawMidpointCircle(int2 c, int r)
+void drawMidpointCircle(int2 c, int r, int colorID)
 {
     int x = r;
     int y = 0;
@@ -46,13 +55,13 @@ void drawMidpointCircle(int2 c, int r)
             d += ((y - x) << 1) + 5;
             x--;
         }
-        plot8(x, y, c, getCirclePixel(y, x));
+        plot8(x, y, c, colorID);
 
         y++;
     }
 }
 
-void drawMidpoint2Circle(int2 c, int r)
+void drawMidpoint2Circle(int2 c, int r, int colorID)
 {
     int x = r;
     int y = 0;
@@ -60,7 +69,7 @@ void drawMidpoint2Circle(int2 c, int r)
     
     while (x > y)
     {
-        plot8(x, y, c, getCirclePixel(y, x));
+        plot8(x, y, c, colorID);
         
         y++;
         if (d <= 0)
@@ -75,7 +84,7 @@ void drawMidpoint2Circle(int2 c, int r)
     }
 }
 
-void drawJeskoCircle(int2 c, int r)
+void drawJeskoCircle(int2 c, int r, int colorID)
 {
     int t1 = r >> 4;
     int x = r;
@@ -83,7 +92,7 @@ void drawJeskoCircle(int2 c, int r)
     
     while (x >= y)
     {
-        plot8(x, y, c, getCirclePixel(y, x));
+        plot8(x, y, c, colorID);
         
         y++;
         t1 += y;
@@ -96,7 +105,7 @@ void drawJeskoCircle(int2 c, int r)
     }
 }
 
-void drawHornCircle(int2 c, int r)
+void drawHornCircle(int2 c, int r, int colorID)
 {
     int d = -r;
     int x = r;
@@ -104,7 +113,7 @@ void drawHornCircle(int2 c, int r)
     
     while (y <= x)
     {
-        plot8(x, y, c, getCirclePixel(y, x));
+        plot8(x, y, c, colorID);
         
         d += (y << 1) + 1;
         y++;
@@ -116,14 +125,14 @@ void drawHornCircle(int2 c, int r)
     }
 }
 
-void drawDiamond(int2 c, int r)
+void drawDiamond(int2 c, int r, int colorID)
 {
     int x = r;
     int y = 0;
     
     while (x >= y)
     {
-        plot8(x, y, c, getCirclePixel(y, x));
+        plot8(x, y, c, colorID);
         
         y++;
         x--;
