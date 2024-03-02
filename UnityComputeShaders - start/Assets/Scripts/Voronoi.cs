@@ -87,7 +87,7 @@ public class Voronoi : MonoBehaviour
         shader.SetInt("TexResolution", TexResolution);
         shader.SetVector("ClearColor", clearColor);
         shader.SetVector("CircleColor", circleColor);
-        shader.SetFloat("CircleRadiusF", CircleRadius);
+        shader.SetFloat("CircleRadiusF", Math.Max(1, CircleRadius - 1));
         shader.SetFloat("Time", Time.realtimeSinceStartup);
 
         shader.SetInt("PointsCount", pointsCount);

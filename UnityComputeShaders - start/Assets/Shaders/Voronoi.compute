@@ -84,7 +84,6 @@ void drawMidpointCircle(int2 c, int r)
             d += ((y - x) << 1) + 5;
             x--;
         }
-        
         plot8(x, y, c, getCirclePixel(y, x));
 
         y++;
@@ -121,6 +120,7 @@ void drawHornCircle(int2 c, int r)
     while (y <= x)
     {
         plot8(x, y, c, getCirclePixel(y, x));
+        
         d += (y << 1) + 1;
         y++;
         if (d > 0)
@@ -129,7 +129,6 @@ void drawHornCircle(int2 c, int r)
             x--;
         }
     }
-    
 }
 
 void drawDiamond(int2 c, int r)
@@ -163,7 +162,8 @@ void respawnParticle(uint i)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
-    particlesBuffer[id.x].randomSeed = get_lgc(id.x);
+    //particlesBuffer[id.x].randomSeed = wang_hash(id.x);
+    particlesBuffer[id.x].randomSeed = lgc_hash(id.x);
     respawnParticle(id.x);
 }
 

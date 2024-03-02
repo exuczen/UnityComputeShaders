@@ -7,6 +7,12 @@ float hash(float n)
     return frac(sin(n) * 43758.5453);
 }
 
+/* https://en.wikipedia.org/wiki/Linear_congruential_generator */
+uint lgc_hash(uint seed)
+{
+    return 1664525 * seed + 1013904223;
+}
+
 /* http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
 uint wang_hash(uint seed)
 {
@@ -66,16 +72,11 @@ float random(float2 pt, float seed)
 //    return frac(sin(dot(random2(pt), float2(a, b)) + seed) * c);
 //}
 
-/* https://en.wikipedia.org/wiki/Linear_congruential_generator */
-uint get_lgc(uint seed)
-{
-    return 1664525 * seed + 1013904223;
-}
-
 /* http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
 void set_rng_state(uint seed)
 {
-    rng_state = get_lgc(seed);
+    //rng_state = wang_hash(seed);
+    rng_state = lgc_hash(seed);
 }
 
 /* http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
