@@ -4,6 +4,7 @@ using System;
 
 public class Voronoi : MonoBehaviour
 {
+    private const int ParticleSize = 2 * sizeof(int) + sizeof(float) + sizeof(uint);
     private const int TexResolution = 128;
     private const int CircleRadius = 16;
 
@@ -98,7 +99,7 @@ public class Voronoi : MonoBehaviour
         {
             shader.SetTexture(textureKernels[i], "output", outputTexture);
         }
-        particlesBuffer = new ComputeBuffer(pointsCount, 2 * sizeof(int) + sizeof(float));
+        particlesBuffer = new ComputeBuffer(pointsCount, ParticleSize);
 
         for (int i = 0; i < pointsKernels.Length; i++)
         {

@@ -1,5 +1,6 @@
 ﻿#define CIRCLE_THREADS 1024
 #define CLEAR_THREADS 32
+#define USE_RANDOM_XORSHIFT
 
 // Each #kernel tells which function to compile; you can have many kernels
 //#pragma kernel Points
@@ -18,6 +19,7 @@ struct Particle
 {
     int2 position;
     float endTime;
+    uint randomSeed;
 };
 
 // Create a RenderTexture with enableRandomWrite flag and set it
@@ -146,14 +148,22 @@ void drawDiamond(int2 c, int r)
 
 void respawnParticle(uint i)
 {
+#ifdef USE_RANDOM_XORSHIFT
+    rng_state = particlesBuffer[i].randomSeed;
+    particlesBuffer[i].position = (int2)(random2_xorshift() * TexResolution);
+    particlesBuffer[i].endTime = Time + random_xorshift();
+    particlesBuffer[i].randomSeed = rng_state;
+#else
     float seedValue = i + Time;
     particlesBuffer[i].position = (int2)(random2(seedValue) * TexResolution);
     particlesBuffer[i].endTime = Time + random(seedValue);
+#endif
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
+    particlesBuffer[id.x].randomSeed = get_lgc(id.x);
     respawnParticle(id.x);
 }
 
