@@ -16,15 +16,6 @@
 #include "Utils/Geometry.cginc"
 #include "Voronoi.hlsl"
 
-struct Particle
-{
-    int2 position;
-    float endTime;
-    uint randomSeed;
-};
-
-shared RWStructuredBuffer<Particle> particlesBuffer;
-
 int TexResolution;
 int PointsCount;
 int Radius;
@@ -44,11 +35,13 @@ void respawnParticle(uint i)
     rng_state = particlesBuffer[i].randomSeed;
     particlesBuffer[i].position = (int2)(random2_xorshift() * TexResolution);
     particlesBuffer[i].endTime = Time + random_xorshift();
+    particlesBuffer[i].color = float4(random3_xorshift(), 1);
     particlesBuffer[i].randomSeed = rng_state;
 #else
     float seedValue = i + Time;
-    particlesBuffer[i].position = (int2)(random2(seedValue) * TexResolution);
-    particlesBuffer[i].endTime = Time + random(seedValue);
+    particlesBuffer[i].position = (int2)(random2(seedValue++) * TexResolution);
+    particlesBuffer[i].endTime = Time + random(seedValue++);
+    particlesBuffer[i].color = float4(random3(seedValue), 1.0);
 #endif
 }
 

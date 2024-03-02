@@ -94,9 +94,14 @@ float2 random2_xorshift()
     return float2(random_xorshift(), random_xorshift());
 }
 
+float3 random3_xorshift()
+{
+    return float3(random_xorshift(), random_xorshift(), random_xorshift());
+}
+
 float3 randomUnitVector3()
 {
-    float3 v = float3(random_xorshift(), random_xorshift(), random_xorshift());
+    float3 v = random3_xorshift();
     return normalize(v - 0.5);
 }
 

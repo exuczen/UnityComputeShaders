@@ -4,7 +4,7 @@ using System;
 
 public class Voronoi : MonoBehaviour
 {
-    private const int ParticleSize = 2 * sizeof(int) + sizeof(float) + sizeof(uint);
+    private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint);
     private const int TexResolution = 128;
     private const int CircleRadius = 16;
 
