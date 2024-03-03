@@ -17,7 +17,7 @@
 #include "Voronoi.hlsl"
 
 int TexResolution;
-int PointsCount;
+uint PointsCount;
 int Radius;
 int RadiusSqr;
 float4 ClearColor;
@@ -52,6 +52,10 @@ void respawnParticle(uint i, float lifetimeMin, float lifetimeMax)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
+    if (id.x >= PointsCount)
+    {
+        return;
+    }
     //particlesBuffer[id.x].randomSeed = wang_hash(id.x);
     particlesBuffer[id.x].randomSeed = lgc_hash(id.x);
     respawnParticle(id.x, 0.0, 1.0);
@@ -60,6 +64,10 @@ void RandomParticles(uint3 id : SV_DispatchThreadID)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Particles(uint3 id : SV_DispatchThreadID)
 {
+    if (id.x >= PointsCount)
+    {
+        return;
+    }
     if (Time > particlesBuffer[id.x].endTime)
     {
         respawnParticle(id.x, 0.1, 1.0);
@@ -69,6 +77,10 @@ void Particles(uint3 id : SV_DispatchThreadID)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
+    if (id.x >= PointsCount)
+    {
+        return;
+    }
     //drawJeskoCircle(getParticlePosition(id.x), Radius, id.x);
     drawMidpointCircle(getParticlePosition(id.x), Radius, id.x);
     //drawMidpoint2Circle(getParticlePosition(id.x), Radius, id.x);
@@ -78,6 +90,10 @@ void Circles(uint3 id : SV_DispatchThreadID)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Diamonds(uint3 id : SV_DispatchThreadID)
 {
+    if (id.x >= PointsCount)
+    {
+        return;
+    }
     drawDiamond(getParticlePosition(id.x), Radius, id.x);
 }
 
