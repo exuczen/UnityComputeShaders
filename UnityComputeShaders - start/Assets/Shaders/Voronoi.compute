@@ -29,20 +29,21 @@ int2 getParticlePosition(uint i)
     return particlesBuffer[i].position;
 }
 
-void respawnParticle(uint i)
+void respawnParticle(uint i, float lifetimeMin, float lifetimeMax)
 {
     Particle p;
 #ifdef USE_RANDOM_XORSHIFT
     rng_state = particlesBuffer[i].randomSeed;
     p.position = (int2)(random2_xorshift() * TexResolution);
-    p.endTime = Time + random_xorshift();
+    p.endTime = Time + lerp(lifetimeMin, lifetimeMax, random_xorshift());
     p.color = float4(random3_xorshift(), 1.0);
     p.randomSeed = rng_state;
 #else
     float seedValue = i + Time;
-    p.position = (int2)(random2(seedValue++) * TexResolution);
-    p.endTime = Time + random(seedValue++);
-    p.color = float4(random3(seedValue), 1.0);
+    float seedDelta = 0.33;
+    p.position = (int2)(random2(seedValue) * TexResolution);
+    p.endTime = Time + lerp(lifetimeMin, lifetimeMax, random(seedValue += seedDelta));
+    p.color = float4(random3(seedValue += seedDelta), 1.0);
     p.randomSeed = 0;
 #endif
     particlesBuffer[i] = p;
@@ -53,7 +54,7 @@ void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
     //particlesBuffer[id.x].randomSeed = wang_hash(id.x);
     particlesBuffer[id.x].randomSeed = lgc_hash(id.x);
-    respawnParticle(id.x);
+    respawnParticle(id.x, 0.0, 1.0);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
@@ -61,7 +62,7 @@ void Particles(uint3 id : SV_DispatchThreadID)
 {
     if (Time > particlesBuffer[id.x].endTime)
     {
-        respawnParticle(id.x);
+        respawnParticle(id.x, 0.1, 1.0);
     }
 }
 

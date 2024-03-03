@@ -152,4 +152,3 @@ public class Voronoi : MonoBehaviour
         colorsBuffer?.Dispose();
     }
 }
-
