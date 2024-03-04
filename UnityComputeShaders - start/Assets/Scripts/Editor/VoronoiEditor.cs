@@ -8,9 +8,13 @@ public class VoronoiEditor : Editor
     {
         base.OnInspectorGUI();
         var voronoi = target as Voronoi;
-        if (GUILayout.Button("Apply"))
+        if (GUILayout.Button("Initialize"))
         {
             voronoi.Init();
+        }
+        if (GUILayout.Button("Change Points Count"))
+        {
+            voronoi.StartPointsCountChange();
         }
     }
 }

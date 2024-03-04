@@ -51,13 +51,14 @@ void respawnParticle(uint i, float lifetimeMin, float lifetimeMax)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= PointsCount)
-    {
-        return;
-    }
     //particlesBuffer[id.x].randomSeed = wang_hash(id.x);
     particlesBuffer[id.x].randomSeed = lgc_hash(id.x);
-    respawnParticle(id.x, 0.0, 1.0);
+    particlesBuffer[id.x].endTime = 0.0;
+    
+    if (id.x < PointsCount)
+    {
+        respawnParticle(id.x, 0.0, 1.0);
+    }
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]

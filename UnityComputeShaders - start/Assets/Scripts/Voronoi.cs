@@ -11,18 +11,43 @@ public class Voronoi : MonoBehaviour
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
+    private struct ShaderData
+    {
+        public int TimeID;
+        public int RadiusID;
+        public int RadiusSqrID;
+        public int PointsCountID;
+
+        public ShaderData(ComputeShader shader)
+        {
+            TimeID = Shader.PropertyToID("Time");
+            RadiusID = Shader.PropertyToID("Radius");
+            RadiusSqrID = Shader.PropertyToID("RadiusSqr");
+            PointsCountID = Shader.PropertyToID("PointsCount");
+        }
+    }
+
     [SerializeField]
     private ComputeShader shader = null;
     [SerializeField]
     private Color clearColor = Color.blue;
     [SerializeField, Range(1, 65536)]
     private int pointsCount = 16;
+    [SerializeField, Range(1, 65536)]
+    private int targetPointsCount = 16;
+    [SerializeField, Range(1, 5)]
+    private float pointsChangeDuration = 3;
 
     private int circleThreadGroupCount = 1; //[Range(1, 65535)]
     private int clearThreadGroupCount = 1;
 
-    private Renderer rend;
-    private RenderTexture outputTexture;
+    private new Renderer renderer = null;
+    private RenderTexture outputTexture = null;
+
+    private ComputeBuffer particlesBuffer = null;
+    private ComputeBuffer colorsBuffer = null;
+
+    private ShaderData shaderData = default;
 
     private int circlesKernel;
     private int diamondsKernel;
@@ -35,8 +60,18 @@ public class Voronoi : MonoBehaviour
     private uint circleNumThreadsX;
     //private uint circleNumThreadsZ;
 
-    private ComputeBuffer particlesBuffer = null;
-    private ComputeBuffer colorsBuffer = null;
+    private float pointsCountChangeStartTime;
+    private int startPointsCount;
+
+    public void StartPointsCountChange()
+    {
+        if (pointsCount != targetPointsCount)
+        {
+            //Debug.Log($"{GetType().Name}.StartPointsCountChange: {pointsCount} -> {targetPointsCount}");
+            pointsCountChangeStartTime = Time.time;
+            startPointsCount = pointsCount;
+        }
+    }
 
     public void Init()
     {
@@ -47,6 +82,8 @@ public class Voronoi : MonoBehaviour
 
             InitData();
             InitShader();
+
+            StartPointsCountChange();
         }
     }
 
@@ -59,10 +96,22 @@ public class Voronoi : MonoBehaviour
         };
         outputTexture.Create();
 
-        rend = GetComponent<Renderer>();
-        rend.enabled = true;
+        renderer = GetComponent<Renderer>();
+        renderer.enabled = true;
 
         Init();
+    }
+
+    private void Update()
+    {
+        UpdatePointsCount();
+        DispatchKernels();
+    }
+
+    private void OnDestroy()
+    {
+        particlesBuffer?.Dispose();
+        colorsBuffer?.Dispose();
     }
 
     private void InitData()
@@ -99,12 +148,13 @@ public class Voronoi : MonoBehaviour
 
     private void InitShader()
     {
+        shaderData = new(shader);
+
         shader.SetInt("TexResolution", TexResolution);
         shader.SetVector("ClearColor", clearColor);
         shader.SetFloat("CircleRadiusF", Math.Max(1, CircleRadius - 1));
-        shader.SetFloat("Time", Time.realtimeSinceStartup);
-
-        shader.SetInt("PointsCount", pointsCount);
+        shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
+        shader.SetInt(shaderData.PointsCountID, pointsCount);
 
         int[] textureKernels = new int[] { circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel, clearKernel };
         int[] pointsKernels = new int[] { circlesKernel, diamondsKernel, fillCirclesKernel, lineKernel, randomParticlesKernel, particlesKernel };
@@ -123,44 +173,47 @@ public class Voronoi : MonoBehaviour
         {
             shader.SetBuffer(pointsKernels[i], "particlesBuffer", particlesBuffer);
         }
-        rend.material.SetTexture("_MainTex", outputTexture);
+        renderer.material.SetTexture("_MainTex", outputTexture);
 
-        shader.Dispatch(randomParticlesKernel, circleThreadGroupCount, 1, 1);
-        //shader.Dispatch(randomParticlesKernel, 1, 1, circleThreadGroupCount);
+        shader.Dispatch(randomParticlesKernel, GetThreadGroupCount(circleNumThreadsX, ParticlesCapacity), 1, 1);
+        //shader.Dispatch(randomParticlesKernel, 1, 1, GetThreadGroupCount(circleNumThreadsX, ParticlesCapacity));
+    }
+
+    private void UpdatePointsCount()
+    {
+        if (pointsCountChangeStartTime >= 0f)
+        {
+            if (pointsCount != targetPointsCount)
+            {
+                float t = (Time.time - pointsCountChangeStartTime) / pointsChangeDuration;
+                pointsCount = (int)Mathf.Lerp(startPointsCount, targetPointsCount, t);
+            }
+            else
+            {
+                startPointsCount = targetPointsCount;
+                pointsCountChangeStartTime = -1f;
+            }
+        }
+        circleThreadGroupCount = GetThreadGroupCount(circleNumThreadsX, pointsCount);
     }
 
     private void DispatchKernels()
     {
-        int radiusID = Shader.PropertyToID("Radius");
-        int radiusSqrID = Shader.PropertyToID("RadiusSqr");
-
-        shader.SetFloat("Time", Time.realtimeSinceStartup);
-
-        //circleThreadGroupCount = GetThreadGroupCount(circleNumThreadsX, pointsCount);
+        shader.SetInt(shaderData.PointsCountID, pointsCount);
+        shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
 
         shader.Dispatch(clearKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
         shader.Dispatch(particlesKernel, circleThreadGroupCount, 1, 1);
 
         for (int i = 1; i < CircleRadius; i++)
         {
-            shader.SetInt(radiusID, i);
-            shader.SetInt(radiusSqrID, i * i);
+            shader.SetInt(shaderData.RadiusID, i);
+            shader.SetInt(shaderData.RadiusSqrID, i * i);
             shader.Dispatch(circlesKernel, circleThreadGroupCount, 1, 1);
             //shader.Dispatch(circlesKernel, 1, 1, circleThreadGroupCount);
             //shader.Dispatch(diamondsKernel, 1, 1, circleThreadGroupCount);
             //shader.Dispatch(fillCirclesKernel, 1, 1, circleThreadGroupCount);
         }
         shader.Dispatch(lineKernel, 1, 1, 1);
-    }
-
-    private void Update()
-    {
-        DispatchKernels();
-    }
-
-    private void OnDestroy()
-    {
-        particlesBuffer?.Dispose();
-        colorsBuffer?.Dispose();
     }
 }
