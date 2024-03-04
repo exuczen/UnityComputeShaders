@@ -15,8 +15,6 @@ public class Voronoi : MonoBehaviour
     private ComputeShader shader = null;
     [SerializeField]
     private Color clearColor = Color.blue;
-    [SerializeField]
-    private Color circleColor = Color.yellow;
     [SerializeField, Range(1, 65536)]
     private int pointsCount = 16;
 
@@ -103,7 +101,6 @@ public class Voronoi : MonoBehaviour
     {
         shader.SetInt("TexResolution", TexResolution);
         shader.SetVector("ClearColor", clearColor);
-        shader.SetVector("CircleColor", circleColor);
         shader.SetFloat("CircleRadiusF", Math.Max(1, CircleRadius - 1));
         shader.SetFloat("Time", Time.realtimeSinceStartup);
 

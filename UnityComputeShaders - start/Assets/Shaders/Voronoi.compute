@@ -21,7 +21,6 @@ uint PointsCount;
 int Radius;
 int RadiusSqr;
 float4 ClearColor;
-float4 CircleColor;
 float Time;
 
 int2 getParticlePosition(uint i)
