@@ -95,7 +95,8 @@ public class Voronoi : MonoBehaviour
         //circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + circleNumThreadsX - 1) / circleNumThreadsX), 1, 65535);
         //circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + circleNumThreadsZ - 1) / circleNumThreadsZ), 1, 65535);
         //clearThreadGroupCount = (int)((TexResolution + numthreadsX - 1) / numthreadsX);
-        return Mathf.Clamp((int)((size + numthreadsX - 1) / numthreadsX), 1, 65535);
+        int n = (int)numthreadsX;
+        return Mathf.Clamp((size + n - 1) / n, 1, 65535);
     }
 
     private void InitShader()

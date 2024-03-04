@@ -75,7 +75,7 @@ public class QuadParticles : MonoBehaviour
             pos.z += cursorPosition.z;
             particleArray[i].position = pos;
             particleArray[i].velocity.Set(0, 0, 0);
-            particleArray[i].randomSeed = (uint)i;
+            particleArray[i].randomSeed = (uint)(1664525 * i + 1013904223);
 
             // Initial life value
             particleArray[i].life = Random.value * 5.0f + 1.0f;

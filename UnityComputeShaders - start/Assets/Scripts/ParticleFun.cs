@@ -56,7 +56,7 @@ public class ParticleFun : MonoBehaviour
             particleArray[i].position = pos;
             particleArray[i].velocity = Vector3.zero;
             particleArray[i].life = Random.Range(1f, 6f);
-            particleArray[i].randomSeed = (uint)i;
+            particleArray[i].randomSeed = (uint)(1664525 * i + 1013904223);
         }
 
         // create compute buffer
