@@ -8,6 +8,7 @@
 
 // Create a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
 shared RWTexture2D<float4> outputTexture;
+shared RWTexture2D<float4> indexTexture;
 shared RWStructuredBuffer<Particle> particlesBuffer;
 shared StructuredBuffer<float4> colorsBuffer;
 
@@ -36,6 +37,7 @@ void plot1(int x, int y, int2 c, float4 color)
 void plot8(int x, int y, int2 center, int colorID)
 {
     //float4 color = getColor(colorID);
+    //float4 color = indexTexture[center];
     //float4 color = particlesBuffer[colorID].color;
     float4 color = getCirclePixel(y, x);
     
