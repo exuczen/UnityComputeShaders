@@ -7,7 +7,6 @@ public class Voronoi : MonoBehaviour
     private const int ParticlesCapacity = 1 << 16;
     private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint);
     private const int TexResolution = 128;
-    private const int CircleRadius = 16;
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
@@ -52,15 +51,17 @@ public class Voronoi : MonoBehaviour
     private int circlesKernel;
     private int diamondsKernel;
     private int fillCirclesKernel;
-    private int clearKernel;
     private int lineKernel;
+    private int clearKernel;
     private int randomParticlesKernel;
     private int particlesKernel;
+
+    private int circleRadius = 16;
 
     private uint circleNumThreadsX;
     //private uint circleNumThreadsZ;
 
-    private float pointsCountChangeStartTime;
+    private float pointsCountChangeStartTime = -1f;
     private int startPointsCount;
 
     public void StartPointsCountChange()
@@ -82,8 +83,6 @@ public class Voronoi : MonoBehaviour
 
             InitData();
             InitShader();
-
-            StartPointsCountChange();
         }
     }
 
@@ -152,7 +151,7 @@ public class Voronoi : MonoBehaviour
 
         shader.SetInt("TexResolution", TexResolution);
         shader.SetVector("ClearColor", clearColor);
-        shader.SetFloat("CircleRadiusF", Math.Max(1, CircleRadius - 1));
+        shader.SetFloat("CircleRadiusF", Math.Max(2, circleRadius - 1));
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
         shader.SetInt(shaderData.PointsCountID, pointsCount);
 
@@ -195,6 +194,10 @@ public class Voronoi : MonoBehaviour
             }
         }
         circleThreadGroupCount = GetThreadGroupCount(circleNumThreadsX, pointsCount);
+
+        circleRadius = Math.Clamp((int)(TexResolution * 3 / Mathf.Sqrt(pointsCount)), 2, 32);
+
+        shader.SetFloat("CircleRadiusF", Math.Max(2, circleRadius - 1));
     }
 
     private void DispatchKernels()
@@ -205,13 +208,13 @@ public class Voronoi : MonoBehaviour
         shader.Dispatch(clearKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
         shader.Dispatch(particlesKernel, circleThreadGroupCount, 1, 1);
 
-        for (int i = 1; i < CircleRadius; i++)
+        for (int i = 1; i < circleRadius; i++)
         {
             shader.SetInt(shaderData.RadiusID, i);
             shader.SetInt(shaderData.RadiusSqrID, i * i);
             shader.Dispatch(circlesKernel, circleThreadGroupCount, 1, 1);
             //shader.Dispatch(circlesKernel, 1, 1, circleThreadGroupCount);
-            //shader.Dispatch(diamondsKernel, 1, 1, circleThreadGroupCount);
+            //shader.Dispatch(diamondsKernel, circleThreadGroupCount, 1, 1);
             //shader.Dispatch(fillCirclesKernel, 1, 1, circleThreadGroupCount);
         }
         shader.Dispatch(lineKernel, 1, 1, 1);

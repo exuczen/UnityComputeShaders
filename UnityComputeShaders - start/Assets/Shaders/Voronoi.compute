@@ -1,4 +1,4 @@
-﻿#define CIRCLE_THREADS 1024
+﻿#define CIRCLE_THREADS 8 // max 1024
 #define CLEAR_THREADS 32
 #define USE_RANDOM_XORSHIFT
 
