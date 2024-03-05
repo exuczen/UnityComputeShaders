@@ -175,7 +175,7 @@ public class Voronoi : MonoBehaviour
 
         for (int i = 0; i < textureKernels.Length; i++)
         {
-            shader.SetTexture(textureKernels[i], "output", outputTexture);
+            shader.SetTexture(textureKernels[i], "outputTexture", outputTexture);
             shader.SetBuffer(textureKernels[i], "colorsBuffer", colorsBuffer);
         }
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);

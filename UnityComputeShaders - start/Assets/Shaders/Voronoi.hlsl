@@ -7,7 +7,7 @@
 };
 
 // Create a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
-shared RWTexture2D<float4> output;
+shared RWTexture2D<float4> outputTexture;
 shared RWStructuredBuffer<Particle> particlesBuffer;
 shared StructuredBuffer<float4> colorsBuffer;
 
@@ -27,9 +27,9 @@ void plot1(int x, int y, int2 c, float4 color)
 {
     uint2 xy = uint2(c.x + x, c.y + y);
     
-    if (output[xy].w == 0)
+    if (outputTexture[xy].w == 0)
     {
-        output[xy] = color;
+        outputTexture[xy] = color;
     }
 }
 

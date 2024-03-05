@@ -104,20 +104,20 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
     int2 ray = (int2)id.xy - center;
     uint2 xy = getParticlePosition(id.z) + ray;
     
-    if (output[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
+    if (outputTexture[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
     {
-        output[xy] = getCirclePixel(ray.x, ray.y);
+        outputTexture[xy] = getCirclePixel(ray.x, ray.y);
     }
 }
 
 [numthreads(1, 1, 1)]
 void Line(uint3 id : SV_DispatchThreadID)
 {
-    drawLine(output, getParticlePosition(0), getParticlePosition(1), 1);
+    drawLine(outputTexture, getParticlePosition(0), getParticlePosition(1), 1);
 }
 
 [numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
 void Clear(uint3 id : SV_DispatchThreadID)
 {
-    output[id.xy] = ClearColor;
+    outputTexture[id.xy] = ClearColor;
 }
