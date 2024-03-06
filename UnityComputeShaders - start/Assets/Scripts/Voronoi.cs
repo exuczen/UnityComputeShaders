@@ -5,7 +5,7 @@ using System;
 public class Voronoi : MonoBehaviour
 {
     private const int ParticlesCapacity = 1 << 16;
-    private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint);
+    private const int ParticleSize = 2 * sizeof(int) + 9 * sizeof(float) + sizeof(uint);
     private const int TexResolution = 128;
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
@@ -37,6 +37,8 @@ public class Voronoi : MonoBehaviour
             ParticlesBufferID = Shader.PropertyToID("particlesBuffer");
         }
     }
+
+    public int CircleRadius => circleRadius;
 
     [SerializeField]
     private ComputeShader shader = null;
@@ -206,10 +208,10 @@ public class Voronoi : MonoBehaviour
         }
         renderer.material.SetTexture("_MainTex", outputTexture);
 
+        shader.Dispatch(clearIndexTextureKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
+
         shader.Dispatch(randomParticlesKernel, GetThreadGroupCount(circleNumThreadsX, ParticlesCapacity), 1, 1);
         //shader.Dispatch(randomParticlesKernel, 1, 1, GetThreadGroupCount(circleNumThreadsX, ParticlesCapacity));
-
-        shader.Dispatch(clearIndexTextureKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
     }
 
     private void UpdatePointsCount()
@@ -240,6 +242,7 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
 
         shader.Dispatch(clearOutputTextureKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
+        shader.Dispatch(clearIndexTextureKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
         shader.Dispatch(particlesKernel, circleThreadGroupCount, 1, 1);
 
         for (int i = 1; i < circleRadius; i++)

@@ -8,6 +8,9 @@ public class VoronoiEditor : Editor
     {
         base.OnInspectorGUI();
         var voronoi = target as Voronoi;
+
+        EditorGUILayout.LabelField($"Radius: {voronoi.CircleRadius}");
+
         if (GUILayout.Button("Initialize"))
         {
             voronoi.Init();

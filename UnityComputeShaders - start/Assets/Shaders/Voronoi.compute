@@ -1,6 +1,6 @@
 ﻿#define CIRCLE_THREADS 8 // max 1024
 #define CLEAR_THREADS 32
-#define USE_RANDOM_XORSHIFT
+#define USE_RANDOM_XORSHIFT 1
 
 // Each #kernel tells which function to compile; you can have many kernels
 //#pragma kernel Points
@@ -30,10 +30,10 @@ int2 getParticlePosition(uint i)
     return particlesBuffer[i].position;
 }
 
-void respawnParticle(uint i, float lifetimeMin, float lifetimeMax)
+void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 {
     Particle p;
-#ifdef USE_RANDOM_XORSHIFT
+#if USE_RANDOM_XORSHIFT
     rng_state = particlesBuffer[i].randomSeed;
     p.position = (int2)(random2_xorshift() * TexResolution);
     p.endTime = Time + lerp(lifetimeMin, lifetimeMax, random_xorshift());
@@ -47,6 +47,26 @@ void respawnParticle(uint i, float lifetimeMin, float lifetimeMax)
     p.color = float4(random3(seedValue += seedDelta), 1.0);
     p.randomSeed = 0;
 #endif
+    float4 indexColor = indexTexture[p.position];
+    if (indexColor.w > 0.0)
+    {
+        int x = (int)(indexColor.x * 255) << 0;
+        int y = (int)(indexColor.y * 255) << 8;
+        int z = (int)(indexColor.z * 255) << 16;
+        int j = x | y | z;
+        if (i != j)
+        {
+            particlesBuffer[j].position = int2(-1, -1);
+            particlesBuffer[j].endTime = 0.0;
+            particlesBuffer[j].indexColor = 0.0;
+        }
+    }
+    float x = (((i >> 0) & 0xff) + 0.5) / 255.0;
+    float y = (((i >> 8) & 0xff) + 0.5) / 255.0;
+    float z = (((i >> 16) & 0xff) + 0.5) / 255.0;
+    
+    p.indexColor = float4(x, y, z, 1.0);
+    
     particlesBuffer[i] = p;
 }
 
@@ -74,19 +94,24 @@ void Particles(uint3 id : SV_DispatchThreadID)
     {
         respawnParticle(id.x, 0.1, 1.0);
     }
+    if (getParticlePosition(id.x).x >= 0)
+    {
+        plotParticleColors(id.x);
+    }
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= PointsCount)
+    int2 center = getParticlePosition(id.x);
+    if (id.x >= PointsCount || center.x < 0)
     {
         return;
     }
-    //drawJeskoCircle(getParticlePosition(id.x), Radius, id.x);
-    drawMidpointCircle(getParticlePosition(id.x), Radius, id.x);
-    //drawMidpoint2Circle(getParticlePosition(id.x), Radius, id.x);
-    drawHornCircle(getParticlePosition(id.x), Radius, id.x);
+    //drawJeskoCircle(center, Radius, id.x);
+    drawMidpointCircle(center, Radius, id.x);
+    //drawMidpoint2Circle(center, Radius, id.x);
+    drawHornCircle(center, Radius, id.x);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
@@ -108,7 +133,7 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
     
     if (outputTexture[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
     {
-        outputTexture[xy] = getCirclePixel(ray.x, ray.y);
+        outputTexture[xy] = getXYGradientColor(ray.x, ray.y);
     }
 }
 
@@ -127,5 +152,5 @@ void ClearOutputTexture(uint3 id : SV_DispatchThreadID)
 [numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
 void ClearIndexTexture(uint3 id : SV_DispatchThreadID)
 {
-    indexTexture[id.xy] = 0;
+    indexTexture[id.xy] = 0.0;
 }
