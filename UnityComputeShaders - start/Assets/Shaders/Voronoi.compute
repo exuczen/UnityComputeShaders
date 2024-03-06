@@ -7,8 +7,7 @@
 #pragma kernel Circles
 #pragma kernel Diamonds
 #pragma kernel FillCircles
-#pragma kernel ClearOutputTexture
-#pragma kernel ClearIndexTexture
+#pragma kernel ClearTextures
 #pragma kernel Line
 #pragma kernel RandomParticles
 #pragma kernel Particles
@@ -144,13 +143,8 @@ void Line(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
-void ClearOutputTexture(uint3 id : SV_DispatchThreadID)
+void ClearTextures(uint3 id : SV_DispatchThreadID)
 {
     outputTexture[id.xy] = ClearColor;
-}
-
-[numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
-void ClearIndexTexture(uint3 id : SV_DispatchThreadID)
-{
     indexTexture[id.xy] = 0.0;
 }
