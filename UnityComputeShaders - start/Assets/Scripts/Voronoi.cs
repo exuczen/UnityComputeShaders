@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using MustHave.Utils;
 
 public class Voronoi : MonoBehaviour
 {
@@ -45,7 +46,7 @@ public class Voronoi : MonoBehaviour
     [SerializeField]
     private ComputeShader shader = null;
     [SerializeField]
-    private Color clearColor = Color.blue;
+    private Color clearColor = Color.clear;
     [SerializeField, Range(1, 1 << 16)]
     private int pointsCount = 16;
     [SerializeField, Range(1, 1 << 16)]
@@ -183,7 +184,7 @@ public class Voronoi : MonoBehaviour
         shaderData = new(shader);
 
         shader.SetInt("TexResolution", TexResolution);
-        shader.SetVector("ClearColor", clearColor);
+        shader.SetVector("ClearColor", ColorUtils.ColorWithAlpha(clearColor, 0f));
         shader.SetFloat("CircleRadiusF", Math.Max(2, circleRadius - 1));
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
         shader.SetInt(shaderData.PointsCountID, pointsCount);
@@ -265,7 +266,7 @@ public class Voronoi : MonoBehaviour
             //shader.Dispatch(diamondsKernel, circleThreadGroupCount, 1, 1);
             //shader.Dispatch(fillCirclesKernel, 1, 1, circleThreadGroupCount);
         }
-        shader.Dispatch(lineKernel, 1, 1, 1);
+        //shader.Dispatch(lineKernel, 1, 1, 1);
 
         //tempBuffer.GetData(tempData);
         //Debug.Log($"{GetType().Name}.DispatchKernels: {tempData[0]}");

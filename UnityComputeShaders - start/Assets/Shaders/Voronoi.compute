@@ -31,7 +31,12 @@ int2 getParticlePosition(uint i)
 
 void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 {
-    Particle p;
+    Particle p = particlesBuffer[i];
+    if (p.indexColor.w > 0.0) // Clear pixel colors
+    {
+        outputTexture[p.position] = ClearColor;
+        indexTexture[p.position] = 0.0;
+    }
 #if USE_RANDOM_XORSHIFT
     rng_state = particlesBuffer[i].randomSeed;
     p.position = (int2)(random2_xorshift() * TexResolution);
@@ -46,26 +51,30 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
     p.color = float4(random3(seedValue += seedDelta), 1.0);
     p.randomSeed = 0;
 #endif
-    float4 indexColor = indexTexture[p.position];
-    if (indexColor.w > 0.0)
+    // Write pixel colors
     {
-        int x = (int)(indexColor.x * 255) << 0;
-        int y = (int)(indexColor.y * 255) << 8;
-        int z = (int)(indexColor.z * 255) << 16;
-        int j = x | y | z;
-        if (i != j)
+        float4 indexColor = indexTexture[p.position];
+        if (indexColor.w > 0.0)
         {
-            particlesBuffer[j].position = int2(-1, -1);
-            particlesBuffer[j].endTime = 0.0;
-            particlesBuffer[j].indexColor = 0.0;
+            int x = (int)(indexColor.x * 255) << 0;
+            int y = (int)(indexColor.y * 255) << 8;
+            int z = (int)(indexColor.z * 255) << 16;
+            int j = x | y | z;
+            if (i != j)
+            {
+                particlesBuffer[j].position = int2(-1, -1);
+                particlesBuffer[j].endTime = 0.0;
+                particlesBuffer[j].indexColor = 0.0;
+            }
         }
+        float x = (((i >> 0) & 0xff) + 0.5) / 255.0;
+        float y = (((i >> 8) & 0xff) + 0.5) / 255.0;
+        float z = (((i >> 16) & 0xff) + 0.5) / 255.0;
+    
+        p.indexColor = float4(x, y, z, 1.0);
+        
+        plotParticleColors(p);
     }
-    float x = (((i >> 0) & 0xff) + 0.5) / 255.0;
-    float y = (((i >> 8) & 0xff) + 0.5) / 255.0;
-    float z = (((i >> 16) & 0xff) + 0.5) / 255.0;
-    
-    p.indexColor = float4(x, y, z, 1.0);
-    
     particlesBuffer[i] = p;
 }
 
@@ -102,7 +111,6 @@ void Particles(uint3 id : SV_DispatchThreadID)
     if (Time > particlesBuffer[id.x].endTime)
     {
         respawnParticle(id.x, 0.1, 1.0);
-        plotParticleColors(id.x);
     }
 }
 

@@ -1,5 +1,5 @@
-﻿#define CENTER_COLOR float4(0.0, 0.0, 1.0, 1.0);
-#define USE_XY_GRADIENT 1
+﻿//#define CENTER_COLOR float4(1.0, 1.0, 1.0, 1.0);
+#define USE_PARTICLE_COLOR 1
 
 struct Particle
 {
@@ -29,19 +29,27 @@ float4 getXYGradientColor(int x, int y)
     return float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
 }
 
+void plotParticleColors(Particle p)
+{
+    if (p.position.x < 0)
+    {
+        return;
+    }
+    uint2 xy = p.position;
+    
+    indexTexture[xy] = p.indexColor;
+#ifdef CENTER_COLOR
+    outputTexture[xy] = CENTER_COLOR;
+#elif USE_PARTICLE_COLOR
+    outputTexture[xy] = p.color;
+#else
+    outputTexture[xy] = float4(0.0, 0.0, 1.0, 1.0);
+#endif
+}
+
 void plotParticleColors(int id)
 {
-    int2 pos = particlesBuffer[id].position;
-    if (pos.x >= 0)
-    {
-        uint2 xy = pos;
-        indexTexture[xy] = particlesBuffer[id].indexColor;
-#if USE_XY_GRADIENT
-        outputTexture[xy] = CENTER_COLOR;
-#else
-        outputTexture[xy] = particlesBuffer[id].color;
-#endif
-    }
+    plotParticleColors(particlesBuffer[id]);
 }
 
 void plot1(int x, int y, int2 c, float4 color, int id)
@@ -60,10 +68,10 @@ void plot8(int x, int y, int2 center, int id)
 {
     //float4 color = getColor(id);
     //float4 color = particlesBuffer[id].indexColor;
-#if USE_XY_GRADIENT
-    float4 color = getXYGradientColor(y, x);
-#else
+#if USE_PARTICLE_COLOR
     float4 color = particlesBuffer[id].color;
+#else
+    float4 color = getXYGradientColor(y, x);
 #endif
     plot1(x, y, center, color, id);
     plot1(y, x, center, color, id);
