@@ -73,6 +73,7 @@ public class Voronoi : MonoBehaviour
     private int clearTexturesKernel;
     private int randomParticlesKernel;
     private int particlesKernel;
+    private int pointsKernel;
 
     private int circleRadius = 16;
 
@@ -150,6 +151,7 @@ public class Voronoi : MonoBehaviour
         lineKernel = shader.FindKernel("Line");
         randomParticlesKernel = shader.FindKernel("RandomParticles");
         particlesKernel = shader.FindKernel("Particles");
+        pointsKernel = shader.FindKernel("Points");
     }
 
     private void SetThreadGroupCounts()
@@ -195,7 +197,8 @@ public class Voronoi : MonoBehaviour
             lineKernel,
             clearTexturesKernel,
             randomParticlesKernel,
-            particlesKernel
+            particlesKernel,
+            pointsKernel
         };
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
@@ -250,6 +253,7 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
 
         shader.Dispatch(clearTexturesKernel, clearThreadGroupCount, clearThreadGroupCount, 1);
+        shader.Dispatch(pointsKernel, circleThreadGroupCount, 1, 1);
         shader.Dispatch(particlesKernel, circleThreadGroupCount, 1, 1);
 
         for (int i = 1; i < circleRadius; i++)

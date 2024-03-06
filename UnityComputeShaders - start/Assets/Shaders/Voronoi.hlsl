@@ -15,7 +15,7 @@ shared RWTexture2D<float4> outputTexture;
 shared RWTexture2D<float4> indexTexture;
 shared RWStructuredBuffer<Particle> particlesBuffer;
 shared StructuredBuffer<float4> colorsBuffer;
-shared RWStructuredBuffer<int> tempBuffer;
+shared RWBuffer<int> tempBuffer;
 
 float CircleRadiusF;
 
@@ -31,14 +31,17 @@ float4 getXYGradientColor(int x, int y)
 
 void plotParticleColors(int id)
 {
-    uint2 xy = particlesBuffer[id].position;
-    
-    indexTexture[xy] = particlesBuffer[id].indexColor;
+    int2 pos = particlesBuffer[id].position;
+    if (pos.x >= 0)
+    {
+        uint2 xy = pos;
+        indexTexture[xy] = particlesBuffer[id].indexColor;
 #if USE_XY_GRADIENT
-    outputTexture[xy] = CENTER_COLOR;
+        outputTexture[xy] = CENTER_COLOR;
 #else
-    outputTexture[xy] = particlesBuffer[id].color;
+        outputTexture[xy] = particlesBuffer[id].color;
 #endif
+    }
 }
 
 void plot1(int x, int y, int2 c, float4 color, int id)

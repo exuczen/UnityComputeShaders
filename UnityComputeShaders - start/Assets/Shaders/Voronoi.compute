@@ -3,7 +3,7 @@
 #define USE_RANDOM_XORSHIFT 1
 
 // Each #kernel tells which function to compile; you can have many kernels
-//#pragma kernel Points
+#pragma kernel Points
 #pragma kernel Circles
 #pragma kernel Diamonds
 #pragma kernel FillCircles
@@ -83,6 +83,16 @@ void RandomParticles(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
+void Points(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= PointsCount)
+    {
+        return;
+    }
+    plotParticleColors(id.x);
+}
+
+[numthreads(CIRCLE_THREADS, 1, 1)]
 void Particles(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= PointsCount)
@@ -92,9 +102,6 @@ void Particles(uint3 id : SV_DispatchThreadID)
     if (Time > particlesBuffer[id.x].endTime)
     {
         respawnParticle(id.x, 0.1, 1.0);
-    }
-    if (getParticlePosition(id.x).x >= 0)
-    {
         plotParticleColors(id.x);
     }
 }
