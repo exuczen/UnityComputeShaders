@@ -22,6 +22,7 @@ public class Voronoi : MonoBehaviour
         public int IndexTextureID;
         public int ColorsBufferID;
         public int ParticlesBufferID;
+        public int TempBufferID;
 
         public ShaderData(ComputeShader shader)
         {
@@ -35,6 +36,7 @@ public class Voronoi : MonoBehaviour
             IndexTextureID = Shader.PropertyToID("indexTexture");
             ColorsBufferID = Shader.PropertyToID("colorsBuffer");
             ParticlesBufferID = Shader.PropertyToID("particlesBuffer");
+            TempBufferID = Shader.PropertyToID("tempBuffer");
         }
     }
 
@@ -60,6 +62,7 @@ public class Voronoi : MonoBehaviour
 
     private ComputeBuffer particlesBuffer = null;
     private ComputeBuffer colorsBuffer = null;
+    private ComputeBuffer tempBuffer = null;
 
     private ShaderData shaderData = default;
 
@@ -96,6 +99,7 @@ public class Voronoi : MonoBehaviour
         {
             particlesBuffer?.Release();
             colorsBuffer?.Release();
+            tempBuffer?.Release();
 
             FindKernels();
             SetThreadGroupCounts();
@@ -122,6 +126,7 @@ public class Voronoi : MonoBehaviour
     {
         particlesBuffer?.Dispose();
         colorsBuffer?.Dispose();
+        tempBuffer?.Dispose();
     }
 
     private void CreateTextures()
@@ -198,6 +203,8 @@ public class Voronoi : MonoBehaviour
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
+        tempBuffer = new ComputeBuffer(1, sizeof(int));
+        tempBuffer.SetData(new int[tempBuffer.count]);
 
         for (int i = 0; i < kernels.Length; i++)
         {
@@ -205,6 +212,7 @@ public class Voronoi : MonoBehaviour
             shader.SetTexture(kernels[i], shaderData.IndexTextureID, indexTexture);
             shader.SetBuffer(kernels[i], shaderData.ColorsBufferID, colorsBuffer);
             shader.SetBuffer(kernels[i], shaderData.ParticlesBufferID, particlesBuffer);
+            shader.SetBuffer(kernels[i], shaderData.TempBufferID, tempBuffer);
         }
         renderer.material.SetTexture("_MainTex", outputTexture);
 
@@ -238,6 +246,9 @@ public class Voronoi : MonoBehaviour
 
     private void DispatchKernels()
     {
+        //var tempData = new int[tempBuffer.count];
+        //tempBuffer.SetData(tempData);
+
         shader.SetInt(shaderData.PointsCountID, pointsCount);
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
 
@@ -255,5 +266,8 @@ public class Voronoi : MonoBehaviour
             //shader.Dispatch(fillCirclesKernel, 1, 1, circleThreadGroupCount);
         }
         shader.Dispatch(lineKernel, 1, 1, 1);
+
+        //tempBuffer.GetData(tempData);
+        //Debug.Log($"{GetType().Name}.DispatchKernels: {tempData[0]}");
     }
 }

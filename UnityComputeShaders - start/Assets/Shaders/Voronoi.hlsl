@@ -15,6 +15,7 @@ shared RWTexture2D<float4> outputTexture;
 shared RWTexture2D<float4> indexTexture;
 shared RWStructuredBuffer<Particle> particlesBuffer;
 shared StructuredBuffer<float4> colorsBuffer;
+shared RWStructuredBuffer<int> tempBuffer;
 
 float CircleRadiusF;
 
