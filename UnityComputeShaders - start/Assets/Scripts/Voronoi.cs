@@ -16,6 +16,7 @@ public class Voronoi : MonoBehaviour
         public int TimeID;
         public int RadiusID;
         public int RadiusSqrID;
+        public int CircleRadiusFID;
         public int PointsCountID;
         public int PointsCapacityID;
 
@@ -30,6 +31,7 @@ public class Voronoi : MonoBehaviour
             TimeID = Shader.PropertyToID("Time");
             RadiusID = Shader.PropertyToID("Radius");
             RadiusSqrID = Shader.PropertyToID("RadiusSqr");
+            CircleRadiusFID = Shader.PropertyToID("CircleRadiusF");
             PointsCountID = Shader.PropertyToID("PointsCount");
             PointsCapacityID = Shader.PropertyToID("PointsCapacity");
 
@@ -47,9 +49,9 @@ public class Voronoi : MonoBehaviour
     private ComputeShader shader = null;
     [SerializeField]
     private Color clearColor = Color.clear;
-    [SerializeField, Range(1, 1 << 16)]
+    [SerializeField, Range(1, ParticlesCapacity)]
     private int pointsCount = 16;
-    [SerializeField, Range(1, 1 << 16)]
+    [SerializeField, Range(1, ParticlesCapacity)]
     private int targetPointsCount = 16;
     [SerializeField, Range(1, 5)]
     private float pointsChangeDuration = 3;
@@ -185,7 +187,7 @@ public class Voronoi : MonoBehaviour
 
         shader.SetInt("TexResolution", TexResolution);
         shader.SetVector("ClearColor", ColorUtils.ColorWithAlpha(clearColor, 0f));
-        shader.SetFloat("CircleRadiusF", Math.Max(2, circleRadius - 1));
+        shader.SetFloat(shaderData.CircleRadiusFID, Math.Max(2, circleRadius - 1));
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
         shader.SetInt(shaderData.PointsCountID, pointsCount);
         shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
@@ -242,7 +244,7 @@ public class Voronoi : MonoBehaviour
 
         circleRadius = Math.Clamp((int)(TexResolution * 3 / Mathf.Sqrt(pointsCount)), 4, 32);
 
-        shader.SetFloat("CircleRadiusF", Math.Max(2, circleRadius - 1));
+        shader.SetFloat(shaderData.CircleRadiusFID, Math.Max(2, circleRadius - 1));
     }
 
     private void DispatchKernels()
