@@ -6,8 +6,9 @@ using MustHave.Utils;
 public class Voronoi : MonoBehaviour
 {
     private const int ParticlesCapacity = 1 << 20;
-    private const int ParticleSize = 2 * sizeof(int) + 9 * sizeof(float) + sizeof(uint) + sizeof(int);
+    private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint) + sizeof(int);
     private const int TexResolution = 1 << 10;
+    private const int PairAngularDivisions = 9; //181;
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
@@ -21,9 +22,10 @@ public class Voronoi : MonoBehaviour
         public int PointsCapacityID;
 
         public int OutputTextureID;
-        public int IndexTextureID;
         public int ColorsBufferID;
         public int ParticlesBufferID;
+        public int IndexBufferID;
+        public int AngularPairBufferID;
         public int TempBufferID;
 
         public ShaderData(ComputeShader shader)
@@ -36,9 +38,10 @@ public class Voronoi : MonoBehaviour
             PointsCapacityID = Shader.PropertyToID("PointsCapacity");
 
             OutputTextureID = Shader.PropertyToID("outputTexture");
-            IndexTextureID = Shader.PropertyToID("indexTexture");
             ColorsBufferID = Shader.PropertyToID("colorsBuffer");
             ParticlesBufferID = Shader.PropertyToID("particlesBuffer");
+            IndexBufferID = Shader.PropertyToID("indexBuffer");
+            AngularPairBufferID = Shader.PropertyToID("angularPairBuffer");
             TempBufferID = Shader.PropertyToID("tempBuffer");
         }
     }
@@ -61,10 +64,11 @@ public class Voronoi : MonoBehaviour
 
     private new Renderer renderer = null;
     private RenderTexture outputTexture = null;
-    private RenderTexture indexTexture = null;
 
     private ComputeBuffer particlesBuffer = null;
     private ComputeBuffer colorsBuffer = null;
+    private ComputeBuffer indexBuffer = null;
+    private ComputeBuffer angularPairBuffer = null;
     private ComputeBuffer tempBuffer = null;
 
     private ShaderData shaderData = default;
@@ -102,6 +106,8 @@ public class Voronoi : MonoBehaviour
         {
             particlesBuffer?.Release();
             colorsBuffer?.Release();
+            indexBuffer?.Release();
+            angularPairBuffer?.Release();
             tempBuffer?.Release();
 
             FindKernels();
@@ -129,6 +135,8 @@ public class Voronoi : MonoBehaviour
     {
         particlesBuffer?.Dispose();
         colorsBuffer?.Dispose();
+        indexBuffer?.Dispose();
+        angularPairBuffer?.Dispose();
         tempBuffer?.Dispose();
     }
 
@@ -140,9 +148,6 @@ public class Voronoi : MonoBehaviour
             filterMode = FilterMode.Point
         };
         outputTexture.Create();
-
-        indexTexture = new RenderTexture(outputTexture.descriptor);
-        indexTexture.Create();
     }
 
     private void FindKernels()
@@ -206,15 +211,17 @@ public class Voronoi : MonoBehaviour
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
+        indexBuffer = new ComputeBuffer(TexResolution * TexResolution, sizeof(int));
+        angularPairBuffer = new ComputeBuffer(ParticlesCapacity * PairAngularDivisions, 2 * sizeof(int));
         tempBuffer = new ComputeBuffer(1, sizeof(int));
-        tempBuffer.SetData(new int[tempBuffer.count]);
 
         for (int i = 0; i < kernels.Length; i++)
         {
             shader.SetTexture(kernels[i], shaderData.OutputTextureID, outputTexture);
-            shader.SetTexture(kernels[i], shaderData.IndexTextureID, indexTexture);
             shader.SetBuffer(kernels[i], shaderData.ColorsBufferID, colorsBuffer);
             shader.SetBuffer(kernels[i], shaderData.ParticlesBufferID, particlesBuffer);
+            shader.SetBuffer(kernels[i], shaderData.IndexBufferID, indexBuffer);
+            shader.SetBuffer(kernels[i], shaderData.AngularPairBufferID, angularPairBuffer);
             shader.SetBuffer(kernels[i], shaderData.TempBufferID, tempBuffer);
         }
         renderer.material.SetTexture("_MainTex", outputTexture);

@@ -29,6 +29,25 @@ public class Trash : MonoBehaviour
                 }
             }
             Debug.Log($"{GetType().Name}.: Finish: {n} {sw.Elapsed.Milliseconds} {0xff}");
+
+            //float4 indexColor = indexTexture[p.position];
+            //if (indexColor.w > 0.0)
+            //{
+            //    int x = (int)(indexColor.x * 255) << 0;
+            //    int y = (int)(indexColor.y * 255) << 8;
+            //    int z = (int)(indexColor.z * 255) << 16;
+            //    int j = x | y | z;
+            //    if (i != j)
+            //    {
+            //        particlesBuffer[j].position = int2(-1, -1);
+            //        particlesBuffer[j].endTime = 0.0;
+            //        particlesBuffer[j].indexColor = 0.0;
+            //    }
+            //}
+            //float x = (((i >> 0) & 0xff) + 0.5) / 255.0;
+            //float y = (((i >> 8) & 0xff) + 0.5) / 255.0;
+            //float z = (((i >> 16) & 0xff) + 0.5) / 255.0;
+            //p.indexColor = float4(x, y, z, 1.0);
         }
     }
 

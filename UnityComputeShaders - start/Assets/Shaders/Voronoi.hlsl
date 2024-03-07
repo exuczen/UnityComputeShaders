@@ -6,19 +6,30 @@ struct Particle
     int2 position;
     float endTime;
     float4 color;
-    float4 indexColor;
     uint randomSeed;
     bool filled;
 };
 
 // Create a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
 shared RWTexture2D<float4> outputTexture;
-shared RWTexture2D<float4> indexTexture;
 shared RWStructuredBuffer<Particle> particlesBuffer;
-shared StructuredBuffer<float4> colorsBuffer;
+shared Buffer<float4> colorsBuffer;
+shared RWBuffer<int> indexBuffer;
 shared RWBuffer<int> tempBuffer;
 
+int TexResolution;
 float CircleRadiusF;
+
+Particle getClearParticle(uint randomSeed)
+{
+    Particle p;
+    p.position = int2(-1, -1);
+    p.endTime = 0.0;
+    p.color = 0.0;
+    p.randomSeed = randomSeed;
+    p.filled = false;
+    return p;
+}
 
 float4 getColor(int id)
 {
@@ -30,15 +41,15 @@ float4 getXYGradientColor(int x, int y)
     return float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
 }
 
-void plotParticleColors(Particle p)
+void plotParticle(Particle p, int i)
 {
     if (p.position.x < 0)
     {
         return;
     }
-    uint2 xy = p.position;
+    int2 xy = p.position;
     
-    indexTexture[xy] = p.indexColor;
+    indexBuffer[xy.y * TexResolution + xy.x] = i;
 #ifdef CENTER_COLOR
     outputTexture[xy] = CENTER_COLOR;
 #elif USE_PARTICLE_COLOR
@@ -48,20 +59,22 @@ void plotParticleColors(Particle p)
 #endif
 }
 
-void plotParticleColors(int id)
+void plotParticle(int id)
 {
-    plotParticleColors(particlesBuffer[id]);
+    plotParticle(particlesBuffer[id], id);
 }
 
 bool plot1(int x, int y, int2 c, float4 color, int id)
 {
-    uint2 xy = uint2(c.x + x, c.y + y);
-    //bool result = outputTexture[xy].w == 0.0;
-    bool result = indexTexture[xy].w == 0.0;
-
+    x += c.x;
+    y += c.y;
+    int2 xy = int2(x, y);
+    bool inBounds = x >= 0 && x < TexResolution && y >= 0 && y < TexResolution;
+    bool result = inBounds && outputTexture[xy].w == 0.0;
+    //bool result = inBounds && indexBuffer[y * TexResolution + x] < 0;
     if (result)
     {
-        indexTexture[xy] = particlesBuffer[id].indexColor;
+        indexBuffer[y * TexResolution + x] = id;
         outputTexture[xy] = color;
     }
     return result;
@@ -70,7 +83,6 @@ bool plot1(int x, int y, int2 c, float4 color, int id)
 bool plot8(int x, int y, int2 center, int id)
 {
     //float4 color = getColor(id);
-    //float4 color = particlesBuffer[id].indexColor;
 #if USE_PARTICLE_COLOR
     float4 color = particlesBuffer[id].color;
 #else

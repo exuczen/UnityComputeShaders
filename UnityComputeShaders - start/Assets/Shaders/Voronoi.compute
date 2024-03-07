@@ -16,7 +16,6 @@
 #include "Utils/Geometry.cginc"
 #include "Voronoi.hlsl"
 
-int TexResolution;
 uint PointsCapacity;
 uint PointsCount;
 int Radius;
@@ -32,10 +31,14 @@ int2 getParticlePosition(uint i)
 void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 {
     Particle p = particlesBuffer[i];
-    if (p.indexColor.w > 0.0) // Clear pixel colors
+    
+    if (p.color.w > 0.0) // Clear particle's pixel
     {
+        int xyIndex = p.position.y * TexResolution + p.position.x;
+        int j = indexBuffer[xyIndex];
+
         outputTexture[p.position] = ClearColor;
-        indexTexture[p.position] = 0.0;
+        indexBuffer[j] = -1;
     }
 #if USE_RANDOM_XORSHIFT
     rng_state = particlesBuffer[i].randomSeed;
@@ -53,29 +56,17 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 #endif
     p.filled = false;
     
-    // Write pixel colors
+    // Write particle's pixel
     {
-        float4 indexColor = indexTexture[p.position];
-        if (indexColor.w > 0.0)
-        {
-            int x = (int)(indexColor.x * 255) << 0;
-            int y = (int)(indexColor.y * 255) << 8;
-            int z = (int)(indexColor.z * 255) << 16;
-            int j = x | y | z;
-            if (i != j)
-            {
-                particlesBuffer[j].position = int2(-1, -1);
-                particlesBuffer[j].endTime = 0.0;
-                particlesBuffer[j].indexColor = 0.0;
-            }
-        }
-        float x = (((i >> 0) & 0xff) + 0.5) / 255.0;
-        float y = (((i >> 8) & 0xff) + 0.5) / 255.0;
-        float z = (((i >> 16) & 0xff) + 0.5) / 255.0;
-    
-        p.indexColor = float4(x, y, z, 1.0);
+        int xyIndex = p.position.y * TexResolution + p.position.x;
+        int j = indexBuffer[xyIndex];
         
-        plotParticleColors(p);
+        if (j >= 0 && i != j)
+        {
+            uint jRandomSeed = particlesBuffer[j].randomSeed;
+            particlesBuffer[j] = getClearParticle(jRandomSeed);
+        }
+        plotParticle(p, i);
     }
     particlesBuffer[i] = p;
 }
@@ -83,10 +74,8 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 [numthreads(CIRCLE_THREADS, 1, 1)]
 void RandomParticles(uint3 id : SV_DispatchThreadID)
 {
-    //particlesBuffer[id.x].randomSeed = wang_hash(id.x);
-    particlesBuffer[id.x].randomSeed = lgc_hash(id.x);
-    particlesBuffer[id.x].endTime = 0.0;
-    particlesBuffer[id.x].filled = false;
+    //particlesBuffer[id.x] = getClearParticle(wang_hash(id.x));
+    particlesBuffer[id.x] = getClearParticle(lgc_hash(id.x));
     
     if (id.x < PointsCount)
     {
@@ -102,7 +91,8 @@ void Points(uint3 id : SV_DispatchThreadID)
         return;
     }
     particlesBuffer[id.x].filled = false;
-    plotParticleColors(id.x);
+    
+    plotParticle(id.x);
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]
@@ -169,5 +159,5 @@ void Line(uint3 id : SV_DispatchThreadID)
 void ClearTextures(uint3 id : SV_DispatchThreadID)
 {
     outputTexture[id.xy] = ClearColor;
-    indexTexture[id.xy] = 0.0;
+    indexBuffer[(int)id.y * TexResolution + (int)id.x] = -1;
 }
