@@ -51,6 +51,8 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
     p.color = float4(random3(seedValue += seedDelta), 1.0);
     p.randomSeed = 0;
 #endif
+    p.filled = false;
+    
     // Write pixel colors
     {
         float4 indexColor = indexTexture[p.position];
@@ -84,6 +86,7 @@ void RandomParticles(uint3 id : SV_DispatchThreadID)
     //particlesBuffer[id.x].randomSeed = wang_hash(id.x);
     particlesBuffer[id.x].randomSeed = lgc_hash(id.x);
     particlesBuffer[id.x].endTime = 0.0;
+    particlesBuffer[id.x].filled = false;
     
     if (id.x < PointsCount)
     {
@@ -98,6 +101,7 @@ void Points(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
+    particlesBuffer[id.x].filled = false;
     plotParticleColors(id.x);
 }
 
@@ -118,14 +122,18 @@ void Particles(uint3 id : SV_DispatchThreadID)
 void Circles(uint3 id : SV_DispatchThreadID)
 {
     int2 center = getParticlePosition(id.x);
-    if (id.x >= PointsCount || center.x < 0)
+    bool filled = particlesBuffer[id.x].filled;
+    
+    if (id.x >= PointsCount || filled || center.x < 0)
     {
         return;
     }
-    //drawJeskoCircle(center, Radius, id.x);
-    drawMidpointCircle(center, Radius, id.x);
-    //drawMidpoint2Circle(center, Radius, id.x);
-    drawHornCircle(center, Radius, id.x);
+    bool result = false;
+    //result = result | drawJeskoCircle(center, Radius, id.x);
+    result = result | drawMidpointCircle(center, Radius, id.x);
+    //result = result | drawMidpoint2Circle(center, Radius, id.x);
+    result = result | drawHornCircle(center, Radius, id.x);
+    particlesBuffer[id.x].filled = !result;
 }
 
 [numthreads(CIRCLE_THREADS, 1, 1)]

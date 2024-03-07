@@ -6,8 +6,9 @@ struct Particle
     int2 position;
     float endTime;
     float4 color;
-    uint randomSeed;
     float4 indexColor;
+    uint randomSeed;
+    bool filled;
 };
 
 // Create a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
@@ -52,19 +53,21 @@ void plotParticleColors(int id)
     plotParticleColors(particlesBuffer[id]);
 }
 
-void plot1(int x, int y, int2 c, float4 color, int id)
+bool plot1(int x, int y, int2 c, float4 color, int id)
 {
     uint2 xy = uint2(c.x + x, c.y + y);
-    
-    //if (outputTexture[xy].w == 0.0)
-    if (indexTexture[xy].w == 0.0)
+    //bool result = outputTexture[xy].w == 0.0;
+    bool result = indexTexture[xy].w == 0.0;
+
+    if (result)
     {
         indexTexture[xy] = particlesBuffer[id].indexColor;
         outputTexture[xy] = color;
     }
+    return result;
 }
 
-void plot8(int x, int y, int2 center, int id)
+bool plot8(int x, int y, int2 center, int id)
 {
     //float4 color = getColor(id);
     //float4 color = particlesBuffer[id].indexColor;
@@ -73,21 +76,24 @@ void plot8(int x, int y, int2 center, int id)
 #else
     float4 color = getXYGradientColor(y, x);
 #endif
-    plot1(x, y, center, color, id);
-    plot1(y, x, center, color, id);
-    plot1(x, -y, center, color, id);
-    plot1(y, -x, center, color, id);
-    plot1(-x, -y, center, color, id);
-    plot1(-y, -x, center, color, id);
-    plot1(-x, y, center, color, id);
-    plot1(-y, x, center, color, id);
+    bool result = false;
+    result = result | plot1(x, y, center, color, id);
+    result = result | plot1(y, x, center, color, id);
+    result = result | plot1(x, -y, center, color, id);
+    result = result | plot1(y, -x, center, color, id);
+    result = result | plot1(-x, -y, center, color, id);
+    result = result | plot1(-y, -x, center, color, id);
+    result = result | plot1(-x, y, center, color, id);
+    result = result | plot1(-y, x, center, color, id);
+    return result;
 }
 
-void drawMidpointCircle(int2 c, int r, int id)
+bool drawMidpointCircle(int2 c, int r, int id)
 {
     int x = r;
     int y = 0;
     int d = 1 - r;
+    bool result = false;
 
     while (x >= y)
     {
@@ -100,21 +106,23 @@ void drawMidpointCircle(int2 c, int r, int id)
             d += ((y - x) << 1) + 5;
             x--;
         }
-        plot8(x, y, c, id);
+        result = result | plot8(x, y, c, id);
 
         y++;
     }
+    return result;
 }
 
-void drawMidpoint2Circle(int2 c, int r, int id)
+bool drawMidpoint2Circle(int2 c, int r, int id)
 {
     int x = r;
     int y = 0;
     int d = 1 - r;
+    bool result = false;
     
     while (x > y)
     {
-        plot8(x, y, c, id);
+        result = result | plot8(x, y, c, id);
         
         y++;
         if (d <= 0)
@@ -127,17 +135,19 @@ void drawMidpoint2Circle(int2 c, int r, int id)
             d += ((y - x) << 1) + 1;
         }
     }
+    return result;
 }
 
-void drawJeskoCircle(int2 c, int r, int id)
+bool drawJeskoCircle(int2 c, int r, int id)
 {
     int t1 = r >> 4;
     int x = r;
     int y = 0;
+    bool result = false;
     
     while (x >= y)
     {
-        plot8(x, y, c, id);
+        result = result | plot8(x, y, c, id);
         
         y++;
         t1 += y;
@@ -148,17 +158,19 @@ void drawJeskoCircle(int2 c, int r, int id)
             x--;
         }
     }
+    return result;
 }
 
-void drawHornCircle(int2 c, int r, int id)
+bool drawHornCircle(int2 c, int r, int id)
 {
     int d = -r;
     int x = r;
     int y = 0;
+    bool result = false;
     
     while (y <= x)
     {
-        plot8(x, y, c, id);
+        result = result | plot8(x, y, c, id);
         
         d += (y << 1) + 1;
         y++;
@@ -168,18 +180,21 @@ void drawHornCircle(int2 c, int r, int id)
             x--;
         }
     }
+    return result;
 }
 
-void drawDiamond(int2 c, int r, int id)
+bool drawDiamond(int2 c, int r, int id)
 {
     int x = r;
     int y = 0;
+    bool result = false;
     
     while (x >= y)
     {
-        plot8(x, y, c, id);
+        result = result | plot8(x, y, c, id);
         
         y++;
         x--;
     }
+    return result;
 }

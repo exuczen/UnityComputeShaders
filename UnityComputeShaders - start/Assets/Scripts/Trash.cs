@@ -31,5 +31,33 @@ public class Trash : MonoBehaviour
             Debug.Log($"{GetType().Name}.: Finish: {n} {sw.Elapsed.Milliseconds} {0xff}");
         }
     }
+
+    /*
+    private readonly int[] indexArray = new int[TexResolution * TexResolution];
+    private Texture2D indexTexture2D = null;
+
+    void CreateTextures()
+    {
+        indexTexture2D = new Texture2D(indexTexture.width, indexTexture.height);
+    }
+
+    void DispatchKernels()
+    {
+        //RenderTexture.active = outputTexture;
+        //indexTexture2D.ReadPixels(new Rect(0, 0, indexTexture.width, indexTexture.height), 0, 0);
+        //var pixels = indexTexture2D.GetRawTextureData<Color32>();
+
+        indexBuffer.GetData(indexArray);
+        for (int y = 1; y < TexResolution; y++)
+        {
+            int yOffset = y * TexResolution;
+            for (int x = 1; x < TexResolution; x++)
+            {
+                int i = x + yOffset;
+                int index = indexArray[i];
+            }
+        }
+    }
+    */
 }
 #pragma warning restore CS0162 // Unreachable code detected

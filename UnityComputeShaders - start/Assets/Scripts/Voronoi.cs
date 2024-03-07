@@ -5,9 +5,9 @@ using MustHave.Utils;
 
 public class Voronoi : MonoBehaviour
 {
-    private const int ParticlesCapacity = 1 << 16;
-    private const int ParticleSize = 2 * sizeof(int) + 9 * sizeof(float) + sizeof(uint);
-    private const int TexResolution = 128;
+    private const int ParticlesCapacity = 1 << 20;
+    private const int ParticleSize = 2 * sizeof(int) + 9 * sizeof(float) + sizeof(uint) + sizeof(int);
+    private const int TexResolution = 1 << 10;
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
@@ -242,9 +242,9 @@ public class Voronoi : MonoBehaviour
         }
         circleThreadGroupCount = GetThreadGroupCount(circleNumThreadsX, pointsCount);
 
-        circleRadius = Math.Clamp((int)(TexResolution * 3 / Mathf.Sqrt(pointsCount)), 4, 32);
+        circleRadius = Math.Clamp((int)(TexResolution * 2.3 / Mathf.Sqrt(pointsCount)), 3, 32);
 
-        shader.SetFloat(shaderData.CircleRadiusFID, Math.Max(2, circleRadius - 1));
+        shader.SetFloat(shaderData.CircleRadiusFID, Math.Max(2, circleRadius + 1));
     }
 
     private void DispatchKernels()
