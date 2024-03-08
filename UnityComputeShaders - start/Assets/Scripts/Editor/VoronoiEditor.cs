@@ -11,9 +11,23 @@ public class VoronoiEditor : Editor
         var voronoi = target as Voronoi;
 
         int logMax = Maths.Log2(Voronoi.ParticlesCapacity);
-        voronoi.PointsCount = 1 << EditorGUILayout.IntSlider($"PointsCount: {voronoi.PointsCount}", Maths.Log2((uint)voronoi.PointsCount), 0, logMax);
-        voronoi.TargetPointsCount = 1 << EditorGUILayout.IntSlider($"TargetPoints: {voronoi.TargetPointsCount}", Maths.Log2((uint)voronoi.TargetPointsCount), 0, logMax);
-
+        int power;
+        EditorGUI.BeginChangeCheck();
+        {
+            power = EditorGUILayout.IntSlider($"PointsCount: {voronoi.PointsCount}", Maths.Log2((uint)voronoi.PointsCount), 0, logMax);
+        }
+        if (EditorUtils.SetDirtyOnEndChangeCheck(voronoi))
+        {
+            voronoi.PointsCount = 1 << power;
+        }
+        EditorGUI.BeginChangeCheck();
+        {
+            power = EditorGUILayout.IntSlider($"TargetPoints: {voronoi.TargetPointsCount}", Maths.Log2((uint)voronoi.TargetPointsCount), 0, logMax);
+        }
+        if (EditorUtils.SetDirtyOnEndChangeCheck(voronoi))
+        {
+            voronoi.TargetPointsCount = 1 << power;
+        }
         EditorGUILayout.LabelField($"Radius: {voronoi.CircleRadius}");
 
         if (GUILayout.Button("Initialize"))
