@@ -54,13 +54,13 @@ public class Challenge5 : MonoBehaviour
             return CjLib.PrimitiveMeshFactory.SphereWireframe(6, 6);
         }
     }
-    public Mesh LineMesh
-    {
-        get
-        {
-            return CjLib.PrimitiveMeshFactory.Line(Vector3.zero, new Vector3(1.0f, 1.0f, 1.0f));
-        }
-    }
+    public Mesh LineMesh { get; private set; }
+    //{
+    //    get
+    //    {
+    //        return CjLib.PrimitiveMeshFactory.Line(Vector3.zero, Vector3.one);
+    //    }
+    //}
 
     public ComputeShader shader;
     public Material rigidBodyMaterial;
@@ -151,7 +151,6 @@ public class Challenge5 : MonoBehaviour
         InitShader();
 
         InitInstancing();
-
     }
 
     private void InitArrays()
@@ -283,8 +282,10 @@ public class Challenge5 : MonoBehaviour
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         argsBuffer.SetData(args);
 
-        if (debugWireframe)
+        // debugWireframe
         {
+            LineMesh = CjLib.PrimitiveMeshFactory.Line(Vector3.zero, Vector3.one);
+
             int numOfParticles = rigidBodyCount * particlesPerBody;
 
             uint[] sphereArgs = new uint[] { SphereMesh.GetIndexCount(0), (uint)numOfParticles, 0, 0, 0 };

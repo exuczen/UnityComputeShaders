@@ -76,7 +76,7 @@ shared RWStructuredBuffer<Particle> particlesBuffer;
 shared RWStructuredBuffer<Voxel> voxelGridBuffer;
 
 int particleCount;
-int particlesPerRigidBody;
+uint particlesPerRigidBody;
 float deltaTime;
 float particleMass;
 
@@ -266,7 +266,7 @@ float3 ForceFromGridCell(int i, int x, int y, int z)
         if (index >= 0 && index < gridMax)
         {
             Voxel voxel = voxelGridBuffer[index];
-            int i_bodyIndex = i / particlesPerRigidBody;
+            uint i_bodyIndex = i / particlesPerRigidBody;
             
             for (int j = 0; j < 4; j++)
             {
