@@ -5,7 +5,7 @@ using MustHave.Utils;
 
 public class Voronoi : MonoBehaviour
 {
-    private const int ParticlesCapacity = 1 << 20;
+    public const int ParticlesCapacity = 1 << 20;
     private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint) + sizeof(int);
     private const int TexResolution = 1 << 10;
     private const int PairAngularDivisions = 9; //181;
@@ -46,15 +46,17 @@ public class Voronoi : MonoBehaviour
         }
     }
 
+    public int PointsCount { get => pointsCount; set => pointsCount = value; }
+    public int TargetPointsCount { get => targetPointsCount; set => targetPointsCount = value; }
     public int CircleRadius => circleRadius;
 
     [SerializeField]
     private ComputeShader shader = null;
     [SerializeField]
     private Color clearColor = Color.clear;
-    [SerializeField, Range(1, ParticlesCapacity)]
+    [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
     private int pointsCount = 16;
-    [SerializeField, Range(1, ParticlesCapacity)]
+    [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
     private int targetPointsCount = 16;
     [SerializeField, Range(1, 5)]
     private float pointsChangeDuration = 3;

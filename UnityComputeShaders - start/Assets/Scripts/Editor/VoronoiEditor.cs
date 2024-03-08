@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using MustHave;
+using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(Voronoi))]
@@ -8,6 +9,10 @@ public class VoronoiEditor : Editor
     {
         base.OnInspectorGUI();
         var voronoi = target as Voronoi;
+
+        int logMax = Maths.Log2(Voronoi.ParticlesCapacity);
+        voronoi.PointsCount = 1 << EditorGUILayout.IntSlider($"PointsCount: {voronoi.PointsCount}", Maths.Log2((uint)voronoi.PointsCount), 0, logMax);
+        voronoi.TargetPointsCount = 1 << EditorGUILayout.IntSlider($"TargetPoints: {voronoi.TargetPointsCount}", Maths.Log2((uint)voronoi.TargetPointsCount), 0, logMax);
 
         EditorGUILayout.LabelField($"Radius: {voronoi.CircleRadius}");
 
