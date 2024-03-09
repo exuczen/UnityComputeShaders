@@ -1,5 +1,6 @@
-﻿#define CIRCLE_THREADS 8 // max 1024
-#define CLEAR_THREADS 32
+﻿#define CIRCLE_THREADS int3(8, 1, 1) // max 1024
+#define CIRCLE_THREADS_2D 0
+#define CLEAR_THREADS int3(32, 32, 1)
 #define USE_RANDOM_XORSHIFT 1
 
 // Each #kernel tells which function to compile; you can have many kernels
@@ -9,6 +10,7 @@
 #pragma kernel FillCircles
 #pragma kernel ClearTextures
 #pragma kernel Line
+#pragma kernel InitParticles
 #pragma kernel RandomParticles
 #pragma kernel Particles
 
@@ -18,10 +20,23 @@
 
 uint PointsCapacity;
 uint PointsCount;
+uint SqrtPointsCount;
 int Radius;
 int RadiusSqr;
 float4 ClearColor;
 float Time;
+
+#if CIRCLE_THREADS_2D
+uint getParticleIndex(uint3 id)
+{
+    return id.y * SqrtPointsCount + id.x;
+}
+#else
+bool getParticleIndex(uint3 id)
+{
+    return id.x;
+}
+#endif
 
 int2 getParticlePosition(uint i)
 {
@@ -71,19 +86,23 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
     particlesBuffer[i] = p;
 }
 
-[numthreads(CIRCLE_THREADS, 1, 1)]
-void RandomParticles(uint3 id : SV_DispatchThreadID)
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
+void InitParticles(uint3 id : SV_DispatchThreadID)
 {
     //particlesBuffer[id.x] = getClearParticle(wang_hash(id.x));
     particlesBuffer[id.x] = getClearParticle(lgc_hash(id.x));
-    
+}
+
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
+void RandomParticles(uint3 id : SV_DispatchThreadID)
+{
     if (id.x < PointsCount)
     {
         respawnParticle(id.x, 0.0, 1.0);
     }
 }
 
-[numthreads(CIRCLE_THREADS, 1, 1)]
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
 void Points(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= PointsCount)
@@ -95,7 +114,7 @@ void Points(uint3 id : SV_DispatchThreadID)
     plotParticle(id.x);
 }
 
-[numthreads(CIRCLE_THREADS, 1, 1)]
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
 void Particles(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= PointsCount)
@@ -108,7 +127,7 @@ void Particles(uint3 id : SV_DispatchThreadID)
     }
 }
 
-[numthreads(CIRCLE_THREADS, 1, 1)]
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
 void Circles(uint3 id : SV_DispatchThreadID)
 {
     int2 center = getParticlePosition(id.x);
@@ -126,7 +145,7 @@ void Circles(uint3 id : SV_DispatchThreadID)
     particlesBuffer[id.x].filled = !result;
 }
 
-[numthreads(CIRCLE_THREADS, 1, 1)]
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
 void Diamonds(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= PointsCount)
@@ -155,7 +174,7 @@ void Line(uint3 id : SV_DispatchThreadID)
     drawLine(outputTexture, getParticlePosition(0), getParticlePosition(1), 1);
 }
 
-[numthreads(CLEAR_THREADS, CLEAR_THREADS, 1)]
+[numthreads(CLEAR_THREADS.x, CLEAR_THREADS.y, CLEAR_THREADS.z)]
 void ClearTextures(uint3 id : SV_DispatchThreadID)
 {
     outputTexture[id.xy] = ClearColor;
