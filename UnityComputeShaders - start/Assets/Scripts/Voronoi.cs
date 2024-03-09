@@ -1,11 +1,15 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿#define DEBUG_GUI
+#define DEBUG_THREAD_GROUPS
+
+using UnityEngine;
 using System;
 using MustHave.Utils;
+using MustHave;
 
 public class Voronoi : MonoBehaviour
 {
     public const int ParticlesCapacity = 1 << 20;
+
     private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint) + sizeof(int);
     private const int TexResolution = 1 << 10;
     private const int PairAngularDivisions = 9; //181;
@@ -18,9 +22,9 @@ public class Voronoi : MonoBehaviour
         public int RadiusID;
         public int RadiusSqrID;
         public int CircleRadiusFID;
-        public int PointsCountID;
         public int PointsCapacityID;
-        public int SqrtPointsCountID;
+        public int PointsCountID;
+        public int PointsRowThreadsCountID;
 
         public int OutputTextureID;
         public int ColorsBufferID;
@@ -35,9 +39,9 @@ public class Voronoi : MonoBehaviour
             RadiusID = Shader.PropertyToID("Radius");
             RadiusSqrID = Shader.PropertyToID("RadiusSqr");
             CircleRadiusFID = Shader.PropertyToID("CircleRadiusF");
-            PointsCountID = Shader.PropertyToID("PointsCount");
             PointsCapacityID = Shader.PropertyToID("PointsCapacity");
-            SqrtPointsCountID = Shader.PropertyToID("SqrtPointsCount");
+            PointsCountID = Shader.PropertyToID("PointsCount");
+            PointsRowThreadsCountID = Shader.PropertyToID("PointsRowThreadsCount");
 
             OutputTextureID = Shader.PropertyToID("outputTexture");
             ColorsBufferID = Shader.PropertyToID("colorsBuffer");
@@ -56,6 +60,8 @@ public class Voronoi : MonoBehaviour
     private ComputeShader shader = null;
     [SerializeField]
     private Color clearColor = Color.clear;
+    [SerializeField]
+    private bool squareThreadGroups = false;
     [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
     private int pointsCount = 16;
     [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
@@ -65,6 +71,7 @@ public class Voronoi : MonoBehaviour
 
     private Vector3Int circleThreadGroups = Vector3Int.one; //[Range(1, 65535)]
     private Vector3Int clearThreadGroups = Vector3Int.one;
+    private uint circleThreadGroupSize;
 
     private new Renderer renderer = null;
     private RenderTexture outputTexture = null;
@@ -116,7 +123,7 @@ public class Voronoi : MonoBehaviour
             tempBuffer?.Release();
 
             FindKernels();
-            SetThreadGroupCounts();
+            GetThreadGroupSizes();
             InitShader();
         }
     }
@@ -168,28 +175,63 @@ public class Voronoi : MonoBehaviour
         pointsKernel = shader.FindKernel("Points");
     }
 
-    private void SetThreadGroupCounts()
+    private void GetThreadGroupSizes()
     {
         shader.GetKernelThreadGroupSizes(circlesKernel, out circleNumThreads[0], out circleNumThreads[1], out circleNumThreads[2]);
-        circleThreadGroups.x = GetThreadGroupCount(circleNumThreads[0], pointsCount);
-        circleThreadGroups.y = 1;
-        circleThreadGroups.z = 1;
+        circleThreadGroupSize = circleNumThreads[0] * circleNumThreads[1] * circleNumThreads[2];
 
         shader.GetKernelThreadGroupSizes(clearTexturesKernel, out clearNumThreads[0], out clearNumThreads[1], out clearNumThreads[2]);
         clearThreadGroups.x = GetThreadGroupCount(clearNumThreads[0], TexResolution);
         clearThreadGroups.y = GetThreadGroupCount(clearNumThreads[1], TexResolution);
         clearThreadGroups.z = 1;
-
-        Debug.Log($"{GetType().Name}.SetThreadGroupCounts: circleThreadGroups: {circleThreadGroups}");
     }
 
-    private int GetThreadGroupCount(uint numthreadsX, int size)
+    private void SetPointsCount(int pointsCount, bool log)
     {
-        //circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + circleNumThreadsX - 1) / circleNumThreadsX), 1, 65535);
-        //circleThreadGroupCount = Mathf.Clamp((int)((pointsCount + circleNumThreadsZ - 1) / circleNumThreadsZ), 1, 65535);
-        //clearThreadGroupCount = (int)((TexResolution + numthreadsX - 1) / numthreadsX);
-        int n = (int)numthreadsX;
-        return Mathf.Clamp((size + n - 1) / n, 1, 65535);
+        this.pointsCount = pointsCount;
+
+        int groupsCount = GetThreadGroupCount(circleThreadGroupSize, pointsCount, !squareThreadGroups);
+
+        if (squareThreadGroups)
+        {
+            int sqrtGroupsCount = (int)(Mathf.Sqrt(groupsCount) + Mathv.Epsilon);
+            int xCount = sqrtGroupsCount;
+            int yCount = sqrtGroupsCount;
+            if (xCount * yCount < groupsCount)
+            {
+                xCount++;
+                if (xCount * yCount < groupsCount)
+                {
+                    yCount++;
+                    if (xCount * yCount < groupsCount)
+                    {
+                        throw new Exception($"SetPointsCount: [{xCount}, {yCount}]");
+                    }
+                }
+            }
+            circleThreadGroups.Set(xCount, yCount, 1);
+        }
+        else
+        {
+            circleThreadGroups.Set(groupsCount, 1, 1);
+        }
+        shader.SetInt(shaderData.PointsRowThreadsCountID, (int)circleNumThreads[0] * circleThreadGroups.x);
+        shader.SetInt(shaderData.PointsCountID, pointsCount);
+
+        circleRadius = Mathf.Clamp((int)(TexResolution * 2.3 / Mathf.Sqrt(pointsCount)), 3, 32);
+        shader.SetFloat(shaderData.CircleRadiusFID, Mathf.Max(2, circleRadius + 1));
+
+        if (log)
+        {
+            Debug.Log($"{GetType().Name}.SetPointsCount: circleThreadGroups: {circleThreadGroups} circleNumThreads: ({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
+        }
+    }
+
+    private int GetThreadGroupCount(uint numthreads, int size, bool clamp = true)
+    {
+        int n = (int)numthreads;
+        int count = (size + n - 1) / n;
+        return clamp ? Mathf.Clamp(count, 1, 65535) : count;
     }
 
     private void InitShader()
@@ -198,9 +240,7 @@ public class Voronoi : MonoBehaviour
 
         shader.SetInt("TexResolution", TexResolution);
         shader.SetVector("ClearColor", ColorUtils.ColorWithAlpha(clearColor, 0f));
-        shader.SetFloat(shaderData.CircleRadiusFID, Math.Max(2, circleRadius - 1));
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
-        shader.SetInt(shaderData.PointsCountID, pointsCount);
         shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
 
         int[] kernels = new int[]
@@ -235,7 +275,13 @@ public class Voronoi : MonoBehaviour
 
         shader.Dispatch(clearTexturesKernel, clearThreadGroups.x, clearThreadGroups.y, clearThreadGroups.z);
 
-        shader.Dispatch(initParticlesKernel, GetThreadGroupCount(circleNumThreads[0], ParticlesCapacity), 1, 1);
+        int pointsCount = this.pointsCount;
+
+        SetPointsCount(ParticlesCapacity, true);
+
+        shader.Dispatch(initParticlesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
+
+        SetPointsCount(this.pointsCount = pointsCount, true);
 
         shader.Dispatch(randomParticlesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
     }
@@ -255,13 +301,7 @@ public class Voronoi : MonoBehaviour
                 pointsCountChangeStartTime = -1f;
             }
         }
-        circleThreadGroups.x = GetThreadGroupCount(circleNumThreads[0], pointsCount);
-        circleThreadGroups.y = 1;
-        circleThreadGroups.z = 1;
-
-        circleRadius = Math.Clamp((int)(TexResolution * 2.3 / Mathf.Sqrt(pointsCount)), 3, 32);
-
-        shader.SetFloat(shaderData.CircleRadiusFID, Math.Max(2, circleRadius + 1));
+        SetPointsCount(pointsCount, false);
     }
 
     private void DispatchKernels()
@@ -269,7 +309,6 @@ public class Voronoi : MonoBehaviour
         //var tempData = new int[tempBuffer.count];
         //tempBuffer.SetData(tempData);
 
-        shader.SetInt(shaderData.PointsCountID, pointsCount);
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
 
         shader.Dispatch(clearTexturesKernel, clearThreadGroups.x, clearThreadGroups.y, clearThreadGroups.z);
@@ -290,4 +329,25 @@ public class Voronoi : MonoBehaviour
         //tempBuffer.GetData(tempData);
         //Debug.Log($"{GetType().Name}.DispatchKernels: {tempData[0]}");
     }
+
+#if DEBUG_GUI
+    private void OnGUI()
+    {
+        int y = 0;
+        int dy = 15;
+
+        Color activeColor = GUI.color;
+        GUI.color = Color.black;
+        GUI.Box(new Rect(0, 0, 100, 100), string.Empty);
+        GUI.color = activeColor;
+
+#if DEBUG_THREAD_GROUPS
+        GUI.Label(new Rect(10, y += dy, 100, 200), $"({pointsCount})");
+        GUI.Label(new Rect(10, y += dy, 100, 200), $"({circleThreadGroups.x * circleThreadGroups.y * circleThreadGroupSize})");
+        GUI.Label(new Rect(10, y += dy, 100, 200), $"({GetThreadGroupCount(circleThreadGroupSize, pointsCount, false)})");
+        GUI.Label(new Rect(10, y += dy, 100, 200), $"{circleThreadGroups}");
+        GUI.Label(new Rect(10, y += dy, 100, 200), $"({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
+#endif
+    }
+#endif
 }
