@@ -4,15 +4,15 @@
 #define USE_RANDOM_XORSHIFT 1
 
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel Points
-#pragma kernel Circles
-#pragma kernel Diamonds
+#pragma kernel DrawPoints
+#pragma kernel DrawCircles
+#pragma kernel DrawDiamonds
+#pragma kernel DrawLine
 #pragma kernel FillCircles
 #pragma kernel ClearTextures
-#pragma kernel Line
 #pragma kernel InitParticles
 #pragma kernel RandomParticles
-#pragma kernel Particles
+#pragma kernel UpdateParticles
 
 #include "Utils/Random.cginc"
 #include "Utils/Geometry.cginc"
@@ -106,7 +106,7 @@ void RandomParticles(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
-void Points(uint3 id : SV_DispatchThreadID)
+void DrawPoints(uint3 id : SV_DispatchThreadID)
 {
     uint i = getParticleIndex(id);
     if (i >= PointsCount)
@@ -119,7 +119,7 @@ void Points(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
-void Particles(uint3 id : SV_DispatchThreadID)
+void UpdateParticles(uint3 id : SV_DispatchThreadID)
 {
     uint i = getParticleIndex(id);
     if (i >= PointsCount)
@@ -133,7 +133,7 @@ void Particles(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
-void Circles(uint3 id : SV_DispatchThreadID)
+void DrawCircles(uint3 id : SV_DispatchThreadID)
 {
     uint i = getParticleIndex(id);
     if (i >= PointsCount)
@@ -155,7 +155,7 @@ void Circles(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
-void Diamonds(uint3 id : SV_DispatchThreadID)
+void DrawDiamonds(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= PointsCount)
     {
@@ -178,7 +178,7 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(1, 1, 1)]
-void Line(uint3 id : SV_DispatchThreadID)
+void DrawLine(uint3 id : SV_DispatchThreadID)
 {
     drawLine(outputTexture, getParticlePosition(0), getParticlePosition(1), 1);
 }
