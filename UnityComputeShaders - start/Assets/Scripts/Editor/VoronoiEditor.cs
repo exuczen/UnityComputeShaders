@@ -22,11 +22,11 @@ public class VoronoiEditor : Editor
         }
         EditorGUI.BeginChangeCheck();
         {
-            power = EditorGUILayout.IntSlider($"TargetPoints: {voronoi.TargetPointsCount}", Maths.Log2((uint)voronoi.TargetPointsCount), 0, logMax);
+            power = EditorGUILayout.IntSlider($"TargetPoints: {voronoi.TargetPointsCount}", voronoi.TargetLogPointsCount, 0, logMax);
         }
         if (EditorUtils.SetDirtyOnEndChangeCheck(voronoi))
         {
-            voronoi.TargetPointsCount = 1 << power;
+            voronoi.TargetLogPointsCount = power;
         }
         EditorGUILayout.LabelField($"Radius: {voronoi.CircleRadius}");
 

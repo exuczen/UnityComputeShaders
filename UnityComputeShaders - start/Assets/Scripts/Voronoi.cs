@@ -53,7 +53,8 @@ public class Voronoi : MonoBehaviour
     }
 
     public int PointsCount { get => pointsCount; set => pointsCount = value; }
-    public int TargetPointsCount { get => targetPointsCount; set => targetPointsCount = value; }
+    public int TargetPointsCount { get => 1 << TargetLogPointsCount; }
+    public int TargetLogPointsCount { get => (int)(targetLogPointsCount + Mathv.Epsilon); set => targetLogPointsCount = value; }
     public int CircleRadius => circleRadius;
 
     [SerializeField]
@@ -64,8 +65,8 @@ public class Voronoi : MonoBehaviour
     private bool squareThreadGroups = false;
     [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
     private int pointsCount = 16;
-    [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
-    private int targetPointsCount = 16;
+    [SerializeField, Range(1, 20), HideInInspector]
+    private float targetLogPointsCount = 4;
     [SerializeField, Range(1, 5)]
     private float pointsChangeDuration = 3;
 
@@ -100,15 +101,15 @@ public class Voronoi : MonoBehaviour
     private readonly uint[] clearNumThreads = new uint[3];
 
     private float pointsCountChangeStartTime = -1f;
-    private int startPointsCount;
+    private float startLogPointsCount;
 
     public void StartPointsCountChange()
     {
-        if (pointsCount != targetPointsCount)
+        if (pointsCount != TargetPointsCount)
         {
-            //Debug.Log($"{GetType().Name}.StartPointsCountChange: {pointsCount} -> {targetPointsCount}");
+            //Debug.Log($"{GetType().Name}.StartPointsCountChange: {pointsCount} -> {TargetPointsCount}");
             pointsCountChangeStartTime = Time.time;
-            startPointsCount = pointsCount;
+            startLogPointsCount = Mathf.Log(pointsCount, 2f);
         }
     }
 
@@ -290,14 +291,15 @@ public class Voronoi : MonoBehaviour
     {
         if (pointsCountChangeStartTime >= 0f)
         {
-            if (pointsCount != targetPointsCount)
+            if (pointsCount != TargetPointsCount)
             {
                 float t = (Time.time - pointsCountChangeStartTime) / pointsChangeDuration;
-                pointsCount = (int)Mathf.Lerp(startPointsCount, targetPointsCount, t);
+                float power = Mathf.Lerp(startLogPointsCount, targetLogPointsCount, t);
+                pointsCount = (int)(Mathf.Pow(2f, power) + Mathv.Epsilon);
             }
             else
             {
-                startPointsCount = targetPointsCount;
+                startLogPointsCount = targetLogPointsCount;
                 pointsCountChangeStartTime = -1f;
             }
         }
