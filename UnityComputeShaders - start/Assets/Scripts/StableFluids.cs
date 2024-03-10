@@ -14,33 +14,33 @@ public class StableFluids : MonoBehaviour
     public ComputeShader compute;
     public Material material;
 
-    Vector2 previousInput;
+    private Vector2 previousInput;
 
-    int kernelAdvect;
-    int kernelForce;
-    int kernelProjectSetup;
-    int kernelProject;
-    int kernelDiffuse1;
-    int kernelDiffuse2;
+    private int kernelAdvect;
+    private int kernelForce;
+    private int kernelProjectSetup;
+    private int kernelProject;
+    private int kernelDiffuse1;
+    private int kernelDiffuse2;
 
-    int threadCountX { get { return (resolution + 7) / 8; } }
-    int threadCountY { get { return (resolution * Screen.height / Screen.width + 7) / 8; } }
+    private int threadCountX { get { return (resolution + 7) / 8; } }
+    private int threadCountY { get { return (resolution * Screen.height / Screen.width + 7) / 8; } }
 
-    int resolutionX { get { return threadCountX * 8; } }
-    int resolutionY { get { return threadCountY * 8; } }
+    private int resolutionX { get { return threadCountX * 8; } }
+    private int resolutionY { get { return threadCountY * 8; } }
 
     // Vector field buffers
-    RenderTexture vfbRTV1;
-    RenderTexture vfbRTV2;
-    RenderTexture vfbRTV3;
-    RenderTexture vfbRTP1;
-    RenderTexture vfbRTP2;
+    private RenderTexture vfbRTV1;
+    private RenderTexture vfbRTV2;
+    private RenderTexture vfbRTV3;
+    private RenderTexture vfbRTP1;
+    private RenderTexture vfbRTP2;
 
     // Color buffers (for double buffering)
-    RenderTexture colorRT1;
-    RenderTexture colorRT2;
+    private RenderTexture colorRT1;
+    private RenderTexture colorRT2;
 
-    RenderTexture CreateRenderTexture(int componentCount, int width = 0, int height = 0)
+    private RenderTexture CreateRenderTexture(int componentCount, int width = 0, int height = 0)
     {
         RenderTextureFormat format;
         if (componentCount == 1)
@@ -72,12 +72,12 @@ public class StableFluids : MonoBehaviour
     }
 
 
-    void OnValidate()
+    private void OnValidate()
     {
         resolution = Mathf.Max(resolution, 8);
     }
 
-    void Start()
+    private void Start()
     {
         InitBuffers();
         InitShader();
@@ -85,7 +85,7 @@ public class StableFluids : MonoBehaviour
         Graphics.Blit(initial, colorRT1);
     }
 
-    void InitBuffers()
+    private void InitBuffers()
     {
         vfbRTV1 = CreateRenderTexture(2);
         vfbRTV2 = CreateRenderTexture(2);
@@ -96,7 +96,7 @@ public class StableFluids : MonoBehaviour
         colorRT2 = CreateRenderTexture(4, Screen.width, Screen.height);
     }
 
-    void InitShader()
+    private void InitShader()
     {
         kernelAdvect = compute.FindKernel("Advect");
         kernelForce = compute.FindKernel("Force");
@@ -129,7 +129,7 @@ public class StableFluids : MonoBehaviour
         material.SetTexture("_VelocityField", vfbRTV1);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         Destroy(vfbRTV1);
         Destroy(vfbRTV2);
@@ -140,7 +140,7 @@ public class StableFluids : MonoBehaviour
         Destroy(colorRT2);
     }
 
-    void Update()
+    private void Update()
     {
         float dt = Time.deltaTime;
         float dx = 1.0f / resolutionY;
@@ -217,7 +217,7 @@ public class StableFluids : MonoBehaviour
         previousInput = input;
     }
 
-    void OnRenderImage(RenderTexture source, RenderTexture destination)
+    private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         //Graphics.Blit(vfbRTV3, destination, material, 1);
         //Graphics.Blit(colorRT1, destination, material, 0);

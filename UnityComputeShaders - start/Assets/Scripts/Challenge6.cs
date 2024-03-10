@@ -92,7 +92,7 @@ public class Challenge6 : MonoBehaviour
         }
     }
 
-    void InitShader()
+    private void InitShader()
     {
         MeshFilter mf = GetComponent<MeshFilter>();
         Bounds bounds = mf.sharedMesh.bounds;

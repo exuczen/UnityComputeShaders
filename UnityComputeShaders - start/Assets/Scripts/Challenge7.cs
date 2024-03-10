@@ -30,17 +30,17 @@ public class Challenge7 : MonoBehaviour
     int resolutionY { get { return threadCountY * 8; } }
 
     // Vector field buffers
-    RenderTexture vfbRTV1;
-    RenderTexture vfbRTV2;
-    RenderTexture vfbRTV3;
-    RenderTexture vfbRTP1;
-    RenderTexture vfbRTP2;
+    private RenderTexture vfbRTV1;
+    private RenderTexture vfbRTV2;
+    private RenderTexture vfbRTV3;
+    private RenderTexture vfbRTP1;
+    private RenderTexture vfbRTP2;
 
     // Color buffers (for double buffering)
-    RenderTexture colorRT1;
-    RenderTexture colorRT2;
+    private RenderTexture colorRT1;
+    private RenderTexture colorRT2;
 
-    RenderTexture CreateRenderTexture(int componentCount, int width = 0, int height = 0)
+    private RenderTexture CreateRenderTexture(int componentCount, int width = 0, int height = 0)
     {
         var format = RenderTextureFormat.ARGBHalf;
         if (componentCount == 1) format = RenderTextureFormat.RHalf;
@@ -56,12 +56,12 @@ public class Challenge7 : MonoBehaviour
     }
 
 
-    void OnValidate()
+    private void OnValidate()
     {
         resolution = Mathf.Max(resolution, 8);
     }
 
-    void Start()
+    private void Start()
     {
         material = new Material(shader);
 
@@ -69,7 +69,7 @@ public class Challenge7 : MonoBehaviour
         InitShader();
     }
 
-    void InitBuffers()
+    private void InitBuffers()
     {
         vfbRTV1 = CreateRenderTexture(2);
         vfbRTV2 = CreateRenderTexture(2);
@@ -81,7 +81,7 @@ public class Challenge7 : MonoBehaviour
         colorRT2 = CreateRenderTexture(4, Screen.width, Screen.height);
     }
 
-    void InitShader()
+    private void InitShader()
     {
         kernelAdvect = compute.FindKernel("Advect");
         kernelForce = compute.FindKernel("Force");
@@ -124,7 +124,7 @@ public class Challenge7 : MonoBehaviour
         renderer.material.SetTexture("_MainTex", colorRT1);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         Destroy(vfbRTV1);
         Destroy(vfbRTV2);
@@ -136,7 +136,7 @@ public class Challenge7 : MonoBehaviour
         Destroy(colorRT2);
     }
 
-    void Update()
+    private void Update()
     {
         var dt = Time.deltaTime;
         var dx = 1.0f / resolutionY;

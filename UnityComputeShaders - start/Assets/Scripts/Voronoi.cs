@@ -324,7 +324,7 @@ public class Voronoi : MonoBehaviour
             //shader.Dispatch(drawDiamondsKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
             //shader.Dispatch(fillCirclesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
         }
-        shader.Dispatch(drawLineKernel, 1, 1, 1);
+        //shader.Dispatch(drawLineKernel, 1, 1, 1);
 
         //tempBuffer.GetData(tempData);
         //Debug.Log($"{GetType().Name}.DispatchKernels: {tempData[0]}");
