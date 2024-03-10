@@ -15,7 +15,7 @@ public class Challenge3 : BaseCompletePP
     public float tintStrength;
     public Color tintColor = Color.white;
 
-    private void OnValidate()
+    protected override void OnValidate()
     {
         if (!init)
         {

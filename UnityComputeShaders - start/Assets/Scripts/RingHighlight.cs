@@ -21,7 +21,7 @@ public class RingHighlight : BasePP
         base.Init();
     }
 
-    private void OnValidate()
+    protected override void OnValidate()
     {
         if (!init)
         {

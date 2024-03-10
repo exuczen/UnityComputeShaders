@@ -15,7 +15,7 @@ public class NightVision : BaseCompletePP
     [Range(50, 500)]
     public int lines = 100;
 
-    private void OnValidate()
+    protected override void OnValidate()
     {
         if (!init)
         {
