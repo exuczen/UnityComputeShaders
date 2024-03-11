@@ -1,5 +1,6 @@
 ﻿#define DEBUG_GUI
 #define DEBUG_THREAD_GROUPS
+//#define DEBUG_ATAN2
 
 using UnityEngine;
 using System;
@@ -357,15 +358,25 @@ public class Voronoi : MonoBehaviour
 
         Color activeColor = GUI.color;
         GUI.color = Color.black;
-        GUI.Box(new Rect(0, 0, 100, 100), string.Empty);
+        GUI.Box(new Rect(0, 0, 200, 100), string.Empty);
         GUI.color = activeColor;
-
+#if DEBUG_ATAN2
+        var cursorPos = Camera.main.ScreenToViewportPoint(Input.mousePosition) - 0.5f * Vector3.one;
+        cursorPos.x *= 1f * Screen.width / Screen.height;
+        float angle = Mathf.PI - Mathf.Atan2(cursorPos.y, cursorPos.x);
+        int angleDivisions = 16;
+        float deltaAngle = Maths.M_2PI / angleDivisions;
+        //int angleSection = (int)(angle / deltaAngle + 0.5f) % angleDivisions;
+        int angleSection = (int)(angle / deltaAngle);
+        GUI.Label(new Rect(10, y += dy, 200, 100), $"atan2({cursorPos.y:f2}, {cursorPos.x:f2}) = {angle * Mathf.Rad2Deg:f2}");
+        GUI.Label(new Rect(10, y += dy, 200, 100), $"angleSection: {angleSection}");
+#endif
 #if DEBUG_THREAD_GROUPS
-        GUI.Label(new Rect(10, y += dy, 100, 200), $"({pointsCount})");
-        GUI.Label(new Rect(10, y += dy, 100, 200), $"({circleThreadGroups.x * circleThreadGroups.y * circleThreadGroupSize})");
-        GUI.Label(new Rect(10, y += dy, 100, 200), $"({GetThreadGroupCount(circleThreadGroupSize, pointsCount, false)})");
-        GUI.Label(new Rect(10, y += dy, 100, 200), $"{circleThreadGroups}");
-        GUI.Label(new Rect(10, y += dy, 100, 200), $"({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
+        GUI.Label(new Rect(10, y += dy, 100, 100), $"({pointsCount})");
+        GUI.Label(new Rect(10, y += dy, 100, 100), $"({circleThreadGroups.x * circleThreadGroups.y * circleThreadGroupSize})");
+        GUI.Label(new Rect(10, y += dy, 100, 100), $"({GetThreadGroupCount(circleThreadGroupSize, pointsCount, false)})");
+        GUI.Label(new Rect(10, y += dy, 100, 100), $"{circleThreadGroups}");
+        GUI.Label(new Rect(10, y += dy, 100, 100), $"({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
 #endif
     }
 #endif
