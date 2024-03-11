@@ -1,5 +1,4 @@
-﻿
-float HashScale;
+﻿float HashScale;
 float3 HashSize;
 float3 HashTranslate;
 
@@ -8,8 +7,8 @@ RWStructuredBuffer<int2> Table;
 
 int3 HashIndex(float3 p)
 {
-	p = (p - HashTranslate) * HashScale;
-	return clamp(p, 0, HashSize - 1);
+    p = (p - HashTranslate) * HashScale;
+    return clamp(p, 0, HashSize - 1);
 }
 
 float KernelRadius;
@@ -20,12 +19,12 @@ float Poly6;
 
 float Pow3(float v)
 {
-	return v * v * v;
+    return v * v * v;
 }
 
 float Poly6Kernel(float len2)
 {
-	return Poly6 * Pow3(KernelRadius2 - len2);
+    return Poly6 * Pow3(KernelRadius2 - len2);
 }
 
 #define THREADS 128
@@ -38,16 +37,16 @@ int NumParticles;
 
 float Distance2(float3 a, float3 b)
 {
-	float3 ab = a - b;
-	return ab.x*ab.x + ab.y*ab.y + ab.z*ab.z;
+    float3 ab = a - b;
+    return ab.x * ab.x + ab.y * ab.y + ab.z * ab.z;
 }
 
 float Compute(int id, float3 pi)
 {
-	int3 hashIndex = HashIndex(pi);
-	int3 size = HashSize;
+    int3 hashIndex = HashIndex(pi);
+    int3 size = HashSize;
 
-	float delta = Poly6Zero;
+    float delta = Poly6Zero;
 
 	//Fills the boundarys psi array so the fluid can
 	//collide against it smoothly. The original computes
@@ -89,21 +88,21 @@ float Compute(int id, float3 pi)
 	}
 	*/
 
-	float volume = 1.0f / delta;
-	return Density * volume;
+    float volume = 1.0f / delta;
+    return Density * volume;
 }
 
 #pragma kernel ComputePsi
-[numthreads(THREADS,1,1)]
+[numthreads(THREADS, 1, 1)]
 void ComputePsi(int id : SV_DispatchThreadID)
 {
 
-	if (id < NumParticles)
-	{
-		float3 pi = Boundary[id].xyz;
-		float psi = Compute(id, pi);
+    if (id < NumParticles)
+    {
+        float3 pi = Boundary[id].xyz;
+        float psi = Compute(id, pi);
 
-		Boundary[id].w = psi;
-	}
+        Boundary[id].w = psi;
+    }
 
 }

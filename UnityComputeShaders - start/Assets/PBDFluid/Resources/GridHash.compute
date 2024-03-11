@@ -1,5 +1,4 @@
-﻿
-float HashScale;
+﻿float HashScale;
 float3 HashSize;
 float3 HashTranslate;
 
@@ -8,10 +7,10 @@ RWStructuredBuffer<int2> Table;
 
 int Hash(float3 p)
 {
-	p = (p - HashTranslate) * HashScale;
-	int3 i = clamp(p, 0, HashSize - 1);
+    p = (p - HashTranslate) * HashScale;
+    int3 i = clamp(p, 0, HashSize - 1);
 
-	return i.x + i.y * HashSize.x + i.z * HashSize.x * HashSize.y;
+    return i.x + i.y * HashSize.x + i.z * HashSize.x * HashSize.y;
 }
 
 #define THREADS 128
@@ -24,23 +23,23 @@ int TotalParticles;
 
 #pragma kernel HashParticles
 
-[numthreads(THREADS,1,1)]
+[numthreads(THREADS, 1, 1)]
 void HashParticles(int id : SV_DispatchThreadID)
 {
-	int2 index;
-	index.y = id;
+    int2 index;
+    index.y = id;
 
-	if (id < NumParticles)
-	{
-		index.x = Hash(Particles[id].xyz);
-		IndexMap[id] = index;
-	}
-	else if (id < TotalParticles)
-	{
-		int k = id - NumParticles;
-		index.x = Hash(Boundary[k].xyz);
-		IndexMap[id] = index;
-	}
+    if (id < NumParticles)
+    {
+        index.x = Hash(Particles[id].xyz);
+        IndexMap[id] = index;
+    }
+    else if (id < TotalParticles)
+    {
+        int k = id - NumParticles;
+        index.x = Hash(Boundary[k].xyz);
+        IndexMap[id] = index;
+    }
 
 }
 
@@ -49,8 +48,8 @@ void HashParticles(int id : SV_DispatchThreadID)
 [numthreads(THREADS, 1, 1)]
 void ClearTable(int id : SV_DispatchThreadID)
 {
-	if (id < TotalParticles)
-		Table[id] = 0;
+    if (id < TotalParticles)
+        Table[id] = 0;
 }
 
 #pragma kernel MapTable
@@ -58,15 +57,15 @@ void ClearTable(int id : SV_DispatchThreadID)
 [numthreads(THREADS, 1, 1)]
 void MapTable(int id : SV_DispatchThreadID)
 {
-	if (id < TotalParticles)
-	{
-		int hash = IndexMap[id].x;
+    if (id < TotalParticles)
+    {
+        int hash = IndexMap[id].x;
 
-		if (id == 0 || hash != IndexMap[id - 1].x)
-			Table[hash].x = id;
+        if (id == 0 || hash != IndexMap[id - 1].x)
+            Table[hash].x = id;
 
-		if (id == TotalParticles - 1 || hash != IndexMap[id + 1].x)
-			Table[hash].y = id;
-	}
+        if (id == TotalParticles - 1 || hash != IndexMap[id + 1].x)
+            Table[hash].y = id;
+    }
 }
 

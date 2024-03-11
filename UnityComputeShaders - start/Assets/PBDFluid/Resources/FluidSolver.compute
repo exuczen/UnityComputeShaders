@@ -1,6 +1,4 @@
-﻿
-
-float HashScale;
+﻿float HashScale;
 float3 HashSize;
 float3 HashTranslate;
 
@@ -9,8 +7,8 @@ RWStructuredBuffer<int2> Table;
 
 int3 HashIndex(float3 p)
 {
-	p = (p - HashTranslate) * HashScale;
-	return clamp(p, 0, HashSize - 1);
+    p = (p - HashTranslate) * HashScale;
+    return clamp(p, 0, HashSize - 1);
 }
 
 float KernelRadius;
@@ -23,29 +21,29 @@ float ViscLap;
 
 float Pow2(float v)
 {
-	return v * v;
+    return v * v;
 }
 
 float Pow3(float v)
 {
-	return v * v * v;
+    return v * v * v;
 }
 
 float Poly6Kernel(float len2)
 {
-	return Poly6 * Pow3(KernelRadius2 - len2);
+    return Poly6 * Pow3(KernelRadius2 - len2);
 }
 
 float3 SpikyGradKernel(float3 p, float len2)
 {
-	float r = sqrt(len2);
-	return (p / r) * SpikyGrad * Pow2(KernelRadius - r);
+    float r = sqrt(len2);
+    return (p / r) * SpikyGrad * Pow2(KernelRadius - r);
 }
 
 float ViscLapKernel(float len2)
 {
-	float r = sqrt(len2);
-	return ViscLap * (KernelRadius - r);
+    float r = sqrt(len2);
+    return ViscLap * (KernelRadius - r);
 }
 
 #define THREADS 128
@@ -72,43 +70,43 @@ int NumParticles;
 float3 Velocity(int i)
 {
 
-	float3 velocity = VelocitiesREAD[i].xyz;
-	velocity -= velocity * Dampning * DeltaTime;
-	velocity += DeltaTime * Gravity;
+    float3 velocity = VelocitiesREAD[i].xyz;
+    velocity -= velocity * Dampning * DeltaTime;
+    velocity += DeltaTime * Gravity;
 
-	return velocity;
+    return velocity;
 }
 
 float3 PredictedPosition(int i, float3 velocity)
 {
-	return Positions[i].xyz + DeltaTime * velocity;
+    return Positions[i].xyz + DeltaTime * velocity;
 }
 
 #pragma kernel PredictPositions
 
-[numthreads(THREADS,1,1)]
+[numthreads(THREADS, 1, 1)]
 void PredictPositions(int id : SV_DispatchThreadID)
 {
-	if (id < NumParticles)
-	{
-		float3 velocity = Velocity(id);
-		float3 predicted = PredictedPosition(id, velocity);
+    if (id < NumParticles)
+    {
+        float3 velocity = Velocity(id);
+        float3 predicted = PredictedPosition(id, velocity);
 
-		VelocitiesWRITE[id] = float4(velocity, 0);
-		PredictedWRITE[id] = float4(predicted, 0);
-	}
+        VelocitiesWRITE[id] = float4(velocity, 0);
+        PredictedWRITE[id] = float4(predicted, 0);
+    }
 
 }
 
 float Distance2(float3 a, float3 b)
 {
-	float3 ab = a - b;
-	return dot(ab,ab);
+    float3 ab = a - b;
+    return dot(ab, ab);
 }
 
 float Length2(float3 p)
 {
-	return dot(p, p);
+    return dot(p, p);
 }
 
 #define LOOP_START \
@@ -128,80 +126,85 @@ for (int i = -1; i <= 1; i++) \
 void ComputeDensityAndPressure(int id, float3 pi, out float density, out float pressure)
 {
 
-	float InvDensity = 1.0f / Density;
-	float MassMulInvDensity = ParticleMass * InvDensity;
+    float InvDensity = 1.0f / Density;
+    float MassMulInvDensity = ParticleMass * InvDensity;
 
-	density = ParticleMass * Poly6Zero;
-	pressure = 0;
+    density = ParticleMass * Poly6Zero;
+    pressure = 0;
 
-	float sum_grad_C2 = 0.0f;
-	float3 gradC_i = 0.0f;
+    float sum_grad_C2 = 0.0f;
+    float3 gradC_i = 0.0f;
 
-	int3 hashIndex = HashIndex(pi);
-	int3 size = HashSize;
-	int sizexy = size.x * size.y;
+    int3 hashIndex = HashIndex(pi);
+    int3 size = HashSize;
+    int sizexy = size.x * size.y;
 
 	LOOP_START
 
-	int xi = hashIndex.x + i;
-	int yj = hashIndex.y + j;
-	int zk = hashIndex.z + k;
+                int xi = hashIndex.x + i;
+                int yj = hashIndex.y + j;
+                int zk = hashIndex.z + k;
 
-	if (xi < 0 || xi >= size.x) continue;
-	if (yj < 0 || yj >= size.y) continue;
-	if (zk < 0 || zk >= size.z) continue;
+                if (xi < 0 || xi >= size.x)
+                    continue;
+                if (yj < 0 || yj >= size.y)
+                    continue;
+                if (zk < 0 || zk >= size.z)
+                    continue;
 
-	int hash = xi + yj * size.x + zk * sizexy;
-	int2 bounds = Table[hash];
+                int hash = xi + yj * size.x + zk * sizexy;
+                int2 bounds = Table[hash];
 
-	for (int idx = bounds.x; idx <= bounds.y; idx++)
-	{
-		int n = IndexMap[idx].y;
-		if (n == id) continue;
+                for (int idx = bounds.x; idx <= bounds.y; idx++)
+                {
+                    int n = IndexMap[idx].y;
+                    if (n == id)
+                        continue;
 
-		float dist2;
-		float3 diff;
-		float psi;
-		if (n < NumParticles)
-		{
-			diff = pi - PredictedREAD[n].xyz;
-			dist2 = Length2(diff);
-		}
-		else
-		{
-			int m = n - NumParticles;
-			float4 b = Boundary[m];
-			diff = pi - b.xyz;
-			psi = b.w;
-			dist2 = Length2(diff);
-		}
+                    float dist2;
+                    float3 diff;
+                    float psi;
+                    if (n < NumParticles)
+                    {
+                        diff = pi - PredictedREAD[n].xyz;
+                        dist2 = Length2(diff);
+                    }
+                    else
+                    {
+                        int m = n - NumParticles;
+                        float4 b = Boundary[m];
+                        diff = pi - b.xyz;
+                        psi = b.w;
+                        dist2 = Length2(diff);
+                    }
 
-		if (dist2 >= KernelRadius2) continue;
+                    if (dist2 >= KernelRadius2)
+                        continue;
 
-		if (n < NumParticles)
-		{
-			density += ParticleMass * Poly6Kernel(dist2);
-			float3 gradC_j = -MassMulInvDensity * SpikyGradKernel(diff, dist2);
-			sum_grad_C2 += dot(gradC_j, gradC_j);
-			gradC_i -= gradC_j;
-		}
-		else
-		{
-			density += psi * Poly6Kernel(dist2);
-			float3 gradC_j = -psi * InvDensity * SpikyGradKernel(diff, dist2);
-			sum_grad_C2 += Length2(gradC_j);
-			gradC_i -= gradC_j;
-		}
-	}
+                    if (n < NumParticles)
+                    {
+                        density += ParticleMass * Poly6Kernel(dist2);
+                        float3 gradC_j = -MassMulInvDensity * SpikyGradKernel(diff, dist2);
+                        sum_grad_C2 += dot(gradC_j, gradC_j);
+                        gradC_i -= gradC_j;
+                    }
+                    else
+                    {
+                        density += psi * Poly6Kernel(dist2);
+                        float3 gradC_j = -psi * InvDensity * SpikyGradKernel(diff, dist2);
+                        sum_grad_C2 += Length2(gradC_j);
+                        gradC_i -= gradC_j;
+                    }
+                }
 
 	LOOP_END
 
-	float C = density * InvDensity - 1.0f;
+    float C = density * InvDensity - 1.0f;
 
-	if (C > 0)
-	{
+    if (C > 0)
+    {
 		// C > 0 for 60% - 65% of particles
-		sum_grad_C2 += Length2(gradC_i);
+        sum_grad_C2 += Length2(gradC_i);
 	
 		//If the fluid is collapsing you need to adjust e.
 		//Its a user specified relaxation parameter that 
@@ -209,9 +212,9 @@ void ComputeDensityAndPressure(int id, float3 pi, out float density, out float p
 		//due to a vanishing gradient at the smoothing 
 		//kernel borders. The value may need to increase
 		//as the number of particles increase.
-		float e = 60.0f;
-		pressure = -C / (sum_grad_C2 + e);
-	}
+        float e = 60.0f;
+        pressure = -C / (sum_grad_C2 + e);
+    }
 
 }
 
@@ -220,82 +223,87 @@ void ComputeDensityAndPressure(int id, float3 pi, out float density, out float p
 [numthreads(THREADS, 1, 1)]
 void ComputeDensity(int id : SV_DispatchThreadID)
 {
-	if (id < NumParticles)
-	{
-		float3 pi = PredictedREAD[id].xyz;
+    if (id < NumParticles)
+    {
+        float3 pi = PredictedREAD[id].xyz;
 
-		float density, pressure;
-		ComputeDensityAndPressure(id, pi, density, pressure);
+        float density, pressure;
+        ComputeDensityAndPressure(id, pi, density, pressure);
 
-		Densities[id] = density;
-		Pressures[id] = pressure;
+        Densities[id] = density;
+        Pressures[id] = pressure;
 
-	}
+    }
 }
 
 float3 SolveDensity(int id, float3 pi, float pressure)
 {
 
-	float3 corr = 0;
-	float InvDensity = 1.0f / Density;
-	float MassMulInvDensity = ParticleMass * InvDensity;
+    float3 corr = 0;
+    float InvDensity = 1.0f / Density;
+    float MassMulInvDensity = ParticleMass * InvDensity;
 
-	int3 hashIndex = HashIndex(pi);
-	int3 size = HashSize;
-	int sizexy = size.x * size.y;
+    int3 hashIndex = HashIndex(pi);
+    int3 size = HashSize;
+    int sizexy = size.x * size.y;
 
 	LOOP_START
 
-	int xi = hashIndex.x + i;
-	int yj = hashIndex.y + j;
-	int zk = hashIndex.z + k;
+                int xi = hashIndex.x + i;
+                int yj = hashIndex.y + j;
+                int zk = hashIndex.z + k;
 
-	if (xi < 0 || xi >= size.x) continue;
-	if (yj < 0 || yj >= size.y) continue;
-	if (zk < 0 || zk >= size.z) continue;
+                if (xi < 0 || xi >= size.x)
+                    continue;
+                if (yj < 0 || yj >= size.y)
+                    continue;
+                if (zk < 0 || zk >= size.z)
+                    continue;
 
-	int hash = xi + yj * size.x + zk * sizexy;
-	int2 bounds = Table[hash];
+                int hash = xi + yj * size.x + zk * sizexy;
+                int2 bounds = Table[hash];
 
-	for (int idx = bounds.x; idx <= bounds.y; idx++)
-	{
-		int n = IndexMap[idx].y;
-		if (n == id) continue;
+                for (int idx = bounds.x; idx <= bounds.y; idx++)
+                {
+                    int n = IndexMap[idx].y;
+                    if (n == id)
+                        continue;
 
-		float dist2;
-		float3 diff;
-		float psi;
-		if (n < NumParticles)
-		{
-			diff = pi - PredictedREAD[n].xyz;
-			dist2 = Length2(diff);
-		}
-		else
-		{
-			int m = n - NumParticles;
-			float4 b = Boundary[m];
-			diff = pi - b.xyz;
-			psi = b.w;
-			dist2 = Length2(diff);
-		}
+                    float dist2;
+                    float3 diff;
+                    float psi;
+                    if (n < NumParticles)
+                    {
+                        diff = pi - PredictedREAD[n].xyz;
+                        dist2 = Length2(diff);
+                    }
+                    else
+                    {
+                        int m = n - NumParticles;
+                        float4 b = Boundary[m];
+                        diff = pi - b.xyz;
+                        psi = b.w;
+                        dist2 = Length2(diff);
+                    }
 
-		if (dist2 >= KernelRadius2) continue;
+                    if (dist2 >= KernelRadius2)
+                        continue;
 
-		if (n < NumParticles)
-		{
-			float3 gradW = SpikyGradKernel(diff, dist2);
-			corr -= (pressure + Pressures[n]) * -MassMulInvDensity * gradW;
-		}
-		else
-		{
-			float3 gradW = SpikyGradKernel(diff, dist2);
-			corr -= pressure * -psi * InvDensity * gradW;
-		}
-	}
+                    if (n < NumParticles)
+                    {
+                        float3 gradW = SpikyGradKernel(diff, dist2);
+                        corr -= (pressure + Pressures[n]) * -MassMulInvDensity * gradW;
+                    }
+                    else
+                    {
+                        float3 gradW = SpikyGradKernel(diff, dist2);
+                        corr -= pressure * -psi * InvDensity * gradW;
+                    }
+                }
 
 	LOOP_END
 
-	return corr;
+    return corr;
 }
 
 #pragma kernel SolveConstraint
@@ -303,15 +311,15 @@ float3 SolveDensity(int id, float3 pi, float pressure)
 [numthreads(THREADS, 1, 1)]
 void SolveConstraint(int id : SV_DispatchThreadID)
 {
-	if (id < NumParticles)
-	{
-		float3 pi = PredictedREAD[id].xyz;
-		float pressure = Pressures[id];
+    if (id < NumParticles)
+    {
+        float3 pi = PredictedREAD[id].xyz;
+        float pressure = Pressures[id];
 
-		pi += SolveDensity(id, pi, pressure);
+        pi += SolveDensity(id, pi, pressure);
 
-		PredictedWRITE[id] = float4(pi, 0);
-	}
+        PredictedWRITE[id] = float4(pi, 0);
+    }
 }
 
 #pragma kernel UpdateVelocities
@@ -319,58 +327,63 @@ void SolveConstraint(int id : SV_DispatchThreadID)
 [numthreads(THREADS, 1, 1)]
 void UpdateVelocities(int id : SV_DispatchThreadID)
 {
-	if (id < NumParticles)
-	{
-		float4 p = Positions[id];
-		float4 pi = PredictedREAD[id];
+    if (id < NumParticles)
+    {
+        float4 p = Positions[id];
+        float4 pi = PredictedREAD[id];
 
-		float4 velocity = (pi - p) / DeltaTime;
+        float4 velocity = (pi - p) / DeltaTime;
 
-		VelocitiesWRITE[id] = velocity;
-	}
+        VelocitiesWRITE[id] = velocity;
+    }
 }
 
 float3 ComputeViscosity(int id, float3 pi)
 {
 
-	float viscosityMulMass = Viscosity * ParticleMass;
+    float viscosityMulMass = Viscosity * ParticleMass;
 
-	int3 hashIndex = HashIndex(pi);
-	int3 size = HashSize;
-	float sizexy = size.x * size.y;
+    int3 hashIndex = HashIndex(pi);
+    int3 size = HashSize;
+    float sizexy = size.x * size.y;
 
-	float3 velocity = VelocitiesREAD[id].xyz;
+    float3 velocity = VelocitiesREAD[id].xyz;
 
 	LOOP_START
 
-	int xi = hashIndex.x + i;
-	int yj = hashIndex.y + j;
-	int zk = hashIndex.z + k;
+                int xi = hashIndex.x + i;
+                int yj = hashIndex.y + j;
+                int zk = hashIndex.z + k;
 
-	if (xi < 0 || xi >= size.x) continue;
-	if (yj < 0 || yj >= size.y) continue;
-	if (zk < 0 || zk >= size.z) continue;
+                if (xi < 0 || xi >= size.x)
+                    continue;
+                if (yj < 0 || yj >= size.y)
+                    continue;
+                if (zk < 0 || zk >= size.z)
+                    continue;
 
-	int hash = xi + yj * size.x + zk * sizexy;
-	int2 bounds = Table[hash];
+                int hash = xi + yj * size.x + zk * sizexy;
+                int2 bounds = Table[hash];
 
-	for (int idx = bounds.x; idx <= bounds.y; idx++)
-	{
-		int n = IndexMap[idx].y;
-		if (n == id || n >= NumParticles) continue;
+                for (int idx = bounds.x; idx <= bounds.y; idx++)
+                {
+                    int n = IndexMap[idx].y;
+                    if (n == id || n >= NumParticles)
+                        continue;
 
-		float3 pn = PredictedREAD[n].xyz;
-		float dist2 = Distance2(pi, pn);
-		if (dist2 >= KernelRadius2) continue;
+                    float3 pn = PredictedREAD[n].xyz;
+                    float dist2 = Distance2(pi, pn);
+                    if (dist2 >= KernelRadius2)
+                        continue;
 
-		float invDensity = 1.0f / Densities[n];
-		float v = ViscLapKernel(dist2) * viscosityMulMass * invDensity;
-		velocity -= v * (velocity - VelocitiesREAD[n].xyz);
-	}
+                    float invDensity = 1.0f / Densities[n];
+                    float v = ViscLapKernel(dist2) * viscosityMulMass * invDensity;
+                    velocity -= v * (velocity - VelocitiesREAD[n].xyz);
+                }
 
 	LOOP_END
 
-	return velocity;
+    return velocity;
 
 }
 
@@ -379,14 +392,14 @@ float3 ComputeViscosity(int id, float3 pi)
 [numthreads(THREADS, 1, 1)]
 void SolveViscosity(int id : SV_DispatchThreadID)
 {
-	if (id < NumParticles)
-	{
-		float3 pi = PredictedREAD[id].xyz;
+    if (id < NumParticles)
+    {
+        float3 pi = PredictedREAD[id].xyz;
 
-		float3 velocity = ComputeViscosity(id, pi);
+        float3 velocity = ComputeViscosity(id, pi);
 
-		VelocitiesWRITE[id] = float4(velocity,0);
-	}
+        VelocitiesWRITE[id] = float4(velocity, 0);
+    }
 }
 
 #pragma kernel UpdatePositions
@@ -394,8 +407,8 @@ void SolveViscosity(int id : SV_DispatchThreadID)
 [numthreads(THREADS, 1, 1)]
 void UpdatePositions(int id : SV_DispatchThreadID)
 {
-	if (id < NumParticles)
-	{
-		Positions[id] = PredictedREAD[id];
-	}
+    if (id < NumParticles)
+    {
+        Positions[id] = PredictedREAD[id];
+    }
 }
