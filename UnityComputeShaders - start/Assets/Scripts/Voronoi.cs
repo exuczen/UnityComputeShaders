@@ -101,15 +101,24 @@ public class Voronoi : MonoBehaviour
     private readonly uint[] clearNumThreads = new uint[3];
 
     private float pointsCountChangeStartTime = -1f;
+    private float pointsCountChangeEndTime = -1f;
     private float startLogPointsCount;
+    private float targetLogPointsCountPrev;
 
     public void StartPointsCountChange()
+    {
+        StartPointsCountChange(pointsChangeDuration);
+    }
+
+    public void StartPointsCountChange(float duration)
     {
         if (pointsCount != TargetPointsCount)
         {
             //Debug.Log($"{GetType().Name}.StartPointsCountChange: {pointsCount} -> {TargetPointsCount}");
             pointsCountChangeStartTime = Time.time;
+            pointsCountChangeEndTime = pointsCountChangeStartTime + duration;
             startLogPointsCount = Mathf.Log(pointsCount, 2f);
+            targetLogPointsCountPrev = targetLogPointsCount;
         }
     }
 
@@ -291,9 +300,16 @@ public class Voronoi : MonoBehaviour
     {
         if (pointsCountChangeStartTime >= 0f)
         {
+            if (targetLogPointsCountPrev != targetLogPointsCount)
+            {
+                StartPointsCountChange(pointsCountChangeEndTime - Time.time);
+            }
+            targetLogPointsCountPrev = targetLogPointsCount;
+
             if (pointsCount != TargetPointsCount)
             {
-                float t = (Time.time - pointsCountChangeStartTime) / pointsChangeDuration;
+                //float t = (Time.time - pointsCountChangeStartTime) / pointsChangeDuration;
+                float t = Mathf.InverseLerp(pointsCountChangeStartTime, pointsCountChangeEndTime, Time.time);
                 float power = Mathf.Lerp(startLogPointsCount, targetLogPointsCount, t);
                 pointsCount = (int)(Mathf.Pow(2f, power) + Mathv.Epsilon);
             }
@@ -301,6 +317,7 @@ public class Voronoi : MonoBehaviour
             {
                 startLogPointsCount = targetLogPointsCount;
                 pointsCountChangeStartTime = -1f;
+                pointsCountChangeEndTime = -1f;
             }
         }
         SetPointsCount(pointsCount, false);
