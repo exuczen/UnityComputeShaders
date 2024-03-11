@@ -18,7 +18,7 @@ shared RWBuffer<int> indexBuffer;
 shared RWBuffer<int> tempBuffer;
 
 int TexResolution;
-float CircleRadiusF;
+float CircleRadiusInv;
 
 Particle getClearParticle(uint randomSeed)
 {
@@ -38,7 +38,9 @@ float4 getColor(int id)
 
 float4 getXYGradientColor(int x, int y)
 {
-    return float4(abs(x) / CircleRadiusF, abs(y) / CircleRadiusF, 1.0, 1.0);
+    //float rg = length(float2(x, y)) * CircleRadiusInv;
+    //return float4(rg, rg, 1.0, 1.0);
+    return float4(abs(x) * CircleRadiusInv, abs(y) * CircleRadiusInv, 1.0, 1.0);
 }
 
 void plotParticle(Particle p, int i)

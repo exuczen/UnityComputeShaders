@@ -21,7 +21,7 @@ public class Voronoi : MonoBehaviour
         public int TimeID;
         public int RadiusID;
         public int RadiusSqrID;
-        public int CircleRadiusFID;
+        public int CircleRadiusInvID;
         public int PointsCapacityID;
         public int PointsCountID;
         public int PointsRowThreadsCountID;
@@ -38,7 +38,7 @@ public class Voronoi : MonoBehaviour
             TimeID = Shader.PropertyToID("Time");
             RadiusID = Shader.PropertyToID("Radius");
             RadiusSqrID = Shader.PropertyToID("RadiusSqr");
-            CircleRadiusFID = Shader.PropertyToID("CircleRadiusF");
+            CircleRadiusInvID = Shader.PropertyToID("CircleRadiusInv");
             PointsCapacityID = Shader.PropertyToID("PointsCapacity");
             PointsCountID = Shader.PropertyToID("PointsCount");
             PointsRowThreadsCountID = Shader.PropertyToID("PointsRowThreadsCount");
@@ -220,7 +220,7 @@ public class Voronoi : MonoBehaviour
         shader.SetInt(shaderData.PointsCountID, pointsCount);
 
         circleRadius = Mathf.Clamp((int)(TexResolution * 2.3 / Mathf.Sqrt(pointsCount)), 3, 32);
-        shader.SetFloat(shaderData.CircleRadiusFID, Mathf.Max(2, circleRadius + 1));
+        shader.SetFloat(shaderData.CircleRadiusInvID, 1f / Mathf.Max(2, circleRadius));
 
         if (log)
         {

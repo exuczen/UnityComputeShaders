@@ -187,5 +187,5 @@ void DrawLine(uint3 id : SV_DispatchThreadID)
 void ClearTextures(uint3 id : SV_DispatchThreadID)
 {
     outputTexture[id.xy] = ClearColor;
-    indexBuffer[(int)id.y * TexResolution + (int)id.x] = -1;
+    indexBuffer[id.y * TexResolution + id.x] = -1;
 }
