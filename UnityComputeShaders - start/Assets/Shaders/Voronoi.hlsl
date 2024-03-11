@@ -23,7 +23,7 @@ float CircleRadiusInv;
 Particle getClearParticle(uint randomSeed)
 {
     Particle p;
-    p.position = int2(-1, -1);
+    p.position = int2(-2, -2);
     p.endTime = 0.0;
     p.color = 0.0;
     p.randomSeed = randomSeed;
@@ -72,7 +72,7 @@ bool plot1(int x, int y, int2 c, float4 color, int id)
     y += c.y;
     int2 xy = int2(x, y);
     bool inBounds = x >= 0 && x < TexResolution && y >= 0 && y < TexResolution;
-    bool result = inBounds && outputTexture[xy].w == 0.0;
+    bool result = inBounds && outputTexture[xy].w < 0.5;
     //bool result = inBounds && indexBuffer[y * TexResolution + x] < 0;
     if (result)
     {

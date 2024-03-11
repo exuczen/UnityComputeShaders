@@ -47,7 +47,7 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 {
     Particle p = particlesBuffer[i];
     
-    if (p.color.w > 0.0) // Clear particle's pixel
+    if (p.color.w > 0.5) // Clear particle's pixel
     {
         int xyIndex = p.position.y * TexResolution + p.position.x;
         int j = indexBuffer[xyIndex];
@@ -57,6 +57,7 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
     }
 #if USE_RANDOM_XORSHIFT
     rng_state = particlesBuffer[i].randomSeed;
+    //p.position = (0.25 + random2_xorshift() * 0.5) * TexResolution;
     p.position = (int2)(random2_xorshift() * TexResolution);
     p.endTime = Time + lerp(lifetimeMin, lifetimeMax, random_xorshift());
     p.color = float4(random3_xorshift(), 1.0);
@@ -171,7 +172,7 @@ void FillCircles(uint3 id : SV_DispatchThreadID)
     int2 ray = (int2)id.xy - center;
     uint2 xy = getParticlePosition(id.z) + ray;
     
-    if (outputTexture[xy].w == 0.0 && dot(ray, ray) < RadiusSqr)
+    if (outputTexture[xy].w < 0.5 && dot(ray, ray) < RadiusSqr)
     {
         outputTexture[xy] = getXYGradientColor(ray.x, ray.y);
     }
@@ -187,5 +188,5 @@ void DrawLine(uint3 id : SV_DispatchThreadID)
 void ClearTextures(uint3 id : SV_DispatchThreadID)
 {
     outputTexture[id.xy] = ClearColor;
-    indexBuffer[id.y * TexResolution + id.x] = -1;
+    indexBuffer[id.y * TexResolution + id.x] = -2;
 }
