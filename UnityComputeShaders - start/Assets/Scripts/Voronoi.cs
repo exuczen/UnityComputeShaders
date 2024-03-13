@@ -102,8 +102,7 @@ public class Voronoi : MonoBehaviour
 
     private ShaderData shaderData = default;
 
-    private readonly Kernel[] kernels = EnumUtils.GetValues<Kernel>();
-    private readonly Dictionary<Kernel, int> kernelIDs = new();
+    private int[] kernelIDs = null;
 
     private int circleRadius = 16;
 
@@ -184,13 +183,16 @@ public class Voronoi : MonoBehaviour
 
     private void FindKernels()
     {
-        foreach (var kernel in kernels)
+        var kernelNames = EnumUtils.GetNames<Kernel>();
+        kernelIDs = new int[kernelNames.Length];
+
+        for (int i = 0; i < kernelNames.Length; i++)
         {
-            kernelIDs.Add(kernel, shader.FindKernel(kernel.ToString()));
+            kernelIDs[i] = shader.FindKernel(kernelNames[i]);
         }
     }
 
-    private int GetKernelID(Kernel kernel) => kernelIDs[kernel];
+    private int GetKernelID(Kernel kernel) => kernelIDs[(int)kernel];
 
     private void GetThreadGroupSizes()
     {
@@ -267,9 +269,9 @@ public class Voronoi : MonoBehaviour
         angularPairBuffer = new ComputeBuffer(ParticlesCapacity * (PairAngularDivisions + 1), sizeof(int));
         tempBuffer = new ComputeBuffer(1, sizeof(int));
 
-        for (int i = 0; i < kernels.Length; i++)
+        for (int i = 0; i < kernelIDs.Length; i++)
         {
-            int kernelID = GetKernelID(kernels[i]);
+            int kernelID = kernelIDs[i];
             shader.SetTexture(kernelID, shaderData.OutputTextureID, outputTexture);
             shader.SetBuffer(kernelID, shaderData.ColorsBufferID, colorsBuffer);
             shader.SetBuffer(kernelID, shaderData.ParticlesBufferID, particlesBuffer);
