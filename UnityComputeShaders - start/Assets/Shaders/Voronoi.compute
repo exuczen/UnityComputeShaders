@@ -1,5 +1,5 @@
 ﻿#define CIRCLE_THREADS int3(16, 1, 1) // max 1024
-#define CIRCLE_THREADS_2D 1
+#define CIRCLE_THREADS_2D 0
 #define CLEAR_THREADS int3(32, 32, 1)
 #define USE_RANDOM_XORSHIFT 1
 
@@ -13,6 +13,7 @@
 #pragma kernel InitParticles
 #pragma kernel RandomParticles
 #pragma kernel UpdateParticles
+#pragma kernel FindPairs
 
 #include "Utils/Random.cginc"
 #include "Utils/Geometry.cginc"
@@ -21,6 +22,7 @@
 uint PointsCapacity;
 uint PointsCount;
 uint PointsRowThreadsCount;
+uint PairAngularDivisions;
 int Radius;
 int RadiusSqr;
 float4 ClearColor;
@@ -87,6 +89,22 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
     particlesBuffer[i] = p;
 }
 
+void setParticlesAngularPair(int j, int k)
+{
+    //int iMin = min(j, k);
+    //int iMax = max(j, k);
+    float2 posJ = getParticlePosition(j);
+    float2 posK = getParticlePosition(k);
+    float2 dr = posK - posJ;
+    float angle = PI - atan2(dr.y, dr.x);
+    //float deltaAngle = PI2 / PairAngularDivisions;
+    //int angleSection = (int)(angle / deltaAngle + 0.5f) % PairAngularDivisions;
+    int angleSection = (int)(angle * PairAngularDivisions / PI2);
+    int jOffset = j * (PairAngularDivisions + 1);
+    angularPairBuffer[jOffset] = j;
+    angularPairBuffer[jOffset + 1 + angleSection] = j;
+}
+
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
 void InitParticles(uint3 id : SV_DispatchThreadID)
 {
@@ -130,6 +148,36 @@ void UpdateParticles(uint3 id : SV_DispatchThreadID)
     if (Time > particlesBuffer[i].endTime)
     {
         respawnParticle(i, 0.1, 1.0);
+    }
+}
+
+[numthreads(CLEAR_THREADS.x, CLEAR_THREADS.y, CLEAR_THREADS.z)]
+void FindPairs(uint3 id : SV_DispatchThreadID)
+{
+    int x = id.x;
+    int y = id.y;
+    if (x < 1 | y < 1 | x > TexResolution - 3 | y > TexResolution - 3)
+    {
+        return;
+    }
+    int yOffset = y * TexResolution;
+    int i = indexBuffer[yOffset + x - 1];
+    int j = indexBuffer[yOffset + x];
+    int k = indexBuffer[yOffset + x + 1];
+    int l = indexBuffer[yOffset + x + 2];
+    
+    if (j >= 0 & k >= 0 & j != k & k != i & j != l)
+    {
+        setParticlesAngularPair(j, k);
+    }
+    i = indexBuffer[yOffset - TexResolution + x];
+    j = indexBuffer[yOffset + x];
+    k = indexBuffer[yOffset + TexResolution + x];
+    l = indexBuffer[yOffset + TexResolution * 2 + x];
+    
+    if (j >= 0 & k >= 0 & j != k & k != i & j != l)
+    {
+        setParticlesAngularPair(j, k);
     }
 }
 

@@ -13,7 +13,7 @@ public class Voronoi : MonoBehaviour
 
     private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint) + sizeof(int);
     private const int TexResolution = 1 << 10;
-    private const int PairAngularDivisions = 9; //181;
+    private const int PairAngularDivisions = 8; //180;
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
@@ -95,6 +95,7 @@ public class Voronoi : MonoBehaviour
     private int initParticlesKernel;
     private int randomParticlesKernel;
     private int updateParticlesKernel;
+    private int findPairsKernel;
 
     private int circleRadius = 16;
 
@@ -184,6 +185,7 @@ public class Voronoi : MonoBehaviour
         initParticlesKernel = shader.FindKernel("InitParticles");
         randomParticlesKernel = shader.FindKernel("RandomParticles");
         updateParticlesKernel = shader.FindKernel("UpdateParticles");
+        findPairsKernel = shader.FindKernel("FindPairs");
     }
 
     private void GetThreadGroupSizes()
@@ -256,21 +258,22 @@ public class Voronoi : MonoBehaviour
 
         int[] kernels = new int[]
         {
+            drawPointsKernel,
             drawCirclesKernel,
             drawDiamondsKernel,
-            fillCirclesKernel,
             drawLineKernel,
+            fillCirclesKernel,
             clearTexturesKernel,
             initParticlesKernel,
             randomParticlesKernel,
             updateParticlesKernel,
-            drawPointsKernel
+            findPairsKernel
         };
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
         indexBuffer = new ComputeBuffer(TexResolution * TexResolution, sizeof(int));
-        angularPairBuffer = new ComputeBuffer(ParticlesCapacity * PairAngularDivisions, 2 * sizeof(int));
+        angularPairBuffer = new ComputeBuffer(ParticlesCapacity * (PairAngularDivisions + 1), sizeof(int));
         tempBuffer = new ComputeBuffer(1, sizeof(int));
 
         for (int i = 0; i < kernels.Length; i++)
@@ -344,6 +347,8 @@ public class Voronoi : MonoBehaviour
             //shader.Dispatch(drawDiamondsKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
             //shader.Dispatch(fillCirclesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
         }
+        shader.Dispatch(findPairsKernel, clearThreadGroups.x, clearThreadGroups.y, clearThreadGroups.z);
+
         //shader.Dispatch(drawLineKernel, 1, 1, 1);
 
         //tempBuffer.GetData(tempData);

@@ -15,6 +15,7 @@ shared RWTexture2D<float4> outputTexture;
 shared RWStructuredBuffer<Particle> particlesBuffer;
 shared Buffer<float4> colorsBuffer;
 shared RWBuffer<int> indexBuffer;
+shared RWBuffer<int> angularPairBuffer;
 shared RWBuffer<int> tempBuffer;
 
 int TexResolution;
