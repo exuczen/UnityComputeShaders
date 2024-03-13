@@ -6,6 +6,7 @@ using UnityEngine;
 using System;
 using MustHave.Utils;
 using MustHave;
+using System.Collections.Generic;
 
 public class Voronoi : MonoBehaviour
 {
@@ -16,6 +17,21 @@ public class Voronoi : MonoBehaviour
     private const int PairAngularDivisions = 8; //180;
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
+
+    private enum Kernel
+    {
+        DrawPoints,
+        DrawCircles,
+        DrawDiamonds,
+        DrawLine,
+        DrawPairLines,
+        FillCircles,
+        ClearTextures,
+        InitParticles,
+        RandomParticles,
+        UpdateParticles,
+        FindPairs
+    }
 
     private struct ShaderData
     {
@@ -86,16 +102,8 @@ public class Voronoi : MonoBehaviour
 
     private ShaderData shaderData = default;
 
-    private int drawPointsKernel;
-    private int drawCirclesKernel;
-    private int drawDiamondsKernel;
-    private int drawLineKernel;
-    private int fillCirclesKernel;
-    private int clearTexturesKernel;
-    private int initParticlesKernel;
-    private int randomParticlesKernel;
-    private int updateParticlesKernel;
-    private int findPairsKernel;
+    private readonly Kernel[] kernels = EnumUtils.GetValues<Kernel>();
+    private readonly Dictionary<Kernel, int> kernelIDs = new();
 
     private int circleRadius = 16;
 
@@ -176,24 +184,20 @@ public class Voronoi : MonoBehaviour
 
     private void FindKernels()
     {
-        drawPointsKernel = shader.FindKernel("DrawPoints");
-        drawCirclesKernel = shader.FindKernel("DrawCircles");
-        drawDiamondsKernel = shader.FindKernel("DrawDiamonds");
-        drawLineKernel = shader.FindKernel("DrawLine");
-        fillCirclesKernel = shader.FindKernel("FillCircles");
-        clearTexturesKernel = shader.FindKernel("ClearTextures");
-        initParticlesKernel = shader.FindKernel("InitParticles");
-        randomParticlesKernel = shader.FindKernel("RandomParticles");
-        updateParticlesKernel = shader.FindKernel("UpdateParticles");
-        findPairsKernel = shader.FindKernel("FindPairs");
+        foreach (var kernel in kernels)
+        {
+            kernelIDs.Add(kernel, shader.FindKernel(kernel.ToString()));
+        }
     }
+
+    private int GetKernelID(Kernel kernel) => kernelIDs[kernel];
 
     private void GetThreadGroupSizes()
     {
-        shader.GetKernelThreadGroupSizes(drawCirclesKernel, out circleNumThreads[0], out circleNumThreads[1], out circleNumThreads[2]);
+        shader.GetKernelThreadGroupSizes(GetKernelID(Kernel.DrawCircles), out circleNumThreads[0], out circleNumThreads[1], out circleNumThreads[2]);
         circleThreadGroupSize = circleNumThreads[0] * circleNumThreads[1] * circleNumThreads[2];
 
-        shader.GetKernelThreadGroupSizes(clearTexturesKernel, out clearNumThreads[0], out clearNumThreads[1], out clearNumThreads[2]);
+        shader.GetKernelThreadGroupSizes(GetKernelID(Kernel.ClearTextures), out clearNumThreads[0], out clearNumThreads[1], out clearNumThreads[2]);
         clearThreadGroups.x = GetThreadGroupCount(clearNumThreads[0], TexResolution);
         clearThreadGroups.y = GetThreadGroupCount(clearNumThreads[1], TexResolution);
         clearThreadGroups.z = 1;
@@ -256,19 +260,6 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
         shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
 
-        int[] kernels = new int[]
-        {
-            drawPointsKernel,
-            drawCirclesKernel,
-            drawDiamondsKernel,
-            drawLineKernel,
-            fillCirclesKernel,
-            clearTexturesKernel,
-            initParticlesKernel,
-            randomParticlesKernel,
-            updateParticlesKernel,
-            findPairsKernel
-        };
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
@@ -278,26 +269,27 @@ public class Voronoi : MonoBehaviour
 
         for (int i = 0; i < kernels.Length; i++)
         {
-            shader.SetTexture(kernels[i], shaderData.OutputTextureID, outputTexture);
-            shader.SetBuffer(kernels[i], shaderData.ColorsBufferID, colorsBuffer);
-            shader.SetBuffer(kernels[i], shaderData.ParticlesBufferID, particlesBuffer);
-            shader.SetBuffer(kernels[i], shaderData.IndexBufferID, indexBuffer);
-            shader.SetBuffer(kernels[i], shaderData.AngularPairBufferID, angularPairBuffer);
-            shader.SetBuffer(kernels[i], shaderData.TempBufferID, tempBuffer);
+            int kernelID = GetKernelID(kernels[i]);
+            shader.SetTexture(kernelID, shaderData.OutputTextureID, outputTexture);
+            shader.SetBuffer(kernelID, shaderData.ColorsBufferID, colorsBuffer);
+            shader.SetBuffer(kernelID, shaderData.ParticlesBufferID, particlesBuffer);
+            shader.SetBuffer(kernelID, shaderData.IndexBufferID, indexBuffer);
+            shader.SetBuffer(kernelID, shaderData.AngularPairBufferID, angularPairBuffer);
+            shader.SetBuffer(kernelID, shaderData.TempBufferID, tempBuffer);
         }
         renderer.material.SetTexture("_MainTex", outputTexture);
 
-        shader.Dispatch(clearTexturesKernel, clearThreadGroups.x, clearThreadGroups.y, clearThreadGroups.z);
+        DispatchKernel(Kernel.ClearTextures, clearThreadGroups);
 
         int pointsCount = this.pointsCount;
 
         SetPointsCount(ParticlesCapacity, true);
 
-        shader.Dispatch(initParticlesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
+        DispatchKernel(Kernel.InitParticles, circleThreadGroups);
 
         SetPointsCount(this.pointsCount = pointsCount, true);
 
-        shader.Dispatch(randomParticlesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
+        DispatchKernel(Kernel.RandomParticles, circleThreadGroups);
     }
 
     private void UpdatePointsCount()
@@ -327,6 +319,16 @@ public class Voronoi : MonoBehaviour
         SetPointsCount(pointsCount, false);
     }
 
+    private void DispatchKernel(int kernelID, Vector3Int threadGroups)
+    {
+        shader.Dispatch(kernelID, threadGroups.x, threadGroups.y, threadGroups.z);
+    }
+
+    private void DispatchKernel(Kernel kernel, Vector3Int threadGroups)
+    {
+        DispatchKernel(GetKernelID(kernel), threadGroups);
+    }
+
     private void DispatchKernels()
     {
         //var tempData = new int[tempBuffer.count];
@@ -334,22 +336,24 @@ public class Voronoi : MonoBehaviour
 
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
 
-        shader.Dispatch(clearTexturesKernel, clearThreadGroups.x, clearThreadGroups.y, clearThreadGroups.z);
+        DispatchKernel(Kernel.ClearTextures, clearThreadGroups);
 
-        shader.Dispatch(drawPointsKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
-        shader.Dispatch(updateParticlesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
+        DispatchKernel(Kernel.DrawPoints, circleThreadGroups);
+        DispatchKernel(Kernel.UpdateParticles, circleThreadGroups);
+
+        int drawCirclesKernelID = GetKernelID(Kernel.DrawCircles);
 
         for (int i = 1; i < circleRadius; i++)
         {
             shader.SetInt(shaderData.RadiusID, i);
             shader.SetInt(shaderData.RadiusSqrID, i * i);
-            shader.Dispatch(drawCirclesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
-            //shader.Dispatch(drawDiamondsKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
-            //shader.Dispatch(fillCirclesKernel, circleThreadGroups.x, circleThreadGroups.y, circleThreadGroups.z);
+            DispatchKernel(drawCirclesKernelID, circleThreadGroups);
+            //DispatchKernel(drawDiamondsKernelID, circleThreadGroups);
+            //DispatchKernel(fillCirclesKernelID, circleThreadGroups);
         }
-        shader.Dispatch(findPairsKernel, clearThreadGroups.x, clearThreadGroups.y, clearThreadGroups.z);
+        DispatchKernel(Kernel.FindPairs, clearThreadGroups);
 
-        //shader.Dispatch(drawLineKernel, 1, 1, 1);
+        //DispatchKernel(Kernel.DrawLine, Vector3Int.one);
 
         //tempBuffer.GetData(tempData);
         //Debug.Log($"{GetType().Name}.DispatchKernels: {tempData[0]}");
