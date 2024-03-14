@@ -1,6 +1,7 @@
 ﻿#define CIRCLE_THREADS int3(16, 1, 1) // max 1024
 #define CIRCLE_THREADS_2D 0
 #define CLEAR_THREADS int3(32, 32, 1)
+#define ANGULAR_PAIRS_STRIDE 33
 #define USE_RANDOM_XORSHIFT 1
 
 // Each #kernel tells which function to compile; you can have many kernels
@@ -8,8 +9,10 @@
 #pragma kernel DrawCircles
 #pragma kernel DrawDiamonds
 #pragma kernel DrawLine
+#pragma kernel DrawPairLines
 #pragma kernel FillCircles
 #pragma kernel ClearTextures
+#pragma kernel ClearPairs
 #pragma kernel InitParticles
 #pragma kernel RandomParticles
 #pragma kernel UpdateParticles
@@ -22,7 +25,6 @@
 uint PointsCapacity;
 uint PointsCount;
 uint PointsRowThreadsCount;
-uint PairAngularDivisions;
 int Radius;
 int RadiusSqr;
 float4 ClearColor;
@@ -89,7 +91,7 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
     particlesBuffer[i] = p;
 }
 
-void setParticlesAngularPair(int j, int k)
+void setParticlesAngularPair(uint j, uint k)
 {
     //int iMin = min(j, k);
     //int iMax = max(j, k);
@@ -97,12 +99,12 @@ void setParticlesAngularPair(int j, int k)
     float2 posK = getParticlePosition(k);
     float2 dr = posK - posJ;
     float angle = PI - atan2(dr.y, dr.x);
-    //float deltaAngle = PI2 / PairAngularDivisions;
-    //int angleSection = (int)(angle / deltaAngle + 0.5f) % PairAngularDivisions;
-    int angleSection = (int)(angle * PairAngularDivisions / PI2);
-    int jOffset = j * (PairAngularDivisions + 1);
+    uint angleDivisions = ANGULAR_PAIRS_STRIDE - 1;
+    //uint angleSection = (int)(angle * angleDivisions / PI2 + 0.5f) % angleDivisions;
+    uint angleSection = (int)(angle * angleDivisions / PI2);
+    uint jOffset = j * (angleDivisions + 1);
     angularPairBuffer[jOffset] = j;
-    angularPairBuffer[jOffset + 1 + angleSection] = j;
+    angularPairBuffer[jOffset + 1 + angleSection] = k;
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
@@ -179,6 +181,34 @@ void FindPairs(uint3 id : SV_DispatchThreadID)
     {
         setParticlesAngularPair(j, k);
     }
+}
+
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, ANGULAR_PAIRS_STRIDE)]
+void DrawPairLines(uint3 id : SV_DispatchThreadID)
+{
+    uint i = getParticleIndex(id);
+    if (i >= PointsCount)
+    {
+        return;
+    }
+    //i = angularPairBuffer[i * ANGULAR_PAIRS_STRIDE];
+    uint j = angularPairBuffer[i * ANGULAR_PAIRS_STRIDE + id.z];
+    if (i != j)
+    {
+        drawLine(outputTexture, getParticlePosition(i), getParticlePosition(j), 1.0);
+    }
+}
+
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, ANGULAR_PAIRS_STRIDE)]
+void ClearPairs(uint3 id : SV_DispatchThreadID)
+{
+    uint i = getParticleIndex(id);
+    if (i >= PointsCount)
+    {
+        return;
+    }
+    uint j = i * ANGULAR_PAIRS_STRIDE + id.z;
+    angularPairBuffer[j] = i;
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]

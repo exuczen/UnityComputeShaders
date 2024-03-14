@@ -850,7 +850,7 @@ MonoBehaviour:
   shader: {fileID: 7200000, guid: 430b3a314dd18f540847d2b455bb0046, type: 3}
   clearColor: {r: 0, g: 0, b: 0, a: 0}
   squareThreadGroups: 0
-  pointsCount: 512
+  pointsCount: 256
   targetLogPointsCount: 4
   pointsChangeDuration: 5
 --- !u!114 &1385668703
