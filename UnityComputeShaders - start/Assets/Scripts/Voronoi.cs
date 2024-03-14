@@ -79,6 +79,10 @@ public class Voronoi : MonoBehaviour
     [SerializeField]
     private Color clearColor = Color.clear;
     [SerializeField]
+    private bool voronoiVisible = true;
+    [SerializeField]
+    private bool delaunayVisible = true;
+    [SerializeField]
     private bool squareThreadGroups = false;
     [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
     private int pointsCount = 16;
@@ -367,10 +371,19 @@ public class Voronoi : MonoBehaviour
             //DispatchKernel(drawDiamondsKernelID, circleThreadGroups);
             //DispatchKernel(fillCirclesKernelID, circleThreadGroups);
         }
-        DispatchKernel(Kernel.FindPairs, clearThreadGroups);
-        //outputTexture.Clear(clearColor);
-        DispatchKernel(Kernel.DrawPairLines, pairsThreadGroups);
-
+        if (delaunayVisible)
+        {
+            DispatchKernel(Kernel.FindPairs, clearThreadGroups);
+            if (!voronoiVisible)
+            {
+                outputTexture.Clear(clearColor);
+            }
+            DispatchKernel(Kernel.DrawPairLines, pairsThreadGroups);
+        }
+        else
+        {
+            voronoiVisible = true;
+        }
         //DispatchKernel(Kernel.DrawLine, Vector3Int.one);
 
         //tempBuffer.GetData(tempData);
