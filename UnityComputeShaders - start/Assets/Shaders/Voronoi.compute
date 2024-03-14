@@ -94,8 +94,10 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 
 void setParticlesAngularPair(uint j, uint k)
 {
-    //int iMin = min(j, k);
-    //int iMax = max(j, k);
+    uint iMin = min(j, k);
+    uint iMax = max(j, k);
+    j = iMin;
+    k = iMax;
     float2 posJ = getParticlePosition(j);
     float2 posK = getParticlePosition(k);
     float2 dr = posK - posJ;
