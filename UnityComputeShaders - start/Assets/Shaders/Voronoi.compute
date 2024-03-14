@@ -2,7 +2,6 @@
 #define CIRCLE_THREADS_2D 0
 #define CLEAR_THREADS int3(32, 32, 1)
 #define ANGULAR_PAIRS_STRIDE 33
-#define USE_RANDOM_XORSHIFT 1
 
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DrawPoints
@@ -60,21 +59,12 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
         outputTexture[p.position] = ClearColor;
         indexBuffer[j] = -1;
     }
-#if USE_RANDOM_XORSHIFT
     rng_state = particlesBuffer[i].randomSeed;
     //p.position = (0.25 + random2_xorshift() * 0.5) * TexResolution;
     p.position = (int2)(random2_xorshift() * TexResolution);
     p.endTime = Time + lerp(lifetimeMin, lifetimeMax, random_xorshift());
     p.color = float4(random3_xorshift(), 1.0);
     p.randomSeed = rng_state;
-#else
-    float seedValue = i + Time;
-    float seedDelta = 0.33;
-    p.position = (int2)(random2(seedValue) * TexResolution);
-    p.endTime = Time + lerp(lifetimeMin, lifetimeMax, random(seedValue += seedDelta));
-    p.color = float4(random3(seedValue += seedDelta), 1.0);
-    p.randomSeed = 0;
-#endif
     p.filled = false;
     
     // Write particle's pixel
