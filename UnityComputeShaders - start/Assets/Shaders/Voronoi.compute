@@ -28,6 +28,7 @@ uint PointsRowThreadsCount;
 int Radius;
 int RadiusSqr;
 float4 ClearColor;
+float LinesLerpValue;
 float Time;
 
 #if CIRCLE_THREADS_2D
@@ -195,7 +196,7 @@ void DrawPairLines(uint3 id : SV_DispatchThreadID)
     uint j = angularPairBuffer[i * ANGULAR_PAIRS_STRIDE + id.z];
     if (i != j)
     {
-        drawLine(outputTexture, getParticlePosition(i), getParticlePosition(j), 1.0);
+        drawLine(outputTexture, getParticlePosition(i), getParticlePosition(j), 1.0, LinesLerpValue);
     }
 }
 

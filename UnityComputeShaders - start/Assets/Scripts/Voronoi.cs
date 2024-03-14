@@ -7,6 +7,7 @@ using System;
 using MustHave.Utils;
 using MustHave;
 using System.Collections.Generic;
+using MustHave.UI;
 
 public class Voronoi : MonoBehaviour
 {
@@ -42,6 +43,7 @@ public class Voronoi : MonoBehaviour
         public int PointsCapacityID;
         public int PointsCountID;
         public int PointsRowThreadsCountID;
+        public int LinesLerpValueID;
 
         public int OutputTextureID;
         public int ColorsBufferID;
@@ -59,6 +61,7 @@ public class Voronoi : MonoBehaviour
             PointsCapacityID = Shader.PropertyToID("PointsCapacity");
             PointsCountID = Shader.PropertyToID("PointsCount");
             PointsRowThreadsCountID = Shader.PropertyToID("PointsRowThreadsCount");
+            LinesLerpValueID = Shader.PropertyToID("LinesLerpValue");
 
             OutputTextureID = Shader.PropertyToID("outputTexture");
             ColorsBufferID = Shader.PropertyToID("colorsBuffer");
@@ -82,13 +85,15 @@ public class Voronoi : MonoBehaviour
     private bool voronoiVisible = true;
     [SerializeField]
     private bool delaunayVisible = true;
+    [SerializeField, Range(0f, 1f), ConditionalHide("delaunayVisible", true)]
+    private float delaunayLerpValue = 0.5f;
     [SerializeField]
     private bool squareThreadGroups = false;
     [SerializeField, Range(1, ParticlesCapacity), HideInInspector]
     private int pointsCount = 16;
     [SerializeField, Range(1, 20), HideInInspector]
     private float targetLogPointsCount = 4;
-    [SerializeField, Range(1, 5)]
+    [SerializeField, Range(1, 5), HideInInspector]
     private float pointsChangeDuration = 3;
 
     private Vector3Int circleThreadGroups = Vector3Int.one; //[Range(1, 65535)]
@@ -182,7 +187,7 @@ public class Voronoi : MonoBehaviour
         outputTexture = new RenderTexture(TexResolution, TexResolution, 0)
         {
             enableRandomWrite = true,
-            filterMode = FilterMode.Point
+            filterMode = FilterMode.Bilinear
         };
         outputTexture.Create();
     }
@@ -256,6 +261,10 @@ public class Voronoi : MonoBehaviour
 
         circleRadius = Mathf.Clamp((int)(TexResolution * 2.3 / Mathf.Sqrt(pointsCount)), 3, 32);
         shader.SetFloat(shaderData.CircleRadiusInvID, 1f / Mathf.Max(2, circleRadius));
+
+        delaunayLerpValue = Mathf.InverseLerp(20, 0, Mathf.Log(pointsCount, 2f));
+        delaunayLerpValue = Mathf.Clamp(delaunayLerpValue, 0.15f, 0.5f);
+        shader.SetFloat(shaderData.LinesLerpValueID, delaunayLerpValue);
 
         if (log)
         {
