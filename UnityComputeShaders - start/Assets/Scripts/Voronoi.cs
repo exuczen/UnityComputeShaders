@@ -9,6 +9,7 @@ using MustHave;
 using System.Collections.Generic;
 using MustHave.UI;
 
+[ExecuteInEditMode]
 public class Voronoi : MonoBehaviour
 {
     public const int ParticlesCapacity = 1 << 20;
@@ -163,12 +164,20 @@ public class Voronoi : MonoBehaviour
         renderer = GetComponent<Renderer>();
         renderer.enabled = true;
 
+        if (!Application.isPlaying)
+        {
+            return;
+        }
         CreateTextures();
         Init();
     }
 
     private void Update()
     {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
         UpdatePointsCount();
         DispatchKernels();
     }
@@ -274,6 +283,10 @@ public class Voronoi : MonoBehaviour
 
     private int GetThreadGroupCount(uint numthreads, int size, bool clamp = true)
     {
+        if (numthreads == 0)
+        {
+            return 0;
+        }
         int n = (int)numthreads;
         int count = (size + n - 1) / n;
         return clamp ? Mathf.Clamp(count, 1, 65535) : count;
