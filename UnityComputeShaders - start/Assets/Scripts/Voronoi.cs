@@ -1,6 +1,7 @@
 ﻿#define DEBUG_GUI
 #define DEBUG_THREAD_GROUPS
-//#define DEBUG_ATAN2
+#define DEBUG_POINTS_GUI
+//#define DEBUG_ATAN2_GUI
 
 using UnityEngine;
 using System;
@@ -77,6 +78,8 @@ public class Voronoi : MonoBehaviour
     public int TargetPointsCount { get => 1 << TargetLogPointsCount; }
     public int TargetLogPointsCount { get => (int)(targetLogPointsCount + Mathv.Epsilon); set => targetLogPointsCount = value; }
     public int CircleRadius => circleRadius;
+
+    private bool IsChangingPointsCount => pointsCountChangeStartTime >= 0f;
 
     [SerializeField]
     private ComputeShader shader = null;
@@ -415,14 +418,16 @@ public class Voronoi : MonoBehaviour
 #if DEBUG_GUI
     private void OnGUI()
     {
-        int y = 0;
         int dy = 15;
+        int y = -dy;
+        int lineHeight = 20;
+        Rect getTextLineRect(int width = 100, int height = 20) => new(10, y += dy, width, height);
 
-        Color activeColor = GUI.color;
+        Color guiColor = GUI.color;
         GUI.color = Color.black;
         GUI.Box(new Rect(0, 0, 200, 100), string.Empty);
-        GUI.color = activeColor;
-#if DEBUG_ATAN2
+        GUI.color = guiColor;
+#if DEBUG_ATAN2_GUI
         var cursorPos = Camera.main.ScreenToViewportPoint(Input.mousePosition) - 0.5f * Vector3.one;
         cursorPos.x *= 1f * Screen.width / Screen.height;
         float angle = Mathf.PI - Mathf.Atan2(cursorPos.y, cursorPos.x);
@@ -430,15 +435,47 @@ public class Voronoi : MonoBehaviour
         float deltaAngle = Maths.M_2PI / angleDivisions;
         //int angleSection = (int)(angle / deltaAngle + 0.5f) % angleDivisions;
         int angleSection = (int)(angle / deltaAngle);
-        GUI.Label(new Rect(10, y += dy, 200, 100), $"atan2({cursorPos.y:f2}, {cursorPos.x:f2}) = {angle * Mathf.Rad2Deg:f2}");
-        GUI.Label(new Rect(10, y += dy, 200, 100), $"angleSection: {angleSection}");
+        GUI.Label(getTextLineRect(200), $"atan2({cursorPos.y:f2}, {cursorPos.x:f2}) = {angle * Mathf.Rad2Deg:f2}");
+        GUI.Label(getTextLineRect(200), $"angleSection: {angleSection}");
 #endif
 #if DEBUG_THREAD_GROUPS
-        GUI.Label(new Rect(10, y += dy, 100, 100), $"({pointsCount})");
-        GUI.Label(new Rect(10, y += dy, 100, 100), $"({circleThreadGroups.x * circleThreadGroups.y * circleThreadGroupSize})");
-        GUI.Label(new Rect(10, y += dy, 100, 100), $"({GetThreadGroupCount(circleThreadGroupSize, pointsCount, false)})");
-        GUI.Label(new Rect(10, y += dy, 100, 100), $"{circleThreadGroups}");
-        GUI.Label(new Rect(10, y += dy, 100, 100), $"({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
+        GUI.Label(getTextLineRect(), $"({pointsCount})");
+        GUI.Label(getTextLineRect(), $"({circleThreadGroups.x * circleThreadGroups.y * circleThreadGroupSize})");
+        GUI.Label(getTextLineRect(), $"({GetThreadGroupCount(circleThreadGroupSize, pointsCount, false)})");
+        GUI.Label(getTextLineRect(), $"{circleThreadGroups}");
+        GUI.Label(getTextLineRect(), $"({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
+#endif
+#if DEBUG_POINTS_GUI
+        y += Screen.height >> 2;
+        GUI.color = Color.white;
+        GUI.Box(new Rect(0, y, 100, 120), string.Empty);
+        GUI.color = guiColor;
+        voronoiVisible = GUI.Toggle(getTextLineRect(), voronoiVisible, " voronoi");
+        y += 5;
+        delaunayVisible = GUI.Toggle(getTextLineRect(), delaunayVisible, " delaunay");
+        y += lineHeight;
+        GUI.Label(getTextLineRect(100, 40), $"({pointsCount})");
+        GUI.Label(getTextLineRect(100, 40), $"({TargetPointsCount})");
+        y += lineHeight;
+        y += lineHeight;
+        // Sliders
+        {
+            int logMax = Maths.Log2(ParticlesCapacity);
+            int logPointsCount = Maths.Log2((uint)pointsCount);
+            int power = (int)GUI.VerticalSlider(new Rect(10, y, 20, 200), logPointsCount, logMax, 0);
+            if (logPointsCount != power)
+            {
+                pointsCount = 1 << power;
+            }
+            targetLogPointsCount = (int)GUI.VerticalSlider(new Rect(30, y, 20, 200), targetLogPointsCount, logMax, 0);
+        }
+        y += 200;
+        GUI.color = IsChangingPointsCount ? Color.red : guiColor;
+        if (GUI.Button(getTextLineRect(30), ">"))
+        {
+            StartPointsCountChange();
+        }
+        GUI.color = guiColor;
 #endif
     }
 #endif
