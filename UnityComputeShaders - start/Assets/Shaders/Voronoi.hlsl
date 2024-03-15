@@ -20,6 +20,8 @@ shared RWBuffer<int> tempBuffer;
 
 int TexResolution;
 float CircleRadiusInv;
+float4 ClearColor;
+float Time;
 
 Particle getClearParticle(uint randomSeed)
 {
@@ -44,12 +46,12 @@ float4 getXYGradientColor(int x, int y)
     return float4(abs(x) * CircleRadiusInv, abs(y) * CircleRadiusInv, 1.0, 1.0);
 }
 
-void plotParticle(Particle p, int i)
+void plotParticle(Particle p, uint i)
 {
-    if (p.position.x < 0)
-    {
-        return;
-    }
+    //if (p.position.x < 0)
+    //{
+    //    return;
+    //}
     int2 xy = p.position;
     
     indexBuffer[xy.y * TexResolution + xy.x] = i;
@@ -62,9 +64,24 @@ void plotParticle(Particle p, int i)
 #endif
 }
 
-void plotParticle(int id)
+void tryPlotParticle(uint i)
 {
-    plotParticle(particlesBuffer[id], id);
+    Particle p = particlesBuffer[i];
+    int2 xy = p.position;
+    
+    if (xy.x >= 0)
+    {
+        if (p.endTime < Time) // Clear particle
+        {
+            indexBuffer[xy.y * TexResolution + xy.x] = -1;
+            outputTexture[xy] = ClearColor;
+            particlesBuffer[i] = getClearParticle(p.randomSeed);
+        }
+        else
+        {
+            plotParticle(p, i);
+        }
+    }
 }
 
 bool plot1(int x, int y, int2 c, float4 color, int id)

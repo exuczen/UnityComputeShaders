@@ -26,9 +26,7 @@ uint PointsCount;
 uint PointsRowThreadsCount;
 int Radius;
 int RadiusSqr;
-float4 ClearColor;
 float LinesLerpValue;
-float Time;
 
 #if CIRCLE_THREADS_2D
 uint getParticleIndex(uint3 id)
@@ -49,14 +47,7 @@ int2 getParticlePosition(uint i)
 
 void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 {
-    Particle p = particlesBuffer[i];
-    
-    if (p.position.x >= 0) // Clear particle's pixel
-    {
-        int xyIndex = p.position.y * TexResolution + p.position.x;
-        indexBuffer[xyIndex] = -1;
-        outputTexture[p.position] = ClearColor;
-    }
+    Particle p;
     rng_state = particlesBuffer[i].randomSeed;
     //p.position = (0.25 + random2_xorshift() * 0.5) * TexResolution;
     p.position = (int2)(random2_xorshift() * TexResolution);
@@ -127,7 +118,7 @@ void DrawPoints(uint3 id : SV_DispatchThreadID)
     }
     particlesBuffer[i].filled = false;
     
-    plotParticle(i);
+    tryPlotParticle(i);
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
@@ -138,7 +129,7 @@ void UpdateParticles(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    if (Time > particlesBuffer[i].endTime)
+    if (getParticlePosition(i).x < 0)
     {
         respawnParticle(i, 0.1, 1.0);
     }
