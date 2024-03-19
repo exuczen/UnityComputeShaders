@@ -50,23 +50,24 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax)
 {
     rng_state = particlesBuffer[i].randomSeed;
     
+    //int2 xy = (0.25 + random2_xorshift() * 0.5) * TexResolution;
     int2 xy = (int2)(random2_xorshift() * TexResolution);
     int j = indexBuffer[xy.y * TexResolution + xy.x];
     if (j >= 0 && i != j)
     {
 #ifdef REPLACE_PARTICLES
         particlesBuffer[j].endTime = 0.0;
+        particlesBuffer[j].active = false;
 #else
         return;
 #endif
     }
     Particle p;
-    //p.position = (0.25 + random2_xorshift() * 0.5) * TexResolution;
     p.position = xy;
     p.endTime = Time + lerp(lifetimeMin, lifetimeMax, random_xorshift());
     p.color = float4(random3_xorshift(), 1.0);
     p.randomSeed = rng_state;
-    p.filled = false;
+    p.active = true;
     
     plotParticle(p, i); // Write particle's pixel
     
@@ -118,8 +119,6 @@ void DrawPoints(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    particlesBuffer[i].filled = false;
-    
     tryPlotParticle(i);
 }
 
@@ -203,19 +202,19 @@ void DrawCircles(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    int2 center = getParticlePosition(i);
-    bool filled = particlesBuffer[i].filled;
-    bool dead = particlesBuffer[i].endTime < Time;
-    if (filled || center.x < 0 || dead)
+    // Unlike short-circuit evaluation of &&, ||, and ?: in C, HLSL expressions never short-circuit an evaluation
+    // because they are vector operations. All sides of the expression are always evaluated.
+    if (!particlesBuffer[i].active)
     {
         return;
     }
+    int2 center = getParticlePosition(i);
     bool result = false;
     //result = result | drawJeskoCircle(center, Radius, i);
     result = result | drawMidpointCircle(center, Radius, i);
     //result = result | drawMidpoint2Circle(center, Radius, i);
     result = result | drawHornCircle(center, Radius, i);
-    particlesBuffer[i].filled = !result;
+    particlesBuffer[i].active = result;
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
@@ -251,5 +250,5 @@ void DrawLine(uint3 id : SV_DispatchThreadID)
 void ClearTextures(uint3 id : SV_DispatchThreadID)
 {
     outputTexture[id.xy] = ClearColor;
-    indexBuffer[id.y * TexResolution + id.x] = -2;
+    indexBuffer[id.y * TexResolution + id.x] = -1;
 }

@@ -7,7 +7,7 @@ struct Particle
     float endTime;
     float4 color;
     uint randomSeed;
-    bool filled;
+    bool active;
 };
 
 // Create a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
@@ -30,7 +30,7 @@ Particle getClearParticle(uint randomSeed)
     p.endTime = 0.0;
     p.color = 0.0;
     p.randomSeed = randomSeed;
-    p.filled = false;
+    p.active = false;
     return p;
 }
 
@@ -69,7 +69,9 @@ void tryPlotParticle(uint i)
     Particle p = particlesBuffer[i];
     int2 xy = p.position;
     
-    if (xy.x >= 0)
+    particlesBuffer[i].active = p.active = xy.x >= 0;
+    
+    if (p.active)
     {
         if (p.endTime < Time) // Clear particle
         {
