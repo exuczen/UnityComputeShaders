@@ -19,6 +19,7 @@ shared RWBuffer<int> angularPairBuffer;
 shared RWBuffer<int> tempBuffer;
 
 int TexResolution;
+int CircleRadius;
 float CircleRadiusInv;
 float4 ClearColor;
 float Time;
@@ -32,6 +33,16 @@ Particle getClearParticle(uint randomSeed)
     p.randomSeed = randomSeed;
     p.active = false;
     return p;
+}
+
+int getIndexFromBuffer(int2 xy)
+{
+    return indexBuffer[xy.y * TexResolution + xy.x];
+}
+
+void setIndexInBuffer(int2 xy, int i)
+{
+    indexBuffer[xy.y * TexResolution + xy.x] = i;
 }
 
 float4 getColor(int id)
@@ -54,7 +65,7 @@ void plotParticle(Particle p, uint i)
     //}
     int2 xy = p.position;
     
-    indexBuffer[xy.y * TexResolution + xy.x] = i;
+    setIndexInBuffer(xy, i);
 #ifdef CENTER_COLOR
     outputTexture[xy] = CENTER_COLOR;
 #elif USE_PARTICLE_COLOR
@@ -75,7 +86,7 @@ void tryPlotParticle(uint i)
     {
         if (p.endTime < Time) // Clear particle
         {
-            indexBuffer[xy.y * TexResolution + xy.x] = -1;
+            setIndexInBuffer(xy, -1);
             outputTexture[xy] = ClearColor;
             particlesBuffer[i] = getClearParticle(p.randomSeed);
         }
@@ -93,10 +104,11 @@ bool plot1(int x, int y, int2 c, float4 color, int id)
     int2 xy = int2(x, y);
     bool inBounds = x >= 0 && x < TexResolution && y >= 0 && y < TexResolution;
     bool result = inBounds && outputTexture[xy].w < 0.5;
-    //bool result = inBounds && indexBuffer[y * TexResolution + x] < 0;
+    //bool result = inBounds && getIndexFromBuffer(xy) < 0;
+    //bool result = outputTexture[xy].w < 0.5;
     if (result)
     {
-        indexBuffer[y * TexResolution + x] = id;
+        setIndexInBuffer(xy, id);
         outputTexture[xy] = color;
     }
     return result;

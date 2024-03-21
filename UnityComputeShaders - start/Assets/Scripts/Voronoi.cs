@@ -41,6 +41,7 @@ public class Voronoi : MonoBehaviour
         public int TimeID;
         public int RadiusID;
         public int RadiusSqrID;
+        public int CircleRadiusID;
         public int CircleRadiusInvID;
         public int PointsCapacityID;
         public int PointsCountID;
@@ -59,6 +60,7 @@ public class Voronoi : MonoBehaviour
             TimeID = Shader.PropertyToID("Time");
             RadiusID = Shader.PropertyToID("Radius");
             RadiusSqrID = Shader.PropertyToID("RadiusSqr");
+            CircleRadiusID = Shader.PropertyToID("CircleRadius");
             CircleRadiusInvID = Shader.PropertyToID("CircleRadiusInv");
             PointsCapacityID = Shader.PropertyToID("PointsCapacity");
             PointsCountID = Shader.PropertyToID("PointsCount");
@@ -272,7 +274,8 @@ public class Voronoi : MonoBehaviour
         shader.SetInt(shaderData.PointsCountID, pointsCount);
 
         circleRadius = Mathf.Clamp((int)(TexResolution * 2.3 / Mathf.Sqrt(pointsCount)), 3, 32);
-        shader.SetFloat(shaderData.CircleRadiusInvID, 1f / Mathf.Max(2, circleRadius));
+        shader.SetInt(shaderData.CircleRadiusID, circleRadius);
+        shader.SetFloat(shaderData.CircleRadiusInvID, 1f / circleRadius);
 
         delaunayLerpValue = Mathf.InverseLerp(20, 0, Mathf.Log(pointsCount, 2f));
         delaunayLerpValue = Mathf.Clamp(delaunayLerpValue, 0.15f, 0.5f);
