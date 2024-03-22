@@ -2,6 +2,7 @@
 #define DEBUG_THREAD_GROUPS
 #define DEBUG_POINTS_GUI
 //#define DEBUG_ATAN2_GUI
+//#define USE_DELAUNAY_SHADER
 
 using UnityEngine;
 using System;
@@ -85,6 +86,8 @@ public class Voronoi : MonoBehaviour
 
     [SerializeField]
     private ComputeShader shader = null;
+    [SerializeField]
+    private Material delaunayMaterial = null;
     [SerializeField]
     private Color clearColor = Color.clear;
     [SerializeField]
@@ -186,6 +189,17 @@ public class Voronoi : MonoBehaviour
         UpdatePointsCount();
         DispatchKernels();
     }
+
+#if USE_DELAUNAY_SHADER
+    private void OnRenderObject()
+    {
+        if (delaunayVisible)
+        {
+            delaunayMaterial.SetPass(0);
+            Graphics.DrawProceduralNow(MeshTopology.Lines, 2, pointsCount * angularPairsStride);
+        }
+    }
+#endif
 
     private void OnDestroy()
     {
@@ -326,6 +340,13 @@ public class Voronoi : MonoBehaviour
         }
         renderer.material.SetTexture("_MainTex", outputTexture);
 
+        delaunayMaterial.SetTexture("_MainTex", outputTexture);
+        delaunayMaterial.SetInteger("_HalfRes", TexResolution >> 1);
+        delaunayMaterial.SetInteger("_AngularPairsStride", angularPairsStride);
+        delaunayMaterial.SetFloat("_Scale", transform.localScale.x / TexResolution);
+        delaunayMaterial.SetBuffer("particlesBuffer", particlesBuffer);
+        delaunayMaterial.SetBuffer("angularPairBuffer", angularPairBuffer);
+
         DispatchKernel(Kernel.ClearTextures, clearThreadGroups);
 
         int pointsCount = this.pointsCount;
@@ -406,7 +427,9 @@ public class Voronoi : MonoBehaviour
             {
                 outputTexture.Clear(clearColor);
             }
+#if !USE_DELAUNAY_SHADER
             DispatchKernel(Kernel.DrawPairLines, pairsThreadGroups);
+#endif
         }
         else
         {

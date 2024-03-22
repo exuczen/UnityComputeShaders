@@ -848,6 +848,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shader: {fileID: 7200000, guid: 430b3a314dd18f540847d2b455bb0046, type: 3}
+  delaunayMaterial: {fileID: 2100000, guid: 57b08ffb28d7ffc4db96dc3d7ae1afd6, type: 2}
   clearColor: {r: 0, g: 0, b: 0, a: 0}
   voronoiVisible: 1
   delaunayVisible: 1
