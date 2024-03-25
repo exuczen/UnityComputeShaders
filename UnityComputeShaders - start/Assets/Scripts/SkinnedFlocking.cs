@@ -75,13 +75,17 @@ public class SkinnedFlocking : MonoBehaviour
     {
         boidsArray = new Boid[numOfBoids];
 
+        var flockPosition = transform.position;
+        var flockRotation = transform.rotation;
+
         for (int i = 0; i < numOfBoids; i++)
         {
-            Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
+            Vector3 pos = flockPosition + Random.insideUnitSphere * spawnRadius;
+            transform.rotation = Quaternion.Slerp(flockRotation, Random.rotation, 0.3f);
             float offset = Random.value * 1000.0f;
-            boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
+            boidsArray[i] = new Boid(pos, transform.forward, offset);
         }
+        transform.rotation = flockRotation;
     }
 
     private void InitShader()
