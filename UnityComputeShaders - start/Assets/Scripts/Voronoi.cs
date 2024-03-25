@@ -173,6 +173,7 @@ public class Voronoi : MonoBehaviour
             indexBuffer?.Release();
             angularPairBuffer?.Release();
             tempBuffer?.Release();
+            delaunayArgsBuffer?.Release();
 
             FindKernels();
             GetThreadGroupSizes();
@@ -242,6 +243,7 @@ public class Voronoi : MonoBehaviour
         indexBuffer?.Dispose();
         angularPairBuffer?.Dispose();
         tempBuffer?.Dispose();
+        delaunayArgsBuffer?.Dispose();
     }
 
     private void CreateTextures()
