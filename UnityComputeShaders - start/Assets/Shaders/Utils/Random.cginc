@@ -112,7 +112,7 @@ float3 randomMinMaxLengthVector3(float min, float max)
     return l * v;
 }
 
-// The noise function returns a value in the range -1.0f -> 1.0f 
+// The noise function returns a value in the range (0, 1)
 float noise1(float3 x)
 {
     float3 p = floor(x);
