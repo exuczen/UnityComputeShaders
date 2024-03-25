@@ -21,6 +21,14 @@ public class Voronoi : MonoBehaviour
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
+    private enum DelaunayDrawType
+    {
+        ComputeShader,
+        ProceduralNow,
+        ProceduralIndirectNow,
+        ProceduralIndirect
+    }
+
     private enum Kernel
     {
         DrawPoints,
@@ -88,6 +96,10 @@ public class Voronoi : MonoBehaviour
     private ComputeShader shader = null;
     [SerializeField]
     private Material delaunayMaterial = null;
+#if USE_DELAUNAY_SHADER
+    [SerializeField]
+    private DelaunayDrawType delaunayDrawType = default;
+#endif
     [SerializeField]
     private Color clearColor = Color.clear;
     [SerializeField]
@@ -118,6 +130,7 @@ public class Voronoi : MonoBehaviour
     private ComputeBuffer indexBuffer = null;
     private ComputeBuffer angularPairBuffer = null;
     private ComputeBuffer tempBuffer = null;
+    private ComputeBuffer delaunayArgsBuffer = null;
 
     private ShaderData shaderData = default;
 
@@ -188,18 +201,39 @@ public class Voronoi : MonoBehaviour
         }
         UpdatePointsCount();
         DispatchKernels();
-    }
-
 #if USE_DELAUNAY_SHADER
-    private void OnRenderObject()
-    {
-        if (delaunayVisible)
+        if (delaunayVisible && delaunayDrawType == DelaunayDrawType.ProceduralIndirect)
         {
             delaunayMaterial.SetPass(0);
-            Graphics.DrawProceduralNow(MeshTopology.Lines, 2, pointsCount * angularPairsStride);
+            delaunayArgsBuffer.SetData(new int[4] { 2, pointsCount * angularPairsStride, 0, 0 });
+            Graphics.DrawProceduralIndirect(delaunayMaterial, new Bounds(Vector3.zero, 1000f * Vector3.one), MeshTopology.Lines, delaunayArgsBuffer);
         }
-    }
 #endif
+    }
+
+    private void OnRenderObject()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+#if USE_DELAUNAY_SHADER
+        if (delaunayVisible)
+        {
+            if (delaunayDrawType == DelaunayDrawType.ProceduralNow)
+            {
+                delaunayMaterial.SetPass(0);
+                Graphics.DrawProceduralNow(MeshTopology.Lines, 2, pointsCount * angularPairsStride);
+            }
+            else if (delaunayDrawType == DelaunayDrawType.ProceduralIndirectNow)
+            {
+                delaunayMaterial.SetPass(0);
+                delaunayArgsBuffer.SetData(new int[4] { 2, pointsCount * angularPairsStride, 0, 0 });
+                Graphics.DrawProceduralIndirectNow(MeshTopology.Lines, delaunayArgsBuffer);
+            }
+        }
+#endif
+    }
 
     private void OnDestroy()
     {
@@ -321,6 +355,8 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
         shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
 
+        delaunayArgsBuffer = new ComputeBuffer(1, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
+
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
@@ -427,9 +463,12 @@ public class Voronoi : MonoBehaviour
             {
                 outputTexture.Clear(clearColor);
             }
-#if !USE_DELAUNAY_SHADER
-            DispatchKernel(Kernel.DrawPairLines, pairsThreadGroups);
+#if USE_DELAUNAY_SHADER
+            if (delaunayDrawType == DelaunayDrawType.ComputeShader)
 #endif
+            {
+                DispatchKernel(Kernel.DrawPairLines, pairsThreadGroups);
+            }
         }
         else
         {
