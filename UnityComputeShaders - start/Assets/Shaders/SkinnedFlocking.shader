@@ -18,7 +18,9 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
 		sampler2D _MainTex;
 		sampler2D _BumpMap;
 		sampler2D _MetallicGlossMap;
-        struct appdata_custom {
+
+        struct appdata_custom 
+        {
             float4 vertex : POSITION;
             float3 normal : NORMAL;
             float4 texcoord : TEXCOORD0;
@@ -28,12 +30,15 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
             uint inst : SV_InstanceID;
 
             UNITY_VERTEX_INPUT_INSTANCE_ID
-         };
-		struct Input {
+        };
+
+		struct Input 
+        {
 			float2 uv_MainTex;
 			float2 uv_BumpMap;
 			float3 worldPos;
 		};
+
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;
@@ -48,18 +53,18 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
         float _FrameInterpolation;
         int numOfFrames;
 
-         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            struct Boid
-            {
-                float3 position;
-                float3 direction;
-                float noise_offset;
-                float frame;
-            };
+        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+        struct Boid
+        {
+            float3 position;
+            float3 direction;
+            float noise_offset;
+            float frame;
+        };
 
-            StructuredBuffer<Boid> boidsBuffer; 
-            StructuredBuffer<float4> vertexAnimation; 
-         #endif
+        StructuredBuffer<Boid> boidsBuffer; 
+        StructuredBuffer<float4> vertexAnimation; 
+        #endif
 
         float4x4 create_matrix(float3 pos, float3 dir, float3 up)
         {
@@ -113,7 +118,7 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
             #endif
         }
  
-         void surf (Input IN, inout SurfaceOutputStandard o)
+         void surf(Input IN, inout SurfaceOutputStandard o)
          {
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
 			fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
