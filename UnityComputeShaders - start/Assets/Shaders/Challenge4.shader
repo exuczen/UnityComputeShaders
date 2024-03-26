@@ -65,10 +65,11 @@
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
+                Boid boid = boidsBuffer[unity_InstanceID];
                 //Convert the boid theta value to a value between -1 and 1
                 //Hint: use sin and save the value as _FinOffset
-                _FinOffset = sin(boidsBuffer[unity_InstanceID].theta);
-                _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
+                _FinOffset = sin(boid.theta);
+                _Matrix = create_matrix(boid.position, boid.direction, float3(0.0, 1.0, 0.0));
             }
             #endif
         }

@@ -78,9 +78,10 @@
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
-                //_BoidPosition = boidsBuffer[unity_InstanceID].position;
-                //_LookAtMatrix = look_at_matrix(boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
-                _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
+                Boid boid = boidsBuffer[unity_InstanceID];
+                //_BoidPosition = boid.position;
+                //_LookAtMatrix = look_at_matrix(boid.direction, float3(0.0, 1.0, 0.0));
+                _Matrix = create_matrix(boid.position, boid.direction, float3(0.0, 1.0, 0.0));
             }
             #endif
         }

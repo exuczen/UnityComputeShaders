@@ -83,8 +83,9 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
-                _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
-                _CurrentFrame = boidsBuffer[unity_InstanceID].frame;
+                Boid boid = boidsBuffer[unity_InstanceID];
+                _Matrix = create_matrix(boid.position, boid.direction, float3(0.0, 1.0, 0.0));
+                _CurrentFrame = boid.frame;
                 #ifdef FRAME_INTERPOLATION
                 {
                     _NextFrame = _CurrentFrame + 1;
@@ -92,7 +93,7 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
                     {
                         _NextFrame = 0;
                     }
-                    _FrameInterpolation = frac(boidsBuffer[unity_InstanceID].frame);
+                    _FrameInterpolation = frac(boid.frame);
                 }
                 #endif
             }
