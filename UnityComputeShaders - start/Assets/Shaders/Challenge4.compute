@@ -72,9 +72,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float3 direction = alignment + separation + cohesion;
 
     float ip = exp(-rotationSpeed * deltaTime);
-    boid.direction = lerp((direction), normalize(boid_dir), ip);
+    boid.direction = lerp(direction, normalize(boid_dir), ip);
 
-    boid.position += (boid.direction) * (velocity * deltaTime);
+    boid.position += boid.direction * velocity * deltaTime;
 
     boidsBuffer[id.x] = boid;
 }

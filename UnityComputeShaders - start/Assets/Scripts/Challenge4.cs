@@ -41,7 +41,6 @@ public class Challenge4 : MonoBehaviour
     private ComputeBuffer argsBuffer;
     private readonly uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     private Boid[] boidsArray;
-    private GameObject[] boids;
     private int groupSizeX;
     private int numOfBoids;
     private Bounds bounds;
@@ -67,16 +66,19 @@ public class Challenge4 : MonoBehaviour
 
     private void InitBoids()
     {
-        boids = new GameObject[numOfBoids];
         boidsArray = new Boid[numOfBoids];
+
+        var flockPosition = transform.position;
+        var flockRotation = transform.rotation;
 
         for (int i = 0; i < numOfBoids; i++)
         {
-            Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
+            Vector3 pos = flockPosition + Random.insideUnitSphere * spawnRadius;
+            transform.rotation = Quaternion.Slerp(flockRotation, Random.rotation, 0.3f);
             float offset = Random.value * 1000.0f;
-            boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
+            boidsArray[i] = new Boid(pos, transform.forward, offset);
         }
+        transform.rotation = flockRotation;
     }
 
     void InitShader()
