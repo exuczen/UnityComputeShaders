@@ -78,25 +78,6 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
                 0, 0, 0, 1
             );
         }
-     
-        void vert(inout appdata_custom v)
-        {
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            {
-                int voffset = v.id * numOfFrames;
-                #ifdef FRAME_INTERPOLATION
-                {
-                    v.vertex = lerp(vertexAnimation[voffset + _CurrentFrame], vertexAnimation[voffset + _NextFrame], _FrameInterpolation);
-                }
-                #else
-                {
-                    v.vertex = vertexAnimation[voffset + _CurrentFrame];
-                }
-                #endif
-                v.vertex = mul(_Matrix, v.vertex);
-            }
-            #endif
-        }
 
         void setup()
         {
@@ -117,18 +98,37 @@ Shader "Flocking/Skinned" { // StructuredBuffer + SurfaceShader
             }
             #endif
         }
- 
-         void surf(Input IN, inout SurfaceOutputStandard o)
-         {
+     
+        void vert(inout appdata_custom v)
+        {
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                int voffset = v.id * numOfFrames;
+                #ifdef FRAME_INTERPOLATION
+                {
+                    v.vertex = lerp(vertexAnimation[voffset + _CurrentFrame], vertexAnimation[voffset + _NextFrame], _FrameInterpolation);
+                }
+                #else
+                {
+                    v.vertex = vertexAnimation[voffset + _CurrentFrame];
+                }
+                #endif
+                v.vertex = mul(_Matrix, v.vertex);
+            }
+            #endif
+        }
+
+        void surf(Input IN, inout SurfaceOutputStandard o)
+        {
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-			fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
-			o.Albedo = c.rgb;
-			o.Alpha = c.a;
-			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
-			o.Metallic = m.r;
-			o.Smoothness = _Glossiness * m.a;
-         }
+		    fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
+		    o.Albedo = c.rgb;
+		    o.Alpha = c.a;
+		    o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
+		    o.Metallic = m.r;
+		    o.Smoothness = _Glossiness * m.a;
+        }
  
-         ENDCG
+        ENDCG
    }
 }

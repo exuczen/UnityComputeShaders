@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class InstancedFlocking : MonoBehaviour
 {
-    public struct Boid
+    private const int SIZE_BOID = 7 * sizeof(float);
+
+    private struct Boid
     {
         public Vector3 position;
         public Vector3 direction;
@@ -17,24 +19,23 @@ public class InstancedFlocking : MonoBehaviour
             noise_offset = offset;
         }
     }
-    const int SIZE_BOID = 7 * sizeof(float);
 
     public ComputeShader shader;
+    public Material boidMaterial;
+    public Mesh boidMesh;
+    public Transform target;
 
     public float rotationSpeed = 1f;
     public float boidSpeed = 1f;
     public float neighbourDistance = 1f;
     public float boidSpeedVariation = 1f;
-    public Mesh boidMesh;
-    public Material boidMaterial;
     public int boidsCount;
     public float spawnRadius;
-    public Transform target;
 
-    int kernelHandle;
+    private int kernelHandle;
     private ComputeBuffer boidsBuffer = null;
     private ComputeBuffer argsBuffer = null;
-    private uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
+    private readonly uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     private Boid[] boidsArray = null;
     private int groupSizeX;
     private int numOfBoids;

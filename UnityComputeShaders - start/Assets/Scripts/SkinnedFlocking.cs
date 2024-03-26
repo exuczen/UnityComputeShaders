@@ -21,13 +21,10 @@ public class SkinnedFlocking : MonoBehaviour
     }
 
     public ComputeShader shader;
-
-    private SkinnedMeshRenderer boidSMR;
+    public Material boidMaterial;
     public GameObject boidObject;
-    private Animator animator;
     public AnimationClip animationClip;
 
-    private int numOfFrames;
     public int boidsCount;
     public float spawnRadius;
     public Transform target;
@@ -38,15 +35,19 @@ public class SkinnedFlocking : MonoBehaviour
     public float boidFrameSpeed = 10f;
     public bool frameInterpolation = true;
 
+    private SkinnedMeshRenderer boidSMR;
     private Mesh boidMesh;
+    private Animator animator;
+
+    private int numOfFrames;
 
     private int kernelHandle;
     private ComputeBuffer boidsBuffer;
     private ComputeBuffer vertexAnimationBuffer;
-    public Material boidMaterial;
+
     private ComputeBuffer argsBuffer;
     private MaterialPropertyBlock props;
-    readonly uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
+    private readonly uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
     private Boid[] boidsArray;
     private int groupSizeX;
     private int numOfBoids;
@@ -156,10 +157,10 @@ public class SkinnedFlocking : MonoBehaviour
         var animatorStateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
         var bakedMesh = new Mesh();
-        float sampleTime = 0f;
 
         numOfFrames = Mathf.ClosestPowerOfTwo((int)(animationClip.frameRate * animationClip.length));
         float frameDuration = animationClip.length / numOfFrames;
+        float sampleTime = 0f;
 
         boidMesh = boidSMR.sharedMesh;
 

@@ -25,34 +25,33 @@ public class Challenge4 : MonoBehaviour
     }
 
     public ComputeShader shader;
+    public Material boidMaterial;
+    public Mesh boidMesh;
+    public Transform target;
 
     public float rotationSpeed = 1f;
     public float boidSpeed = 1f;
     public float neighbourDistance = 1f;
     public float boidSpeedVariation = 1f;
-    public Mesh boidMesh;
-    public Material boidMaterial;
     public int boidsCount;
     public float spawnRadius;
-    public Transform target;
 
-    int kernelHandle;
-    ComputeBuffer boidsBuffer;
-    ComputeBuffer argsBuffer;
-    uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-    Boid[] boidsArray;
-    GameObject[] boids;
-    int groupSizeX;
-    int numOfBoids;
-    Bounds bounds;
-    MaterialPropertyBlock props;
+    private int kernelHandle;
+    private ComputeBuffer boidsBuffer;
+    private ComputeBuffer argsBuffer;
+    private readonly uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
+    private Boid[] boidsArray;
+    private GameObject[] boids;
+    private int groupSizeX;
+    private int numOfBoids;
+    private Bounds bounds;
+    private MaterialPropertyBlock props;
 
     void Start()
     {
         kernelHandle = shader.FindKernel("CSMain");
 
-        uint x;
-        shader.GetKernelThreadGroupSizes(kernelHandle, out x, out _, out _);
+        shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
         groupSizeX = Mathf.CeilToInt((float)boidsCount / (float)x);
         numOfBoids = groupSizeX * (int)x;
 
@@ -116,15 +115,8 @@ public class Challenge4 : MonoBehaviour
 
     void OnDestroy()
     {
-        if (boidsBuffer != null)
-        {
-            boidsBuffer.Dispose();
-        }
-
-        if (argsBuffer != null)
-        {
-            argsBuffer.Dispose();
-        }
+        boidsBuffer?.Dispose();
+        argsBuffer?.Dispose();
     }
 }
 

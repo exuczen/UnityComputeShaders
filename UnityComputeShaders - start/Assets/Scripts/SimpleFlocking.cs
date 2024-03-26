@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SimpleFlocking : MonoBehaviour
 {
-    public struct Boid
+    private struct Boid
     {
         public Vector3 position;
         public Vector3 direction;
@@ -17,22 +17,22 @@ public class SimpleFlocking : MonoBehaviour
     }
 
     public ComputeShader shader;
+    public GameObject boidPrefab;
+    public Transform target;
 
     public float rotationSpeed = 1f;
     public float boidSpeed = 1f;
     public float neighbourDistance = 1f;
     public float boidSpeedVariation = 1f;
-    public GameObject boidPrefab;
     public int boidsCount;
     public float spawnRadius;
-    public Transform target;
 
-    int kernelHandle;
-    ComputeBuffer boidsBuffer;
-    Boid[] boidsArray;
-    GameObject[] boids;
-    int groupSizeX;
-    int numOfBoids;
+    private int kernelHandle;
+    private ComputeBuffer boidsBuffer;
+    private Boid[] boidsArray;
+    private GameObject[] boids;
+    private int groupSizeX;
+    private int numOfBoids;
 
     void Start()
     {

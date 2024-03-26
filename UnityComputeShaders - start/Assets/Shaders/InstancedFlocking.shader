@@ -73,6 +73,17 @@
                 0, 0, 0, 1
             );
         }
+
+        void setup()
+        {
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                //_BoidPosition = boidsBuffer[unity_InstanceID].position;
+                //_LookAtMatrix = look_at_matrix(boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
+                _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
+            }
+            #endif
+        }
      
         void vert(inout appdata_full v, out Input data)
         {
@@ -87,28 +98,17 @@
             #endif
         }
 
-        void setup()
+        void surf(Input IN, inout SurfaceOutputStandard o) 
         {
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            {
-                //_BoidPosition = boidsBuffer[unity_InstanceID].position;
-                //_LookAtMatrix = look_at_matrix(boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
-                _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
-            }
-            #endif
+            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
+		    fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
+		    o.Albedo = c.rgb;
+		    o.Alpha = c.a;
+		    o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
+		    o.Metallic = m.r;
+		    o.Smoothness = _Glossiness * m.a;
         }
  
-         void surf(Input IN, inout SurfaceOutputStandard o) 
-         {
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-			fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
-			o.Albedo = c.rgb;
-			o.Alpha = c.a;
-			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
-			o.Metallic = m.r;
-			o.Smoothness = _Glossiness * m.a;
-         }
- 
-         ENDCG
+        ENDCG
    }
 }

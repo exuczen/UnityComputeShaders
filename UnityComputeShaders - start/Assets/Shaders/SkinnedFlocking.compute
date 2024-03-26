@@ -76,10 +76,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     boid.position += boid.direction * velocity * deltaTime;
 	
     boid.frame += velocity * deltaTime * boidFrameSpeed;
+    boid.frame %= numOfFrames;
     
-    if (boid.frame >= numOfFrames)
-    {
-        boid.frame -= numOfFrames;
-    }
     boidsBuffer[id.x] = boid;
 }

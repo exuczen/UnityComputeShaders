@@ -17,11 +17,14 @@
 		sampler2D _MainTex;
 		sampler2D _BumpMap;
 		sampler2D _MetallicGlossMap;
-		struct Input {
+		
+        struct Input 
+        {
 			float2 uv_MainTex;
 			float2 uv_BumpMap;
 			float3 worldPos;
 		};
+
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Color;
@@ -34,15 +37,15 @@
         float4x4 _Matrix;
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            struct Boid
-            {
-                float3 position;
-                float3 direction;
-                float noise_offset;
-                float theta;
-            };
+        struct Boid
+        {
+            float3 position;
+            float3 direction;
+            float noise_offset;
+            float theta;
+        };
 
-            StructuredBuffer<Boid> boidsBuffer;
+        StructuredBuffer<Boid> boidsBuffer;
         #endif
 
         float4x4 create_matrix(float3 pos, float3 dir, float3 up)
@@ -56,6 +59,18 @@
                 xaxis.z, yaxis.z, zaxis.z, pos.z,
                 0, 0, 0, 1
             );
+        }
+
+        void setup()
+        {
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                //Convert the boid theta value to a value between -1 and 1
+                //Hint: use sin and save the value as _FinOffset
+                _FinOffset = sin(boidsBuffer[unity_InstanceID].theta);
+                _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
+            }
+            #endif
         }
      
         void vert(inout appdata_full v, out Input data)
@@ -80,29 +95,17 @@
             #endif
         }
 
-        void setup()
+        void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            {
-                //Convert the boid theta value to a value between -1 and 1
-                //Hint: use sin and save the value as _FinOffset
-                _FinOffset = sin(boidsBuffer[unity_InstanceID].theta);
-                _Matrix = create_matrix(boidsBuffer[unity_InstanceID].position, boidsBuffer[unity_InstanceID].direction, float3(0.0, 1.0, 0.0));
-            }
-            #endif
+            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
+		    fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
+		    o.Albedo = c.rgb;
+		    o.Alpha = c.a;
+		    o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
+		    o.Metallic = m.r;
+		    o.Smoothness = _Glossiness * m.a;
         }
  
-         void surf (Input IN, inout SurfaceOutputStandard o)
-         {
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-			fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
-			o.Albedo = c.rgb;
-			o.Alpha = c.a;
-			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
-			o.Metallic = m.r;
-			o.Smoothness = _Glossiness * m.a;
-         }
- 
-         ENDCG
-   }
+        ENDCG
+    }
 }
