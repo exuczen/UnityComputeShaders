@@ -1,49 +1,17 @@
 ﻿//#define CENTER_COLOR float4(1.0, 1.0, 1.0, 1.0);
 #define USE_PARTICLE_COLOR 1
 
-struct Particle
-{
-    int2 position;
-    float endTime;
-    float4 color;
-    uint randomSeed;
-    bool active;
-};
+#include "Utils/Particles.cginc"
 
-// Create a RenderTexture with enableRandomWrite flag and set it with cs.SetTexture
 shared RWTexture2D<float4> outputTexture;
-shared RWStructuredBuffer<Particle> particlesBuffer;
 shared Buffer<float4> colorsBuffer;
-shared RWBuffer<int> indexBuffer;
 shared RWBuffer<int> angularPairBuffer;
 shared RWBuffer<int> tempBuffer;
 
-int TexResolution;
 int CircleRadius;
 float CircleRadiusInv;
 float4 ClearColor;
 float Time;
-
-Particle getClearParticle(uint randomSeed)
-{
-    Particle p;
-    p.position = int2(-2, -2);
-    p.endTime = 0.0;
-    p.color = 0.0;
-    p.randomSeed = randomSeed;
-    p.active = false;
-    return p;
-}
-
-int getIndexFromBuffer(int2 xy)
-{
-    return indexBuffer[xy.y * TexResolution + xy.x];
-}
-
-void setIndexInBuffer(int2 xy, int i)
-{
-    indexBuffer[xy.y * TexResolution + xy.x] = i;
-}
 
 float4 getColor(int id)
 {
