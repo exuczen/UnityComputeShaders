@@ -79,3 +79,17 @@ float4x4 quaternion_to_matrix(float4 quat, float3 pos)
 
     return m;
 }
+
+//float4x4 create_matrix(float3 pos, float4 quat)
+//{
+//    float4x4 rotation = quaternion_to_matrix(quat, 0);
+//    float3 position = pos;
+//    float4x4 translation =
+//    {
+//      1, 0, 0, position.x,
+//	    0, 1, 0, position.y,
+//	    0, 0, 1, position.z,
+//	    0, 0, 0, 1
+//    };
+//    return mul(translation, rotation);
+//}
