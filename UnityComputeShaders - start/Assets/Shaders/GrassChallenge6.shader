@@ -15,20 +15,12 @@
 		Cull Off
 		
         CGPROGRAM
+        #include "Utils/GrassSurface.hlsl"
+
         // Physically based Standard lighting model, and enable shadows on all light types    
         #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
         #pragma instancing_options procedural:setup
 
-        sampler2D _MainTex;
-
-        struct Input
-        {
-            float2 uv_MainTex;
-        };
-
-        half _Glossiness;
-        half _Metallic;
-        fixed4 _Color;
         float _Scale;
         float _Trample;
         float4x4 _Matrix;
@@ -77,22 +69,37 @@
         }
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            struct GrassClump
-            {
-                float3 position;
-                float lean;
-                float trample;
-                float4 quaternion;
-                float noise;
-            };
-            StructuredBuffer<GrassClump> clumpsBuffer; 
+        struct GrassClump
+        {
+            float3 position;
+            float lean;
+            float trample;
+            float4 quaternion;
+            float noise;
+        };
+
+        StructuredBuffer<GrassClump> clumpsBuffer; 
         #endif
+
+        void setup()
+        {
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                GrassClump clump = clumpsBuffer[unity_InstanceID];
+                _Trample = clump.trample;
+                _Position = clump.position;
+                _Matrix = create_matrix(clump.position, clump.lean);
+                _TrampleMatrix = quaternion_to_matrix(clump.quaternion);        
+            }
+            #endif
+        }
 
         void vert(inout appdata_full v, out Input data)
         {
             UNITY_INITIALIZE_OUTPUT(Input, data);
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
                v.vertex.xyz *= _Scale;
                 float4 rotatedVertex = mul(_Matrix, v.vertex);
                 float4 trampledVertex = mul(_TrampleMatrix, v.vertex);
@@ -100,31 +107,10 @@
                 trampledVertex = lerp(v.vertex, trampledVertex, v.texcoord.y);
                 v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
                 v.vertex = lerp(v.vertex, trampledVertex, _Trample);
+            }
             #endif
         }
 
-        void setup()
-        {
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                GrassClump clump = clumpsBuffer[unity_InstanceID];
-                _Trample = clump.trample;
-                _Position = clump.position;
-                _Matrix = create_matrix(clump.position, clump.lean);
-                _TrampleMatrix = quaternion_to_matrix(clump.quaternion);        
-            #endif
-        }
-
-        void surf (Input IN, inout SurfaceOutputStandard o)
-        {
-            // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex);
-            o.Albedo = c.rgb;
-            // Metallic and smoothness come from slider variables
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
-            clip(c.a-0.4);
-        }
         ENDCG
     }
     FallBack "Diffuse"

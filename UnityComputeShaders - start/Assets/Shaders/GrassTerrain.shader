@@ -9,31 +9,24 @@
     }
     SubShader
     {
-        Tags{ "RenderType"="Opaque" }
+        Tags { "RenderType"="Opaque" }
         
 		LOD 200
 		Cull Off
 		
         CGPROGRAM
+        #include "Utils/GrassSurface.hlsl"
+
         // Physically based Standard lighting model, and enable shadows on all light types    
         #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
         #pragma instancing_options procedural:setup
 
-        sampler2D _MainTex;
-
-        struct Input
-        {
-            float2 uv_MainTex;
-        };
-
-        half _Glossiness;
-        half _Metallic;
-        fixed4 _Color;
         float _Scale;
         float4x4 _Matrix;
         float3 _Position;
 
-        float4x4 create_matrix(float3 pos, float theta){
+        float4x4 create_matrix(float3 pos, float theta)
+        {
             float c = cos(theta);
             float s = sin(theta);
             return float4x4(
@@ -45,47 +38,41 @@
         }
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            struct GrassClump
-            {
-                float3 position;
-                float lean;
-                float noise;
-            };
-            StructuredBuffer<GrassClump> clumpsBuffer; 
+        struct GrassClump
+        {
+            float3 position;
+            float lean;
+            float noise;
+        };
+
+        StructuredBuffer<GrassClump> clumpsBuffer; 
         #endif
+
+        void setup()
+        {
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                GrassClump clump = clumpsBuffer[unity_InstanceID];
+                _Position = clump.position;
+                _Matrix = create_matrix(clump.position, clump.lean);
+            }
+            #endif
+        }
 
         void vert(inout appdata_full v, out Input data)
         {
             UNITY_INITIALIZE_OUTPUT(Input, data);
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
                 v.vertex.xyz *= _Scale;
                 float4 rotatedVertex = mul(_Matrix, v.vertex);
                 v.vertex.xyz += _Position;
                 v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
+            }
             #endif
         }
 
-        void setup()
-        {
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                GrassClump clump = clumpsBuffer[unity_InstanceID];
-                _Position = clump.position;
-                _Matrix = create_matrix(clump.position, clump.lean);
-            #endif
-        }
-
-        void surf (Input IN, inout SurfaceOutputStandard o)
-        {
-            // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex);
-            o.Albedo = c.rgb;
-            // Metallic and smoothness come from slider variables
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
-            clip(c.a-0.4);
-        }
         ENDCG
     }
     FallBack "Diffuse"

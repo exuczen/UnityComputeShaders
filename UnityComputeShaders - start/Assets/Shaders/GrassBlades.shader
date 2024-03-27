@@ -9,7 +9,7 @@
     }
     SubShader
     {
-        Tags{ "RenderType"="Opaque" }
+        Tags { "RenderType"="Opaque" }
         
 		LOD 200
 		Cull Off
@@ -29,12 +29,14 @@
         half _Glossiness;
         half _Metallic;
         fixed4 _Color;
-        float _Scale;
         float _Fade;
+
+        float _Scale;
         float4x4 _Matrix;
         float3 _Position;
 
-        float4x4 create_matrix(float3 pos, float theta){
+        float4x4 create_matrix(float3 pos, float theta)
+        {
             float c = cos(theta);
             float s = sin(theta);
             return float4x4(
@@ -46,39 +48,44 @@
         }
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            struct GrassBlade
-            {
-                float3 position;
-                float lean;
-                float noise;
-                float fade;
-            };
-            StructuredBuffer<GrassBlade> bladesBuffer; 
+        struct GrassBlade
+        {
+            float3 position;
+            float lean;
+            float noise;
+            float fade;
+        };
+
+        StructuredBuffer<GrassBlade> bladesBuffer; 
         #endif
+
+        void setup()
+        {
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                GrassBlade blade = bladesBuffer[unity_InstanceID];
+                _Matrix = create_matrix(blade.position, blade.lean);
+                _Position = blade.position;
+                _Fade = blade.fade;
+            }
+            #endif
+        }
 
         void vert(inout appdata_full v, out Input data)
         {
             UNITY_INITIALIZE_OUTPUT(Input, data);
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
                 v.vertex.xyz *= _Scale;
                 float4 rotatedVertex = mul(_Matrix, v.vertex);
                 v.vertex.xyz += _Position;
                 v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
+            }
             #endif
         }
 
-        void setup()
-        {
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                GrassBlade blade = bladesBuffer[unity_InstanceID];
-                _Matrix = create_matrix(blade.position, blade.lean);
-                _Position = blade.position;
-                _Fade = blade.fade;
-            #endif
-        }
-
-        void surf (Input IN, inout SurfaceOutputStandard o)
+        void surf(Input IN, inout SurfaceOutputStandard o)
         {
             // Albedo comes from a texture tinted by color
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color * _Fade;
