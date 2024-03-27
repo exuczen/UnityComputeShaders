@@ -56,14 +56,14 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     for (int i = id.x + 1; i < ballsCount; i++)
     {
         Ball ball2 = ballsBuffer[i];
-        normal = ball.position - ball2.position;
-        const float distance = length(normal);
+        normal = ball2.position - ball.position;
+        float distance = length(normal);
         
         if (distance < diameter)
         {
             normal = normalize(normal);
             
-            ball.position += normal * (diameter - distance);
+            ball.position -= normal * (diameter - distance);
             
             relativeVelocity = ball.velocity - ball2.velocity;
             
