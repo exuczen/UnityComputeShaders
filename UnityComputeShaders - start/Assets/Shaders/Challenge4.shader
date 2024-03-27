@@ -13,21 +13,7 @@
    SubShader 
    {
 		CGPROGRAM        
-        
-		sampler2D _MainTex;
-		sampler2D _BumpMap;
-		sampler2D _MetallicGlossMap;
-		
-        struct Input 
-        {
-			float2 uv_MainTex;
-			float2 uv_BumpMap;
-			float3 worldPos;
-		};
-
-		half _Glossiness;
-		half _Metallic;
-		fixed4 _Color;
+        #include "Utils/Surface.hlsl"        
  
         #pragma surface surf Standard vertex:vert addshadow nolightmap
         #pragma instancing_options procedural:setup
@@ -94,17 +80,6 @@
                 v.vertex = mul(_Matrix, v.vertex);
             }
             #endif
-        }
-
-        void surf (Input IN, inout SurfaceOutputStandard o)
-        {
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-		    fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
-		    o.Albedo = c.rgb;
-		    o.Alpha = c.a;
-		    o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
-		    o.Metallic = m.r;
-		    o.Smoothness = _Glossiness * m.a;
         }
  
         ENDCG

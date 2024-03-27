@@ -1,4 +1,5 @@
-﻿Shader "Custom/QuadParticle" {
+﻿Shader "Custom/QuadParticle" 
+{
 	Properties     
     {
         _MainTex("Texture", 2D) = "white" {}     

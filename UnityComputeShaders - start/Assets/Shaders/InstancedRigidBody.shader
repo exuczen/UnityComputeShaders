@@ -1,48 +1,39 @@
-﻿Shader "Physics/InstancedRigidBody" { 
+﻿Shader "Physics/InstancedRigidBody" 
+{ 
 
-   Properties {
-		_Color ("Color", Color) = (1,1,1,1)
-		_MainTex ("Albedo (RGB)", 2D) = "white" {}
-		_BumpMap ("Bumpmap", 2D) = "bump" {}
-		_MetallicGlossMap("Metallic", 2D) = "white" {}
-		_Metallic ("Metallic", Range(0,1)) = 0.0
-		_Glossiness ("Smoothness", Range(0,1)) = 1.0
+    Properties
+    {
+	    _Color ("Color", Color) = (1,1,1,1)
+	    _MainTex ("Albedo (RGB)", 2D) = "white" {}
+	    _BumpMap ("Bumpmap", 2D) = "bump" {}
+	    _MetallicGlossMap("Metallic", 2D) = "white" {}
+	    _Metallic ("Metallic", Range(0,1)) = 0.0
+	    _Glossiness ("Smoothness", Range(0,1)) = 1.0
 	}
 
-   SubShader {
- 
+    SubShader 
+    {
 		CGPROGRAM
-
-		sampler2D _MainTex;
-		sampler2D _BumpMap;
-		sampler2D _MetallicGlossMap;
-		struct Input {
-			float2 uv_MainTex;
-			float2 uv_BumpMap;
-			float3 worldPos;
-		};
-		half _Glossiness;
-		half _Metallic;
-		fixed4 _Color;
+        #include "Utils/Surface.hlsl"
  
         #pragma surface surf Standard vertex:vert addshadow nolightmap
         #pragma instancing_options procedural:setup
 
         float4x4 _Matrix;
         
-         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            struct RigidBody
-            {
-	            float3 position;
-	            float4 quaternion;
-	            float3 velocity;
-	            float3 angularVelocity;
-	            int particleIndex;
-	            int particleCount;
-            };
+        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+        struct RigidBody
+        {
+	        float3 position;
+	        float4 quaternion;
+	        float3 velocity;
+	        float3 angularVelocity;
+	        int particleIndex;
+	        int particleCount;
+        };
 
-            StructuredBuffer<RigidBody> rigidBodiesBuffer; 
-         #endif
+        StructuredBuffer<RigidBody> rigidBodiesBuffer; 
+        #endif
         
         float4x4 quaternion_to_matrix(float4 quat)
         {
@@ -71,45 +62,41 @@
             return m;
         }
 
-        float4x4 create_matrix(float3 pos, float4 quat){
+
+        float4x4 create_matrix(float3 pos, float4 quat)
+        {
             float4x4 rotation = quaternion_to_matrix(quat);
 			float3 position = pos;
 			float4x4 translation = {
-				1,0,0,position.x,
-				0,1,0,position.y,
-				0,0,1,position.z,
-				0,0,0,1
+				1, 0, 0, position.x,
+				0, 1, 0, position.y,
+				0, 0, 1, position.z,
+				0, 0, 0, 1
 			};
 			return mul(translation, rotation);
-        }
-
-         void vert(inout appdata_full v, out Input data)
-        {
-            UNITY_INITIALIZE_OUTPUT(Input, data);
-
-            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                v.vertex = mul(_Matrix, v.vertex);
-            #endif
         }
 
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
                 RigidBody body = rigidBodiesBuffer[unity_InstanceID];
                 _Matrix = create_matrix(body.position, body.quaternion);
+            }
             #endif
         }
- 
-         void surf (Input IN, inout SurfaceOutputStandard o) {
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-			fixed4 m = tex2D (_MetallicGlossMap, IN.uv_MainTex); 
-			o.Albedo = c.rgb;
-			o.Alpha = c.a;
-			o.Normal = UnpackNormal (tex2D (_BumpMap, IN.uv_BumpMap));
-			o.Metallic = m.r;
-			o.Smoothness = _Glossiness * m.a;
-         }
- 
-         ENDCG
-   }
+
+        void vert(inout appdata_full v, out Input data)
+        {
+            UNITY_INITIALIZE_OUTPUT(Input, data);
+
+            #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
+                v.vertex = mul(_Matrix, v.vertex);
+            }
+            #endif
+        }
+
+        ENDCG
+    }
 }
