@@ -15,6 +15,7 @@
 		Cull Off
 		
         CGPROGRAM
+        #include "Utils/Math.cginc"
         #include "Utils/GrassSurface.hlsl"
 
         // Physically based Standard lighting model, and enable shadows on all light types    
@@ -24,18 +25,6 @@
         float _Scale;
         float4x4 _Matrix;
         float3 _Position;
-
-        float4x4 create_matrix(float3 pos, float theta)
-        {
-            float c = cos(theta);
-            float s = sin(theta);
-            return float4x4(
-                c,-s, 0, pos.x,
-                s, c, 0, pos.y,
-                0, 0, 1, pos.z,
-                0, 0, 0, 1
-            );
-        }
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
         struct GrassClump
@@ -54,7 +43,7 @@
             {
                 GrassClump clump = clumpsBuffer[unity_InstanceID];
                 _Position = clump.position;
-                _Matrix = create_matrix(clump.position, clump.lean);
+                _Matrix = create_matrix_xy(clump.position, clump.lean);
             }
             #endif
         }

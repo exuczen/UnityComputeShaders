@@ -15,6 +15,7 @@ Shader "Flocking/Skinned"
     {
 		CGPROGRAM
         #include "UnityCG.cginc"
+        #include "Utils/Math.cginc"
         #include "Utils/Surface.hlsl"
 
         #pragma multi_compile __ FRAME_INTERPOLATION
@@ -52,19 +53,6 @@ Shader "Flocking/Skinned"
         StructuredBuffer<Boid> boidsBuffer; 
         StructuredBuffer<float4> vertexAnimation; 
         #endif
-
-        float4x4 create_matrix(float3 pos, float3 dir, float3 up)
-        {
-            float3 zaxis = normalize(dir);
-            float3 xaxis = normalize(cross(up, zaxis));
-            float3 yaxis = cross(zaxis, xaxis);
-            return float4x4(
-                xaxis.x, yaxis.x, zaxis.x, pos.x,
-                xaxis.y, yaxis.y, zaxis.y, pos.y,
-                xaxis.z, yaxis.z, zaxis.z, pos.z,
-                0, 0, 0, 1
-            );
-        }
 
         void setup()
         {

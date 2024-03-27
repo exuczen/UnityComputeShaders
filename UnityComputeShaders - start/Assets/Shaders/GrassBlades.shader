@@ -15,6 +15,8 @@
 		Cull Off
 		
         CGPROGRAM
+        #include "Utils/Math.cginc"
+
         // Physically based Standard lighting model, and enable shadows on all light types   
         #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
         #pragma instancing_options procedural:setup
@@ -34,18 +36,6 @@
         float _Scale;
         float4x4 _Matrix;
         float3 _Position;
-
-        float4x4 create_matrix(float3 pos, float theta)
-        {
-            float c = cos(theta);
-            float s = sin(theta);
-            return float4x4(
-                c,-s, 0, pos.x,
-                s, c, 0, pos.y,
-                0, 0, 1, pos.z,
-                0, 0, 0, 1
-            );
-        }
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
         struct GrassBlade
@@ -64,7 +54,7 @@
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
                 GrassBlade blade = bladesBuffer[unity_InstanceID];
-                _Matrix = create_matrix(blade.position, blade.lean);
+                _Matrix = create_matrix_xy(blade.position, blade.lean);
                 _Position = blade.position;
                 _Fade = blade.fade;
             }
