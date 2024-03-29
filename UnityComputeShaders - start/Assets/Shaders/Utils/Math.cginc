@@ -1,4 +1,9 @@
-﻿float4x4 look_at_matrix(float3 dir, float3 up)
+﻿float invLerp(float a, float b, float v)
+{
+    return saturate((v - a) / (b - a));
+}
+
+float4x4 look_at_matrix(float3 dir, float3 up)
 {
     float3 zaxis = normalize(dir);
     float3 xaxis = normalize(cross(up, zaxis));

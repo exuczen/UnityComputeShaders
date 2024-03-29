@@ -49,8 +49,13 @@ void lerpColors(RWTexture2D<float4> tex, uint2 xy, float4 color, float lerpValue
 void drawLine(RWTexture2D<float4> tex, int2 p1, int2 p2, float4 color, float lerpValue = 1.0)
 {
     int2 absDr = abs(p2 - p1);
-        
-    if (absDr.y > absDr.x)
+    
+    if (absDr.x * absDr.y <= 1)
+    {
+        tex[p1] = lerp(tex[p1], color, lerpValue);
+        tex[p2] = lerp(tex[p2], color, lerpValue);
+    }
+    else if (absDr.y > absDr.x)
     {
         if (p1.y > p2.y)
         {

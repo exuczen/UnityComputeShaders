@@ -1,6 +1,7 @@
 ﻿//#define THREADS_2D
 
 #include "Random.cginc"
+#include "Math.cginc"
 
 struct Particle
 {
