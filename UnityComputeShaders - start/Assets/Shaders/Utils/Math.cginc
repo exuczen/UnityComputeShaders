@@ -98,3 +98,16 @@ float4x4 quaternion_to_matrix(float4 quat, float3 pos)
 //    };
 //    return mul(translation, rotation);
 //}
+
+inline float4 quat_concat(float4 q1, float4 q2)
+{
+    return float4(q1.w * q2.xyz + q2.w * q1.xyz + cross(q1.xyz, q2.xyz), q1.w * q2.w - dot(q1.xyz, q2.xyz));
+}
+
+inline float3 quat_mul(float4 q, float3 v)
+{
+    //return dot(q.xyz, v) * q.xyz + q.w * q.w * v + 2.0 * q.w * cross(q.xyz, v) - cross(cross(q.xyz, v), q.xyz);
+    float3 u = q.xyz;
+    float s = q.w;
+    return 2.0 * dot(u, v) * u + (s * s - dot(u, u)) * v + 2.0 * s * cross(u, v);
+}
