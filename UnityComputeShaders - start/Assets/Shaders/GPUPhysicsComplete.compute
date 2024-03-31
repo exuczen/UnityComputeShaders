@@ -296,9 +296,6 @@ void CollisionDetectionWithGrid(uint3 id : SV_DispatchThreadID)
             }
         }
     }
-
-    force.y -= gravityCoefficient;
-
     particlesBuffer[id.x].force = force;
 }
 
@@ -355,6 +352,7 @@ void ComputeMomenta(uint3 id : SV_DispatchThreadID)
         float cubeMass = particleMass * body.particleCount;
         body.velocity /= 1.0 + deltaTime * frictionCoefficient;
         body.velocity += linearForceScalar * deltaTime * linearForce * cubeMass;
+        body.velocity.y -= gravityCoefficient * deltaTime;
         if (length(body.velocity) < threshold)
         {
             body.velocity = 0;
