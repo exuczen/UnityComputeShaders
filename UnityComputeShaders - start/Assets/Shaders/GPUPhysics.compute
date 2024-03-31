@@ -86,28 +86,20 @@ float tangentialCoefficient;
 float gravityCoefficient;
 float particleDiameter;
 
-float3 CollisionReaction(int j_id, int i_id)
+Particle GetGroundParticle(int i_id)
+{
+    Particle particleI = particlesBuffer[i_id];
+    Particle particleJ = particleI;
+    float radius = particleDiameter * 0.5;
+    particleJ.position.y = min(-radius, particleI.position.y - radius);
+    particleJ.velocity = 0;
+    return particleJ;
+}
+
+float3 CollisionReaction(Particle pJ, Particle pI)
 {
     float3 force = 0;
-    float3 relativePosition;
-    float3 particleJVelocity;
-    
-    Particle particleI = particlesBuffer[i_id];
-    
-    if (j_id < 0)
-    {
-        float3 groundParticlePosition = particleI.position;
-        float radius = particleDiameter * 0.5;
-        groundParticlePosition.y = min(-radius, particleI.position.y - radius);
-        relativePosition = groundParticlePosition - particleI.position;
-        particleJVelocity = 0;
-    }
-    else
-    {
-        Particle particleJ = particlesBuffer[j_id];
-        particleJVelocity = particleJ.velocity;
-        relativePosition = particleJ.position - particleI.position;
-    }
+    float3 relativePosition = pJ.position - pI.position;
     float distance = length(relativePosition);
     if (distance < particleDiameter)
     {
@@ -115,7 +107,7 @@ float3 CollisionReaction(int j_id, int i_id)
         
         float3 repulsiveForce = -springCoefficient * (particleDiameter - distance) * normal;
         
-        float3 relativeVelocity = particleJVelocity - particleI.velocity;
+        float3 relativeVelocity = pJ.velocity - pI.velocity;
         float3 dampingForce = dampingCoefficient * relativeVelocity;
         
         float3 tangentialVelocity = relativeVelocity - dot(relativeVelocity, normal) * normal;
@@ -126,10 +118,15 @@ float3 CollisionReaction(int j_id, int i_id)
     return force;
 }
 
+float3 CollisionReaction(int j_id, int i_id)
+{
+    return CollisionReaction(particlesBuffer[j_id], particlesBuffer[i_id]);
+}
+
 [numthreads(PARTICLE_THREAD_COUNT, 1, 1)]
 void CollisionDetection(uint3 id : SV_DispatchThreadID)
 {
-    float3 force = CollisionReaction(-1, id.x);
+    float3 force = CollisionReaction(GetGroundParticle(id.x), particlesBuffer[id.x]);
     
     int bodyParticleIndex = particlesPerRigidBody * (int)(id.x / particlesPerRigidBody);
     
