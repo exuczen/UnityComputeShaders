@@ -100,7 +100,6 @@ void GenerateParticleValues(uint3 id : SV_DispatchThreadID)
     }
 }
 
-
 //////////////////////
 // Grid Generation //
 /////////////////////
@@ -142,13 +141,20 @@ int GetGridIndex(int x, int y, int z)
     return x + (gridDimensions.x * y) + (gridDimensions.x * gridDimensions.y * z);
 }
 
+int GetGridIndex(int3 loc)
+{
+    return loc.x + (gridDimensions.x * loc.y) + (gridDimensions.x * gridDimensions.y * loc.z);
+}
+
 [numthreads(PARTICLE_THREAD_COUNT, 1, 1)]
 void PopulateGrid(uint3 id : SV_DispatchThreadID)
 {
-    int index = GetParticleGridIndex(id.x);
-	// clamp gridIndex
-    if (index < gridMax && index >= 0)
+    int3 xyz = GetParticleGridLocation(id.x);
+    if (xyz.x >= 0 && xyz.x < gridDimensions.x &&
+        xyz.y >= 0 && xyz.y < gridDimensions.y &&
+        xyz.z >= 0 && xyz.z < gridDimensions.z)
     {
+        int index = GetGridIndex(xyz);
         Voxel voxel = voxelGridBuffer[index];
         if (voxel.vox1.x == -1)
         {
