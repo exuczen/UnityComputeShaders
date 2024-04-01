@@ -326,7 +326,7 @@ MonoBehaviour:
   springCoefficient: 1.5
   dampingCoefficient: 0.01
   tangentialCoefficient: 0.01
-  gravityCoefficient: 0.004
+  gravityCoefficient: 9.8
   frictionCoefficient: 0.1
   angularFrictionCoefficient: 0.1
   angularForceScalar: 100
@@ -334,7 +334,7 @@ MonoBehaviour:
   gridSize: {x: 50, y: 40, z: 50}
   gridPosition: {x: 0, y: 10, z: 0}
   useGrid: 1
-  rigidBodyCount: 300
+  rigidBodyCount: 2000
   stepsPerUpdate: 8
 --- !u!4 &411714672
 Transform:

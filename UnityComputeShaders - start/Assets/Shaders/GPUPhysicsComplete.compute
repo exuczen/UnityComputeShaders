@@ -357,7 +357,7 @@ void ComputeMomenta(uint3 id : SV_DispatchThreadID)
 
         float cubeMass = particleMass * body.particleCount;
         body.velocity /= 1.0 + deltaTime * frictionCoefficient;
-        body.velocity += linearForceScalar * deltaTime * linearForce * cubeMass;
+        body.velocity += linearForceScalar * deltaTime * linearForce / cubeMass;
         body.velocity.y -= gravityCoefficient * deltaTime;
         if (length(body.velocity) < threshold)
         {
@@ -387,6 +387,15 @@ void ComputePositionAndRotation(uint3 id : SV_DispatchThreadID)
     if (id.x < (uint)activeCount)
     {
         RigidBody body = rigidBodiesBuffer[id.x];
+        //{
+        //    float minY = particleDiameter * 0.5;
+        //    for (int i = 0; i < body.particleCount; i++)
+        //    {
+        //        Particle particle = particlesBuffer[body.particleIndex + i];
+        //        minY = min(minY, particle.position.y);
+        //    }
+        //    body.position.y -= min(0, minY - particleDiameter * 0.5);
+        //}
         body.position += body.velocity * deltaTime;
 
         float4 omega = float4(body.angularVelocity, 0);
