@@ -16,11 +16,9 @@ public class GrassBlades : MonoBehaviour
 
         public GrassBlade(Vector3 pos)
         {
-            position.x = pos.x;
-            position.y = pos.y;
-            position.z = pos.z;
+            position = pos;
             bend = 0;
-            noise = Random.Range(0.5f, 1) * 2 - 1;
+            noise = Random.value;
             fade = Random.Range(0.5f, 1);
         }
     }
@@ -74,15 +72,15 @@ public class GrassBlades : MonoBehaviour
                 //1. Use the above variables to define the vertices array
                 var vertices = new Vector3[]
                 {
-                    new Vector3(-halfWidth, 0f, 0f),
-                    new Vector3( halfWidth, 0f, 0f),
-                    new Vector3(-halfWidth, rowHeight, 0f),
-                    new Vector3( halfWidth, rowHeight, 0f),
-                    new Vector3(-halfWidth * 0.9f, rowHeight * 2f, 0f),
-                    new Vector3( halfWidth * 0.9f, rowHeight * 2f, 0f),
-                    new Vector3(-halfWidth * 0.8f, rowHeight * 3f, 0f),
-                    new Vector3( halfWidth * 0.8f, rowHeight * 3f, 0f),
-                    new Vector3( 0f, rowHeight * 4f, 0f),
+                    new(-halfWidth, 0f, 0f),
+                    new( halfWidth, 0f, 0f),
+                    new(-halfWidth, rowHeight, 0f),
+                    new( halfWidth, rowHeight, 0f),
+                    new(-halfWidth * 0.9f, rowHeight * 2f, 0f),
+                    new( halfWidth * 0.9f, rowHeight * 2f, 0f),
+                    new(-halfWidth * 0.8f, rowHeight * 3f, 0f),
+                    new( halfWidth * 0.8f, rowHeight * 3f, 0f),
+                    new( 0f, rowHeight * 4f, 0f),
                 };
 
                 //2. Define the normals array, hint: each vertex uses the same normal
@@ -191,7 +189,7 @@ public class GrassBlades : MonoBehaviour
         bladesBuffer.SetData(bladesArray);
 
         shader.SetBuffer(kernelBendGrass, "bladesBuffer", bladesBuffer);
-        shader.SetFloat("maxBend", maxBend * Mathf.PI / 180);
+        shader.SetFloat("maxBend", maxBend * Mathf.Deg2Rad);
         //TODO: set wind using wind direction, speed and noise scale
         var wind = new Vector4
         {

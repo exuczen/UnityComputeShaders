@@ -15,12 +15,13 @@ public class GrassClumps : MonoBehaviour
 
         public GrassClump(Vector3 pos)
         {
-            position.x = pos.x;
-            position.y = pos.y;
-            position.z = pos.z;
+            position = pos;
             lean = 0;
             noise = Random.Range(0.5f, 1);
-            if (Random.value < 0.5f) noise = -noise;
+            if (Random.value < 0.5f)
+            {
+                noise = -noise;
+            }
         }
     }
 

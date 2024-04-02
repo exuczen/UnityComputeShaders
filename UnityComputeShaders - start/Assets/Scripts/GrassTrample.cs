@@ -17,12 +17,13 @@ public class GrassTrample : MonoBehaviour
 
         public GrassClump(Vector3 pos)
         {
-            position.x = pos.x;
-            position.y = pos.y;
-            position.z = pos.z;
+            position = pos;
             lean = 0;
             noise = Random.Range(0.5f, 1);
-            if (Random.value < 0.5f) noise = -noise;
+            if (Random.value < 0.5f)
+            {
+                noise = -noise;
+            }
             trample = 0;
             quaternion = Quaternion.identity;
         }
@@ -92,7 +93,7 @@ public class GrassTrample : MonoBehaviour
         clumpsBuffer.SetData(clumpsArray);
 
         shader.SetBuffer(kernelUpdateGrass, "clumpsBuffer", clumpsBuffer);
-        shader.SetFloat("maxLean", maxLean * Mathf.PI / 180);
+        shader.SetFloat("maxLean", maxLean * Mathf.Deg2Rad);
         shader.SetFloat("trampleRadius", trampleRadius);
         shader.SetFloat("speed", speed);
         timeID = Shader.PropertyToID("time");
