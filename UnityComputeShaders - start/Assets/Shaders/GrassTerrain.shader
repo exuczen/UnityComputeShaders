@@ -23,7 +23,7 @@
         #pragma instancing_options procedural:setup
 
         float _Scale;
-        float4x4 _Matrix;
+        float4x4 _LeanMatrix;
         float3 _Position;
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
@@ -43,7 +43,7 @@
             {
                 GrassClump clump = clumpsBuffer[unity_InstanceID];
                 _Position = clump.position;
-                _Matrix = create_matrix_xy(clump.position, clump.lean);
+                _LeanMatrix = create_matrix_xy(clump.position, clump.lean);
             }
             #endif
         }
@@ -55,9 +55,9 @@
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
                 v.vertex.xyz *= _Scale;
-                float4 rotatedVertex = mul(_Matrix, v.vertex);
+                float4 leanedVertex = mul(_LeanMatrix, v.vertex);
                 v.vertex.xyz += _Position;
-                v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
+                v.vertex = lerp(v.vertex, leanedVertex, v.texcoord.y);
             }
             #endif
         }

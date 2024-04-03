@@ -34,7 +34,7 @@
         float _Fade;
 
         float _Scale;
-        float4x4 _Matrix;
+        float4x4 _LeanMatrix;
         float3 _Position;
         
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
@@ -54,7 +54,7 @@
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
                 GrassBlade blade = bladesBuffer[unity_InstanceID];
-                _Matrix = create_matrix_xy(blade.position, blade.lean);
+                _LeanMatrix = create_matrix_xy(blade.position, blade.lean);
                 _Position = blade.position;
                 _Fade = blade.fade;
             }
@@ -68,9 +68,9 @@
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
                 v.vertex.xyz *= _Scale;
-                float4 rotatedVertex = mul(_Matrix, v.vertex);
+                float4 leanedVertex = mul(_LeanMatrix, v.vertex);
                 v.vertex.xyz += _Position;
-                v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
+                v.vertex = lerp(v.vertex, leanedVertex, v.texcoord.y);
             }
             #endif
         }

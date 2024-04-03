@@ -24,7 +24,7 @@
 
         float _Scale;
         float _Trample;
-        float4x4 _Matrix;
+        float4x4 _LeanMatrix;
         float4x4 _TrampleMatrix;
         float3 _Position;
         
@@ -48,7 +48,7 @@
                 GrassClump clump = clumpsBuffer[unity_InstanceID];
                 _Trample = clump.trample;
                 _Position = clump.position;
-                _Matrix = create_matrix_yz(clump.position, clump.lean);
+                _LeanMatrix = create_matrix_yz(clump.position, clump.lean);
                 _TrampleMatrix = quaternion_to_matrix(clump.quaternion, _Position);
             }
             #endif
@@ -60,12 +60,12 @@
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             {
-               v.vertex.xyz *= _Scale;
-                float4 rotatedVertex = mul(_Matrix, v.vertex);
+                v.vertex.xyz *= _Scale;
+                float4 leanedVertex = mul(_LeanMatrix, v.vertex);
                 float4 trampledVertex = mul(_TrampleMatrix, v.vertex);
                 v.vertex.xyz += _Position;
                 trampledVertex = lerp(v.vertex, trampledVertex, v.texcoord.y);
-                v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
+                v.vertex = lerp(v.vertex, leanedVertex, v.texcoord.y);
                 v.vertex = lerp(v.vertex, trampledVertex, _Trample);
             }
             #endif
