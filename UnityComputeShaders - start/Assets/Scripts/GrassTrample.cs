@@ -53,7 +53,6 @@ public class GrassTrample : MonoBehaviour
     private int tramplePosID;
     private int groupSize;
     private int kernelUpdateGrass;
-    private Vector4 pos = new Vector4();
 
     // Start is called before the first frame update
     private void Start()
@@ -111,8 +110,7 @@ public class GrassTrample : MonoBehaviour
     private void Update()
     {
         shader.SetFloat(timeID, Time.time);
-        pos = trampler.position;
-        shader.SetVector(tramplePosID, pos);
+        shader.SetVector(tramplePosID, trampler.position);
 
         shader.Dispatch(kernelUpdateGrass, groupSize, 1, 1);
 

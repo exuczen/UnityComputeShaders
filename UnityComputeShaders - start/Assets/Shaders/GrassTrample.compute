@@ -14,7 +14,7 @@ RWStructuredBuffer<GrassClump> clumpsBuffer;
 float time;
 float maxLean;
 float speed;
-float4 tramplePos;
+float3 tramplePos;
 float trampleRadius;
 
 float4 MapVector(float3 v1, float3 v2)
@@ -35,7 +35,7 @@ void UpdateGrass(uint3 id : SV_DispatchThreadID)
     GrassClump clump = clumpsBuffer[id.x];
 
     //TODO: set trample and the quaternion for the clump
-    float3 ray = clump.position - tramplePos.xyz;
+    float3 ray = clump.position - tramplePos;
     float dist = length(ray);
     
     if (dist < trampleRadius)
