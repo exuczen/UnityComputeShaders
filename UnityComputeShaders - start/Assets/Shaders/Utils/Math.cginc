@@ -99,6 +99,18 @@ float4x4 quaternion_to_matrix(float4 quat, float3 pos)
 //    return mul(translation, rotation);
 //}
 
+float4 quaternion_from_to(float3 v1, float3 v2)
+{
+    v1 = normalize(v1);
+    v2 = normalize(v2);
+    float3 v = v1 + v2;
+    v = normalize(v);
+    float4 q = 0;
+    q.w = dot(v, v2);
+    q.xyz = cross(v, v2);
+    return q;
+}
+
 inline float4 quat_concat(float4 q1, float4 q2)
 {
     return float4(q1.w * q2.xyz + q2.w * q1.xyz + cross(q1.xyz, q2.xyz), q1.w * q2.w - dot(q1.xyz, q2.xyz));
@@ -106,8 +118,9 @@ inline float4 quat_concat(float4 q1, float4 q2)
 
 inline float3 quat_mul(float4 q, float3 v)
 {
-    //return dot(q.xyz, v) * q.xyz + q.w * q.w * v + 2.0 * q.w * cross(q.xyz, v) - cross(cross(q.xyz, v), q.xyz);
     float3 u = q.xyz;
     float s = q.w;
+    //return dot(q.xyz, v) * q.xyz + q.w * q.w * v + 2.0 * q.w * cross(q.xyz, v) - cross(cross(q.xyz, v), q.xyz);
+    //return dot(u, v) * u + s * s * v + 2.0 * s * cross(u, v) - cross(cross(u, v), u);
     return 2.0 * dot(u, v) * u + (s * s - dot(u, u)) * v + 2.0 * s * cross(u, v);
 }
