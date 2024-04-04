@@ -6,13 +6,14 @@ using UnityEngine;
 
 public class StableFluids : MonoBehaviour
 {
+    public Texture2D initial;
+    public ComputeShader compute;
+    public Material material;
+
     public int resolution = 512;
     public float viscosity = 1e-6f;
     public float force = 300;
     public float exponent = 200;
-    public Texture2D initial;
-    public ComputeShader compute;
-    public Material material;
 
     private Vector2 previousInput;
 
@@ -23,11 +24,11 @@ public class StableFluids : MonoBehaviour
     private int kernelDiffuse1;
     private int kernelDiffuse2;
 
-    private int threadCountX { get { return (resolution + 7) / 8; } }
-    private int threadCountY { get { return (resolution * Screen.height / Screen.width + 7) / 8; } }
+    private int ThreadCountX => (resolution + 7) / 8;
+    private int ThreadCountY => (resolution * Screen.height / Screen.width + 7) / 8;
 
-    private int resolutionX { get { return threadCountX * 8; } }
-    private int resolutionY { get { return threadCountY * 8; } }
+    private int ResolutionX => ThreadCountX * 8;
+    private int ResolutionY => ThreadCountY * 8;
 
     // Vector field buffers
     private RenderTexture vfbRTV1;
@@ -57,11 +58,11 @@ public class StableFluids : MonoBehaviour
         }
         if (width <= 0)
         {
-            width = resolutionX;
+            width = ResolutionX;
         }
         if (height <= 0)
         {
-            height = resolutionY;
+            height = ResolutionY;
         };
         var rt = new RenderTexture(width, height, 0, format)
         {
@@ -143,7 +144,7 @@ public class StableFluids : MonoBehaviour
     private void Update()
     {
         float dt = Time.deltaTime;
-        float dx = 1.0f / resolutionY;
+        float dx = 1.0f / ResolutionY;
 
         // Input point
         var input = new Vector2(
@@ -156,7 +157,7 @@ public class StableFluids : MonoBehaviour
         compute.SetFloat("DeltaTime", dt);
 
         //Add code here
-        compute.Dispatch(kernelAdvect, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelAdvect, ThreadCountX, ThreadCountY, 1);
 
         float difalpha = dx * dx / (viscosity * dt);
         compute.SetFloat("Alpha", difalpha);
@@ -167,11 +168,11 @@ public class StableFluids : MonoBehaviour
         {
             compute.SetTexture(kernelDiffuse2, "X2_in", vfbRTV2);
             compute.SetTexture(kernelDiffuse2, "X2_out", vfbRTV3);
-            compute.Dispatch(kernelDiffuse2, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse2, ThreadCountX, ThreadCountY, 1);
 
             compute.SetTexture(kernelDiffuse2, "X2_in", vfbRTV3);
             compute.SetTexture(kernelDiffuse2, "X2_out", vfbRTV2);
-            compute.Dispatch(kernelDiffuse2, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse2, ThreadCountX, ThreadCountY, 1);
         }
 
         compute.SetVector("ForceOrigin", input);
@@ -188,9 +189,9 @@ public class StableFluids : MonoBehaviour
         {
             compute.SetVector("ForceVector", Vector4.zero);
         }
-        compute.Dispatch(kernelForce, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelForce, ThreadCountX, ThreadCountY, 1);
 
-        compute.Dispatch(kernelProjectSetup, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelProjectSetup, ThreadCountX, ThreadCountY, 1);
 
         compute.SetFloat("Alpha", -dx * dx);
         compute.SetFloat("Beta", 4);
@@ -199,14 +200,14 @@ public class StableFluids : MonoBehaviour
         {
             compute.SetTexture(kernelDiffuse1, "X1_in", vfbRTP1);
             compute.SetTexture(kernelDiffuse1, "X1_out", vfbRTP2);
-            compute.Dispatch(kernelDiffuse1, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse1, ThreadCountX, ThreadCountY, 1);
 
             compute.SetTexture(kernelDiffuse1, "X1_in", vfbRTP2);
             compute.SetTexture(kernelDiffuse1, "X1_out", vfbRTP1);
-            compute.Dispatch(kernelDiffuse1, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse1, ThreadCountX, ThreadCountY, 1);
         }
 
-        compute.Dispatch(kernelProject, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelProject, ThreadCountX, ThreadCountY, 1);
 
         var offs = Vector2.one * (Input.GetMouseButton(1) ? 0 : 1e+7f);
         material.SetVector("_ForceOrigin", input + offs);
