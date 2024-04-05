@@ -176,19 +176,8 @@ public class StableFluids : MonoBehaviour
         }
 
         compute.SetVector("ForceOrigin", input);
+        compute.SetVector("ForceVector", GetForceVector(input, previousInput));
 
-        if (Input.GetMouseButton(1))
-        {
-            compute.SetVector("ForceVector", 0.025f * force * Random.insideUnitCircle);
-        }
-        else if (Input.GetMouseButton(0))
-        {
-            compute.SetVector("ForceVector", force * (input - previousInput));
-        }
-        else
-        {
-            compute.SetVector("ForceVector", Vector4.zero);
-        }
         compute.Dispatch(kernelForce, ThreadCountX, ThreadCountY, 1);
 
         compute.Dispatch(kernelProjectSetup, ThreadCountX, ThreadCountY, 1);
@@ -223,5 +212,21 @@ public class StableFluids : MonoBehaviour
         //Graphics.Blit(vfbRTV3, destination, material, 1);
         //Graphics.Blit(colorRT1, destination, material, 0);
         Graphics.Blit(colorRT1, destination, material, 1);
+    }
+
+    private Vector2 GetForceVector(Vector2 input, Vector2 previousInput)
+    {
+        if (Input.GetMouseButton(1))
+        {
+            return 0.025f * force * Random.insideUnitCircle;
+        }
+        else if (Input.GetMouseButton(0))
+        {
+            return force * (input - previousInput);
+        }
+        else
+        {
+            return Vector4.zero;
+        }
     }
 }
