@@ -14,7 +14,7 @@ public class VoronoiEditor : Editor
         int power;
         EditorGUI.BeginChangeCheck();
         {
-            power = EditorGUILayout.IntSlider($"PointsCount: {voronoi.PointsCount}", Maths.Log2((uint)voronoi.PointsCount), 0, logMax);
+            power = (int)(EditorGUILayout.IntSlider($"PointsCount: {voronoi.PointsCount}", Maths.Log2((uint)voronoi.PointsCount), 0, logMax) + 0.5f);
         }
         if (EditorUtils.SetDirtyOnEndChangeCheck(voronoi))
         {
@@ -22,7 +22,7 @@ public class VoronoiEditor : Editor
         }
         EditorGUI.BeginChangeCheck();
         {
-            power = EditorGUILayout.IntSlider($"TargetPoints: {voronoi.TargetPointsCount}", voronoi.TargetLogPointsCount, 0, logMax);
+            power = (int)(EditorGUILayout.IntSlider($"TargetPoints: {voronoi.TargetPointsCount}", voronoi.TargetLogPointsCount, 0, logMax) + 0.5f);
         }
         if (EditorUtils.SetDirtyOnEndChangeCheck(voronoi))
         {

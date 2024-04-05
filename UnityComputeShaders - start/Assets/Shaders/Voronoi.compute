@@ -91,12 +91,12 @@ void UpdateParticles(uint3 id : SV_DispatchThreadID)
 [numthreads(CLEAR_THREADS.x, CLEAR_THREADS.y, CLEAR_THREADS.z)]
 void FindPairs(uint3 id : SV_DispatchThreadID)
 {
-    int x = id.x;
-    int y = id.y;
-    if (x < 1 | y < 1)
+    if (any(id.xy == 0))
     {
         return;
     }
+    int x = id.x;
+    int y = id.y;
     int offset = y * TexResolution + x;
     int i = indexBuffer[offset - 1];
     int j = indexBuffer[offset];

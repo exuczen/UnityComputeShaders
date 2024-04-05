@@ -529,12 +529,12 @@ public class Voronoi : MonoBehaviour
         {
             int logMax = Maths.Log2(ParticlesCapacity);
             int logPointsCount = Maths.Log2((uint)pointsCount);
-            int power = (int)GUI.VerticalSlider(new Rect(10, y, 20, 200), logPointsCount, logMax, 0);
+            int power = (int)(GUI.VerticalSlider(new Rect(10, y, 20, 200), logPointsCount, logMax, 0) + 0.5f);
             if (logPointsCount != power)
             {
                 pointsCount = 1 << power;
             }
-            targetLogPointsCount = (int)GUI.VerticalSlider(new Rect(30, y, 20, 200), targetLogPointsCount, logMax, 0);
+            targetLogPointsCount = (int)(GUI.VerticalSlider(new Rect(30, y, 20, 200), targetLogPointsCount, logMax, 0) + 0.5f);
         }
         y += 200;
         GUI.color = IsChangingPointsCount ? Color.red : guiColor;
