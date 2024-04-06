@@ -84,13 +84,15 @@ public class StarGlow : MonoBehaviour
         Graphics.Blit(source, brightnessTex, material, 1);
         //Graphics.Blit(brightnessTex, destination, material, 0);
 
-        float angle = 360f / numOfStreaks;
+        float deltaAngle = 360f / numOfStreaks;
         for (int x = 1; x <= numOfStreaks; x++)
         {
-            var offset = (Quaternion.AngleAxis(angle * x + angleOfStreak, Vector3.forward) * Vector2.down).normalized;
+            //var offset = (Quaternion.AngleAxis(deltaAngle * x + angleOfStreak, Vector3.forward) * Vector2.down).normalized;
+            float angle = (deltaAngle * x + angleOfStreak) * Mathf.Deg2Rad;
+            var offset = new Vector2(Mathf.Sin(angle), -Mathf.Cos(angle));
             material.SetVector(offsetID, offset);
-            material.SetInt(iterationID, 1);
 
+            material.SetInt(iterationID, 1);
             Graphics.Blit(brightnessTex, blurredTex1, material, 2);
 
             for (int i = 2; i <= iteration; i++)
