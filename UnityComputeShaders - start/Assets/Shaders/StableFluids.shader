@@ -14,7 +14,7 @@ Shader "Custom/StableFluids"
     #include "UnityCG.cginc"
 
     sampler2D _MainTex;
-    float4 _MainTex_TexelSize;
+    float4 _MainTex_TexelSize; // (1.0 / width, 1.0 / height, width, height)
 
     sampler2D _VelocityField;
 
@@ -28,8 +28,8 @@ Shader "Custom/StableFluids"
         float deltaTime = unity_DeltaTime.x;
 
         // Aspect ratio coefficients
-        float2 aspect = float2(_MainTex_TexelSize.y * _MainTex_TexelSize.z, 1);
-        float2 aspect_inv = float2(_MainTex_TexelSize.x * _MainTex_TexelSize.w, 1);
+        float2 aspect = float2(_MainTex_TexelSize.y * _MainTex_TexelSize.z, 1); // (width / height, 1)
+        float2 aspect_inv = float2(_MainTex_TexelSize.x * _MainTex_TexelSize.w, 1); // (height / width, 1)
 
         // Color advection with the velocity field
         float2 delta = tex2D(_VelocityField, i.uv).xy * aspect_inv * deltaTime;
