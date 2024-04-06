@@ -15,7 +15,6 @@ float4x4 look_at_matrix(float3 dir, float3 up)
                 0, 0, 0, 1
             );
 }
- 
 
 float4x4 create_matrix(float3 pos, float3 dir, float3 up)
 {
@@ -41,7 +40,6 @@ float4x4 create_matrix_xy(float3 pos, float theta)
                 0, 0, 0, 1
             );
 }
-
 
 float4x4 create_matrix_yz(float3 pos, float theta)
 {

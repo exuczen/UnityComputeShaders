@@ -13,7 +13,8 @@
    SubShader 
    {
 		CGPROGRAM        
-        #include "Utils/Surface.hlsl"        
+        #include "Utils/Surface.hlsl"
+        #include "Utils/Math.cginc"
  
         #pragma surface surf Standard vertex:vert addshadow nolightmap
         #pragma instancing_options procedural:setup
@@ -33,19 +34,6 @@
 
         StructuredBuffer<Boid> boidsBuffer;
         #endif
-
-        float4x4 create_matrix(float3 pos, float3 dir, float3 up)
-        {
-            float3 zaxis = normalize(dir);
-            float3 xaxis = normalize(cross(up, zaxis));
-            float3 yaxis = cross(zaxis, xaxis);
-            return float4x4(
-                xaxis.x, yaxis.x, zaxis.x, pos.x,
-                xaxis.y, yaxis.y, zaxis.y, pos.y,
-                xaxis.z, yaxis.z, zaxis.z, pos.z,
-                0, 0, 0, 1
-            );
-        }
 
         void setup()
         {
