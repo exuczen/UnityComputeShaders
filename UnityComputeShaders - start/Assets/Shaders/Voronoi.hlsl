@@ -70,7 +70,7 @@ bool plot1(int x, int y, int2 c, float4 color, int id)
     x += c.x;
     y += c.y;
     int2 xy = int2(x, y);
-    bool inBounds = x >= 0 && x < TexResolution && y >= 0 && y < TexResolution;
+    bool inBounds = all(xy >= 0 && xy < TexResolution);
     bool result = inBounds && outputTexture[xy].w < 0.5;
     //bool result = inBounds && getIndexFromTexture(xy) < 0;
     //bool result = outputTexture[xy].w < 0.5;
