@@ -13,7 +13,7 @@ struct Particle
 };
 
 shared RWStructuredBuffer<Particle> particlesBuffer;
-shared RWBuffer<int> indexBuffer;
+shared RWTexture2D<int> indexTexture;
 
 int TexResolution;
 uint PointsRowThreadsCount;
@@ -48,12 +48,14 @@ int2 getParticlePosition(uint i)
 
 int getIndexFromBuffer(int2 xy)
 {
-    return indexBuffer[xy.y * TexResolution + xy.x];
+    //return indexBuffer[xy.y * TexResolution + xy.x];
+    return indexTexture[xy];
 }
 
 void setIndexInBuffer(int2 xy, int i)
 {
-    indexBuffer[xy.y * TexResolution + xy.x] = i;
+    //indexBuffer[xy.y * TexResolution + xy.x] = i;
+    indexTexture[xy] = i;
 }
 
 void respawnParticle(int i, float lifetimeMin, float lifetimeMax, float time)

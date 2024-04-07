@@ -58,9 +58,9 @@ public class Voronoi : MonoBehaviour
         public int LinesLerpValueID;
 
         public int OutputTextureID;
+        public int IndexTextureID;
         public int ColorsBufferID;
         public int ParticlesBufferID;
-        public int IndexBufferID;
         public int AngularPairBufferID;
         public int TempBufferID;
 
@@ -77,9 +77,9 @@ public class Voronoi : MonoBehaviour
             LinesLerpValueID = Shader.PropertyToID("LinesLerpValue");
 
             OutputTextureID = Shader.PropertyToID("outputTexture");
+            IndexTextureID = Shader.PropertyToID("indexTexture");
             ColorsBufferID = Shader.PropertyToID("colorsBuffer");
             ParticlesBufferID = Shader.PropertyToID("particlesBuffer");
-            IndexBufferID = Shader.PropertyToID("indexBuffer");
             AngularPairBufferID = Shader.PropertyToID("angularPairBuffer");
             TempBufferID = Shader.PropertyToID("tempBuffer");
         }
@@ -124,10 +124,10 @@ public class Voronoi : MonoBehaviour
 
     private new Renderer renderer = null;
     private RenderTexture outputTexture = null;
+    private RenderTexture indexTexture = null;
 
     private ComputeBuffer particlesBuffer = null;
     private ComputeBuffer colorsBuffer = null;
-    private ComputeBuffer indexBuffer = null;
     private ComputeBuffer angularPairBuffer = null;
     private ComputeBuffer tempBuffer = null;
     private ComputeBuffer delaunayArgsBuffer = null;
@@ -170,7 +170,6 @@ public class Voronoi : MonoBehaviour
         {
             particlesBuffer?.Release();
             colorsBuffer?.Release();
-            indexBuffer?.Release();
             angularPairBuffer?.Release();
             tempBuffer?.Release();
             delaunayArgsBuffer?.Release();
@@ -240,7 +239,6 @@ public class Voronoi : MonoBehaviour
     {
         particlesBuffer?.Dispose();
         colorsBuffer?.Dispose();
-        indexBuffer?.Dispose();
         angularPairBuffer?.Dispose();
         tempBuffer?.Dispose();
         delaunayArgsBuffer?.Dispose();
@@ -253,7 +251,12 @@ public class Voronoi : MonoBehaviour
             enableRandomWrite = true,
             filterMode = FilterMode.Bilinear
         };
+        indexTexture = new RenderTexture(TexResolution, TexResolution, 0, RenderTextureFormat.RInt)
+        {
+            enableRandomWrite = true
+        };
         outputTexture.Create();
+        indexTexture.Create();
     }
 
     private void FindKernels()
@@ -362,7 +365,6 @@ public class Voronoi : MonoBehaviour
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
-        indexBuffer = new ComputeBuffer(TexResolution * TexResolution, sizeof(int));
         angularPairBuffer = new ComputeBuffer(ParticlesCapacity * angularPairsStride, sizeof(int));
         tempBuffer = new ComputeBuffer(1, sizeof(int));
 
@@ -370,9 +372,9 @@ public class Voronoi : MonoBehaviour
         {
             int kernelID = kernelIDs[i];
             shader.SetTexture(kernelID, shaderData.OutputTextureID, outputTexture);
+            shader.SetTexture(kernelID, shaderData.IndexTextureID, indexTexture);
             shader.SetBuffer(kernelID, shaderData.ColorsBufferID, colorsBuffer);
             shader.SetBuffer(kernelID, shaderData.ParticlesBufferID, particlesBuffer);
-            shader.SetBuffer(kernelID, shaderData.IndexBufferID, indexBuffer);
             shader.SetBuffer(kernelID, shaderData.AngularPairBufferID, angularPairBuffer);
             shader.SetBuffer(kernelID, shaderData.TempBufferID, tempBuffer);
         }

@@ -95,18 +95,17 @@ void FindPairs(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    int x = id.x;
-    int y = id.y;
-    int offset = y * TexResolution + x;
-    int i = indexBuffer[offset - 1];
-    int j = indexBuffer[offset];
+    uint x = id.x;
+    uint y = id.y;
+    int i = indexTexture[uint2(x - 1, y)];
+    int j = indexTexture[id.xy];
     
     if (i >= 0 & j >= 0 & i != j)
     {
         setParticlesAngularPair(i, j);
     }
-    i = indexBuffer[offset - TexResolution];
-    j = indexBuffer[offset];
+    i = indexTexture[uint2(x, y - 1)];
+    j = indexTexture[id.xy];
     
     if (i >= 0 & j >= 0 & i != j)
     {
