@@ -33,7 +33,7 @@ void plotParticle(Particle p, uint i)
     //}
     int2 xy = p.position;
     
-    setIndexInBuffer(xy, i);
+    setIndexInTexture(xy, i);
 #ifdef CENTER_COLOR
     outputTexture[xy] = CENTER_COLOR;
 #elif USE_PARTICLE_COLOR
@@ -54,7 +54,7 @@ void tryPlotParticle(uint i)
     {
         if (p.endTime < Time) // Clear particle
         {
-            setIndexInBuffer(xy, -1);
+            setIndexInTexture(xy, -1);
             outputTexture[xy] = ClearColor;
             particlesBuffer[i] = getClearParticle(p.randomSeed);
         }
@@ -72,11 +72,11 @@ bool plot1(int x, int y, int2 c, float4 color, int id)
     int2 xy = int2(x, y);
     bool inBounds = x >= 0 && x < TexResolution && y >= 0 && y < TexResolution;
     bool result = inBounds && outputTexture[xy].w < 0.5;
-    //bool result = inBounds && getIndexFromBuffer(xy) < 0;
+    //bool result = inBounds && getIndexFromTexture(xy) < 0;
     //bool result = outputTexture[xy].w < 0.5;
     if (result)
     {
-        setIndexInBuffer(xy, id);
+        setIndexInTexture(xy, id);
         outputTexture[xy] = color;
     }
     return result;

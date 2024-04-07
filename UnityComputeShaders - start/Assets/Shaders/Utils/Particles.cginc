@@ -46,15 +46,13 @@ int2 getParticlePosition(uint i)
     return particlesBuffer[i].position;
 }
 
-int getIndexFromBuffer(int2 xy)
+int getIndexFromTexture(int2 xy)
 {
-    //return indexBuffer[xy.y * TexResolution + xy.x];
     return indexTexture[xy];
 }
 
-void setIndexInBuffer(int2 xy, int i)
+void setIndexInTexture(int2 xy, int i)
 {
-    //indexBuffer[xy.y * TexResolution + xy.x] = i;
     indexTexture[xy] = i;
 }
 
@@ -65,7 +63,7 @@ void respawnParticle(int i, float lifetimeMin, float lifetimeMax, float time)
     //int2 xy = (0.25 + random2_xorshift() * 0.5) * TexResolution;
     //int2 xy = (int2)(lerp(CircleRadius, TexResolution - CircleRadius, random2_xorshift()));
     int2 xy = (int2)(random2_xorshift() * TexResolution);
-    int j = getIndexFromBuffer(xy);
+    int j = getIndexFromTexture(xy);
     if (j >= 0 && i != j)
     {
         particlesBuffer[j].endTime = 0.0;
