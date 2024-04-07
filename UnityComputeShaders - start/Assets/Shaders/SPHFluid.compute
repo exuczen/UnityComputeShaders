@@ -61,16 +61,18 @@ bool Intersect(SPHCollider collider, float3 position)
 float3 DampVelocity(SPHCollider collider, float3 velocity, float drag)
 {
     float3 newVelocity = dot(velocity, penetrationNormal) * penetrationNormal * damping
-                    + dot(velocity, collider.right) * collider.right * drag
-                    + dot(velocity, collider.up) * collider.up * drag;
+                       + dot(velocity, collider.right) * collider.right * drag
+                       + dot(velocity, collider.up) * collider.up * drag;
 
-    float3 forward = float3(0, 0, 1);
-    float3 right = float3(1, 0, 0);
-    float3 up = float3(0, 1, 0);
+    //float3 right = float3(1, 0, 0);
+    //float3 up = float3(0, 1, 0);
+    //float3 forward = float3(0, 0, 1);
 
-    return dot(newVelocity, forward) * forward
-            + dot(newVelocity, right) * right
-            + dot(newVelocity, up) * up;
+    //return dot(newVelocity, right) * right
+    //     + dot(newVelocity, up) * up
+    //     + dot(newVelocity, forward) * forward;
+    
+    return newVelocity;
 }
 
 [numthreads(PARTICLETHREADCOUNT, 1, 1)]

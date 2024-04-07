@@ -6,7 +6,7 @@
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType" = "Opaque" }
         LOD 200
 
         CGPROGRAM
@@ -26,32 +26,34 @@
 
         half _Glossiness;
         half _Metallic;
-        float _Radius;
-        float3 _Position;
         fixed4 _Color;
 
-        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            struct SPHParticle
-            {
-                float3 position;
-                float3 velocity;
-                float3 force;
-                float density;
-                float pressure;
-            };
+        float _Radius;
+        float3 _Position;
 
-            StructuredBuffer<SPHParticle> particles;
+        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+        struct SPHParticle
+        {
+            float3 position;
+            float3 velocity;
+            float3 force;
+            float density;
+            float pressure;
+        };
+
+        StructuredBuffer<SPHParticle> particles;
         #endif
 
         UNITY_INSTANCING_BUFFER_START(Props)
-            
         UNITY_INSTANCING_BUFFER_END(Props)
 
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
                 SPHParticle particle = particles[unity_InstanceID];
                 _Position = particle.position;
+            }
             #endif
         }
 
@@ -60,12 +62,14 @@
             UNITY_INITIALIZE_OUTPUT(Input, data);
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+            {
                 v.vertex.xyz *= _Radius;
                 v.vertex.xyz += _Position;
+            }
             #endif
         }
 
-        void surf (Input IN, inout SurfaceOutputStandard o)
+        void surf(Input IN, inout SurfaceOutputStandard o)
         {
             o.Albedo = _Color.rgb;
             o.Metallic = _Metallic;

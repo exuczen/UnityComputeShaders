@@ -173,6 +173,7 @@ public class SPHFluid : MonoBehaviour
 
         for (int i = 0; i < amount; i++)
         {
+            // i = x + z * rowSize + y * rowSize * rowSize
             var pos = new Vector3
             {
                 x = (i % rowSize) + Random.Range(-0.1f, 0.1f) - center,
