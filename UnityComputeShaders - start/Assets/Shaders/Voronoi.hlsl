@@ -5,8 +5,6 @@
 
 shared RWTexture2D<float4> outputTexture;
 shared Buffer<float4> colorsBuffer;
-shared RWBuffer<int> angularPairBuffer;
-shared RWBuffer<int> tempBuffer;
 
 int CircleRadius;
 float CircleRadiusInv;
