@@ -19,6 +19,8 @@ public class Voronoi : MonoBehaviour
     private const int ParticleSize = 2 * sizeof(int) + 5 * sizeof(float) + sizeof(uint) + sizeof(int);
     private const int TexResolution = 1 << 10;
 
+    private const int AngularPairsStride = 25;
+
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
     private enum DelaunayDrawType
@@ -55,6 +57,7 @@ public class Voronoi : MonoBehaviour
         public int PointsCapacityID;
         public int PointsCountID;
         public int PointsRowThreadsCountID;
+        public int AngularPairsStrideID;
         public int LinesLerpValueID;
 
         public int OutputTextureID;
@@ -74,6 +77,7 @@ public class Voronoi : MonoBehaviour
             PointsCapacityID = Shader.PropertyToID("PointsCapacity");
             PointsCountID = Shader.PropertyToID("PointsCount");
             PointsRowThreadsCountID = Shader.PropertyToID("PointsRowThreadsCount");
+            AngularPairsStrideID = Shader.PropertyToID("AngularPairsStride");
             LinesLerpValueID = Shader.PropertyToID("LinesLerpValue");
 
             OutputTextureID = Shader.PropertyToID("outputTexture");
@@ -140,8 +144,6 @@ public class Voronoi : MonoBehaviour
 
     private readonly uint[] circleNumThreads = new uint[3];
 
-    private int angularPairsStride = 0;
-
     private float pointsCountChangeStartTime = -1f;
     private float pointsCountChangeEndTime = -1f;
     private float startLogPointsCount;
@@ -205,7 +207,7 @@ public class Voronoi : MonoBehaviour
         if (delaunayVisible && delaunayDrawType == DelaunayDrawType.ProceduralIndirect)
         {
             delaunayMaterial.SetPass(0);
-            delaunayArgsBuffer.SetData(new int[4] { 2, pointsCount * angularPairsStride, 0, 0 });
+            delaunayArgsBuffer.SetData(new int[4] { 2, pointsCount * AngularPairsStride, 0, 0 });
             Graphics.DrawProceduralIndirect(delaunayMaterial, new Bounds(Vector3.zero, 1000f * Vector3.one), MeshTopology.Lines, delaunayArgsBuffer);
         }
 #endif
@@ -223,12 +225,12 @@ public class Voronoi : MonoBehaviour
             if (delaunayDrawType == DelaunayDrawType.ProceduralNow)
             {
                 delaunayMaterial.SetPass(0);
-                Graphics.DrawProceduralNow(MeshTopology.Lines, 2, pointsCount * angularPairsStride);
+                Graphics.DrawProceduralNow(MeshTopology.Lines, 2, pointsCount * AngularPairsStride);
             }
             else if (delaunayDrawType == DelaunayDrawType.ProceduralIndirectNow)
             {
                 delaunayMaterial.SetPass(0);
-                delaunayArgsBuffer.SetData(new int[4] { 2, pointsCount * angularPairsStride, 0, 0 });
+                delaunayArgsBuffer.SetData(new int[4] { 2, pointsCount * AngularPairsStride, 0, 0 });
                 Graphics.DrawProceduralIndirectNow(MeshTopology.Lines, delaunayArgsBuffer);
             }
         }
@@ -289,7 +291,12 @@ public class Voronoi : MonoBehaviour
         clearThreadGroups.z = 1;
 
         GetKernelThreadGroupSizes(Kernel.DrawPairLines, numthreads);
-        angularPairsStride = (int)numthreads[2];
+        // pairsThreadGroups.z * ANGULAR_PAIRS_THREADS = AngularPairsStride - 1
+        if ((AngularPairsStride - 1) % numthreads[2] != 0)
+        {
+            throw new Exception($"{GetType().Name}.GetThreadGroupSizes: {AngularPairsStride - 1} is not integer multiple of {numthreads[2]}");
+        }
+        pairsThreadGroups.z = (AngularPairsStride - 1) / (int)numthreads[2];
     }
 
     private void SetPointsCount(int pointsCount, bool log)
@@ -321,7 +328,7 @@ public class Voronoi : MonoBehaviour
         {
             circleThreadGroups.Set(groupsCount, 1, 1);
         }
-        pairsThreadGroups.Set(circleThreadGroups.x, circleThreadGroups.y, 1);
+        pairsThreadGroups.Set(circleThreadGroups.x, circleThreadGroups.y, pairsThreadGroups.z);
 
         shader.SetInt(shaderData.PointsRowThreadsCountID, (int)circleNumThreads[0] * circleThreadGroups.x);
         shader.SetInt(shaderData.PointsCountID, pointsCount);
@@ -359,13 +366,14 @@ public class Voronoi : MonoBehaviour
         shader.SetVector("ClearColor", ColorUtils.ColorWithAlpha(clearColor, 0f));
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
         shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
+        shader.SetInt(shaderData.AngularPairsStrideID, AngularPairsStride);
 
         delaunayArgsBuffer = new ComputeBuffer(1, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
 
         colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
         particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
-        angularPairBuffer = new ComputeBuffer(ParticlesCapacity * angularPairsStride, sizeof(int));
+        angularPairBuffer = new ComputeBuffer(ParticlesCapacity * AngularPairsStride, sizeof(int));
         tempBuffer = new ComputeBuffer(1, sizeof(int));
 
         for (int i = 0; i < kernelIDs.Length; i++)
@@ -382,7 +390,7 @@ public class Voronoi : MonoBehaviour
 
         delaunayMaterial.SetTexture("_MainTex", outputTexture);
         delaunayMaterial.SetInteger("_HalfRes", TexResolution >> 1);
-        delaunayMaterial.SetInteger("_AngularPairsStride", angularPairsStride);
+        delaunayMaterial.SetInteger("_AngularPairsStride", AngularPairsStride);
         delaunayMaterial.SetFloat("_Scale", transform.localScale.x / TexResolution);
         delaunayMaterial.SetBuffer("particlesBuffer", particlesBuffer);
         delaunayMaterial.SetBuffer("angularPairBuffer", angularPairBuffer);

@@ -1,6 +1,6 @@
 ﻿#define CIRCLE_THREADS int3(16, 1, 1) // max 1024
 #define CLEAR_THREADS int3(32, 32, 1)
-#define ANGULAR_PAIRS_STRIDE 25
+#define ANGULAR_PAIRS_THREADS 24
 
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DrawPoints
@@ -24,6 +24,7 @@ shared RWBuffer<int> tempBuffer;
 
 uint PointsCapacity;
 uint PointsCount;
+uint AngularPairsStride;
 int Radius;
 int RadiusSqr;
 float LinesLerpValue;
@@ -38,10 +39,10 @@ void setParticlesAngularPair(uint i, uint j)
     float2 posJ = getParticlePosition(j);
     float2 dr = posJ - posI;
     float angle = PI - atan2(dr.y, dr.x);
-    uint angleDivisions = ANGULAR_PAIRS_STRIDE - 1;
+    uint angleDivisions = AngularPairsStride - 1;
     //uint angleSection = (int)(angle * angleDivisions / PI2 + 0.5f) % angleDivisions;
     uint angleSection = (int)(angle * angleDivisions / PI2);
-    uint iOffset = i * ANGULAR_PAIRS_STRIDE;
+    uint iOffset = i * AngularPairsStride;
     angularPairBuffer[iOffset] = i;
     angularPairBuffer[iOffset + 1 + angleSection] = j;
 }
@@ -52,6 +53,7 @@ void InitParticles(uint3 id : SV_DispatchThreadID)
     uint i = getParticleIndex(id);
     //particlesBuffer[i] = getClearParticle(wang_hash(i));
     particlesBuffer[i] = getClearParticle(lgc_hash(i));
+    angularPairBuffer[i * AngularPairsStride] = i;
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
@@ -116,7 +118,7 @@ void FindPairs(uint3 id : SV_DispatchThreadID)
     }
 }
 
-[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, ANGULAR_PAIRS_STRIDE)]
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, ANGULAR_PAIRS_THREADS)]
 void DrawPairLines(uint3 id : SV_DispatchThreadID)
 {
     uint i = getParticleIndex(id);
@@ -124,15 +126,15 @@ void DrawPairLines(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    //i = angularPairBuffer[i * ANGULAR_PAIRS_STRIDE];
-    uint j = angularPairBuffer[i * ANGULAR_PAIRS_STRIDE + id.z];
+    //i = angularPairBuffer[i * AngularPairsStride];
+    uint j = angularPairBuffer[i * AngularPairsStride + id.z + 1];
     if (i != j)
     {
         drawLine(outputTexture, getParticlePosition(i), getParticlePosition(j), 1.0, LinesLerpValue);
     }
 }
 
-[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, ANGULAR_PAIRS_STRIDE)]
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, ANGULAR_PAIRS_THREADS)]
 void ClearPairs(uint3 id : SV_DispatchThreadID)
 {
     uint i = getParticleIndex(id);
@@ -140,7 +142,7 @@ void ClearPairs(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    uint j = i * ANGULAR_PAIRS_STRIDE + id.z;
+    uint j = i * AngularPairsStride + id.z + 1;
     angularPairBuffer[j] = i;
 }
 
