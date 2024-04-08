@@ -25,22 +25,22 @@ int Radius;
 int RadiusSqr;
 float LinesLerpValue;
 
-void setParticlesAngularPair(uint j, uint k)
+void setParticlesAngularPair(uint i, uint j)
 {
-    uint iMin = min(j, k);
-    uint iMax = max(j, k);
-    j = iMin;
-    k = iMax;
+    uint minId = min(i, j);
+    uint maxId = max(i, j);
+    i = minId;
+    j = maxId;
+    float2 posI = getParticlePosition(i);
     float2 posJ = getParticlePosition(j);
-    float2 posK = getParticlePosition(k);
-    float2 dr = posK - posJ;
+    float2 dr = posJ - posI;
     float angle = PI - atan2(dr.y, dr.x);
     uint angleDivisions = ANGULAR_PAIRS_STRIDE - 1;
     //uint angleSection = (int)(angle * angleDivisions / PI2 + 0.5f) % angleDivisions;
     uint angleSection = (int)(angle * angleDivisions / PI2);
-    uint jOffset = j * (angleDivisions + 1);
-    angularPairBuffer[jOffset] = j;
-    angularPairBuffer[jOffset + 1 + angleSection] = k;
+    uint iOffset = i * ANGULAR_PAIRS_STRIDE;
+    angularPairBuffer[iOffset] = i;
+    angularPairBuffer[iOffset + 1 + angleSection] = j;
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
