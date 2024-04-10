@@ -5,10 +5,8 @@ using UnityEngine.Rendering;
 
 namespace PBDFluid
 {
-
     public class FluidBody : IDisposable
     {
-
         public int NumParticles { get; private set; }
 
         public Bounds Bounds;
@@ -76,7 +74,6 @@ namespace PBDFluid
 
         public void Dispose()
         {
-
             if (Positions != null)
             {
                 Positions.Release();
@@ -166,8 +163,5 @@ namespace PBDFluid
             m_argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
             m_argsBuffer.SetData(args);
         }
-
     }
-
-
 }

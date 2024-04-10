@@ -3,10 +3,8 @@ using UnityEngine;
 
 namespace PBDFluid
 {
-
     public class SmoothingKernel
     {
-
         public float POLY6 { get; private set; }
 
         public float SPIKY_GRAD { get; private set; }
@@ -54,8 +52,8 @@ namespace PBDFluid
         {
             float r = p.magnitude;
 
-            if(r < Radius)
-                return p.normalized * SPIKY_GRAD * Pow2(Radius - r);
+            if (r < Radius)
+                return Pow2(Radius - r) * SPIKY_GRAD * p.normalized;
             else
                 return Vector3.zero;
         }
@@ -69,7 +67,5 @@ namespace PBDFluid
             else
                 return 0;
         }
-
     }
-
 }

@@ -4,10 +4,8 @@ using UnityEngine;
 
 namespace PBDFluid
 {
-
     public class ParticlesFromBounds : ParticleSource
     {
-
         public Bounds Bounds { get; private set; }
 
         public List<Bounds> Exclusion { get; private set; }
@@ -29,7 +27,6 @@ namespace PBDFluid
 
         private void CreateParticles()
         {
-
             int numX = (int)((Bounds.size.x + HalfSpacing) / Spacing);
             int numY = (int)((Bounds.size.y + HalfSpacing) / Spacing);
             int numZ = (int)((Bounds.size.z + HalfSpacing) / Spacing);
@@ -57,14 +54,11 @@ namespace PBDFluid
                             }
                         }
 
-                        if(!exclude)
+                        if (!exclude)
                             Positions.Add(pos);
                     }
                 }
             }
-
         }
-
     }
-
 }

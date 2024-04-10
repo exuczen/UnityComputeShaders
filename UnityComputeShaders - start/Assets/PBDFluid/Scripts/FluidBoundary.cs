@@ -5,7 +5,6 @@ using UnityEngine.Rendering;
 
 namespace PBDFluid
 {
-
     public class FluidBoundary : IDisposable
     {
         private const int THREADS = 128;
@@ -54,7 +53,7 @@ namespace PBDFluid
 
         public void Dispose()
         {
-            if(Positions != null)
+            if (Positions != null)
             {
                 Positions.Release();
                 Positions = null;
@@ -154,7 +153,5 @@ namespace PBDFluid
             grid.Dispose();
 
         }
-
     }
-
 }

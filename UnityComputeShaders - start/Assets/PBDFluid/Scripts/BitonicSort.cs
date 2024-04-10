@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace PBDFluid
 {
-
     public class BitonicSort : IDisposable
     {
         //Range of min/max particles for various block sizes.
@@ -38,7 +37,7 @@ namespace PBDFluid
         public const int MIN_ELEMENTS = BITONIC_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE;
 
         private const int MATRIX_WIDTH = BITONIC_BLOCK_SIZE;
-        
+
         public int NumElements { get; private set; }
 
         private ComputeBuffer m_buffer1, m_buffer2;
@@ -156,7 +155,5 @@ namespace PBDFluid
 
             return NumElements;
         }
-
     }
-
 }

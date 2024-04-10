@@ -4,10 +4,8 @@ using UnityEngine;
 
 namespace PBDFluid
 {
-
     public class FluidSolver : IDisposable
     {
-
         private const int THREADS = 128;
         private const int READ = 0;
         private const int WRITE = 1;
@@ -56,7 +54,6 @@ namespace PBDFluid
 
         public void StepPhysics(float dt)
         {
-
             if (dt <= 0.0) return;
             if (SolverIterations <= 0 || ConstraintIterations <= 0) return;
 
@@ -100,7 +97,6 @@ namespace PBDFluid
 
                 UpdatePositions();
             }
-  
         }
 
         private void PredictPositions(float dt)
@@ -120,7 +116,6 @@ namespace PBDFluid
 
         public void ConstrainPositions()
         {
-
             int computeKernel = m_shader.FindKernel("ComputeDensity");
             int solveKernel = m_shader.FindKernel("SolveConstraint");
 
@@ -191,9 +186,7 @@ namespace PBDFluid
 
         private void Swap(ComputeBuffer[] buffers)
         {
-            ComputeBuffer tmp = buffers[0];
-            buffers[0] = buffers[1];
-            buffers[1] = tmp;
+            (buffers[1], buffers[0]) = (buffers[0], buffers[1]);
         }
     }
 

@@ -4,10 +4,8 @@ using UnityEngine;
 
 namespace PBDFluid
 {
-
     public class GridHash : IDisposable
     {
-
         private const int THREADS = 128;
         private const int READ = 0;
         private const int WRITE = 1;
@@ -179,7 +177,6 @@ namespace PBDFluid
         /// </summary>
         public void DrawGrid(Camera cam, Color col)
         {
-
             float width = Bounds.size.x;
             float height = Bounds.size.y;
             float depth = Bounds.size.z;
@@ -215,8 +212,6 @@ namespace PBDFluid
                     DrawLines.Draw(cam, a, b, col, Matrix4x4.identity);
                 }
             }
-
         }
-
     }
 }

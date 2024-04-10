@@ -5,10 +5,8 @@ using UnityEngine.Rendering;
 
 namespace PBDFluid
 {
-
     public class RenderVolume : IDisposable
     {
-
         private const int THREADS = 8;
 
         public float PixelSize { get; private set; }
@@ -88,7 +86,7 @@ namespace PBDFluid
 
         public void Dispose()
         {
-            if(m_mesh != null)
+            if (m_mesh != null)
             {
                 GameObject.DestroyImmediate(m_mesh);
                 m_mesh = null;
@@ -108,7 +106,7 @@ namespace PBDFluid
             Bounds bounds = WorldBounds;
             m_mesh.transform.position = bounds.center;
             m_mesh.transform.localScale = bounds.size;
-            
+
             material.SetVector("Translate", m_mesh.transform.position);
             material.SetVector("Scale", m_mesh.transform.localScale);
             material.SetTexture("Volume", Volume);
@@ -123,7 +121,6 @@ namespace PBDFluid
         /// </summary>
         public void FillVolume(FluidBody body, GridHash grid, SmoothingKernel kernel)
         {
-
             int computeKernel = m_shader.FindKernel("ComputeVolume");
 
             m_shader.SetFloat("VolumeScale", PixelSize);
@@ -145,8 +142,6 @@ namespace PBDFluid
             m_shader.SetTexture(computeKernel, "Volume", Volume);
 
             m_shader.Dispatch(computeKernel, Groups.x, Groups.y, Groups.z);
-
         }
-
     }
 }

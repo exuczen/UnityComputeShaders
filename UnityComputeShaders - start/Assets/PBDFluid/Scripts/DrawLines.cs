@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 namespace PBDFluid
 {
-
-    public enum LINE_MODE { LINES, TRIANGLES, TETRAHEDRON  };
+    public enum LINE_MODE { LINES, TRIANGLES, TETRAHEDRON };
 
     public class DrawLines
     {
@@ -106,7 +105,7 @@ namespace PBDFluid
 
             int vertexCount = vertices.Count;
 
-            if(indices != null)
+            if (indices != null)
             {
                 for (int i = 0; i < indices.Count / 2; i++)
                 {
@@ -122,9 +121,9 @@ namespace PBDFluid
             }
             else
             {
-                for (int i = 0; i < vertexCount-1; i++)
+                for (int i = 0; i < vertexCount - 1; i++)
                 {
-                    GL.Vertex(vertices[i ]);
+                    GL.Vertex(vertices[i]);
                     GL.Vertex(vertices[i + 1]);
                 }
             }
@@ -151,7 +150,7 @@ namespace PBDFluid
 
             int vertexCount = vertices.Count;
 
-            if(indices != null)
+            if (indices != null)
             {
                 for (int i = 0; i < indices.Count / 3; i++)
                 {
@@ -214,7 +213,7 @@ namespace PBDFluid
 
             int vertexCount = vertices.Count;
 
-            if(indices != null)
+            if (indices != null)
             {
                 for (int i = 0; i < indices.Count / 4; i++)
                 {
@@ -281,7 +280,5 @@ namespace PBDFluid
 
             GL.PopMatrix();
         }
-
     }
-
 }
