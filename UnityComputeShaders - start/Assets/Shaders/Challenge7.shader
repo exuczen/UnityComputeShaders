@@ -16,7 +16,6 @@ Shader "Custom/Challenge7"
 
     half4 frag_render(v2f_img i) : SV_Target
     {
-        
         half4 color = tex2D(_MainTex, i.uv);
         
         return color;
@@ -26,7 +25,12 @@ Shader "Custom/Challenge7"
 
     SubShader
     {
-        Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
+        Tags 
+        {
+            "Queue" = "Transparent"
+            "RenderType" = "Transparent"
+            "IgnoreProjector" = "True"
+        }
 
         Cull Off ZWrite On ZTest Less
         Blend SrcAlpha OneMinusSrcAlpha

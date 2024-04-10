@@ -14,20 +14,20 @@ public class Challenge7 : MonoBehaviour
     public Vector2 forceOrigin;
     public Vector2 forceVector;
 
-    Material material;
+    private Material material;
 
-    int kernelAdvect;
-    int kernelForce;
-    int kernelProjectSetup;
-    int kernelProject;
-    int kernelDiffuse1;
-    int kernelDiffuse2;
+    private int kernelAdvect;
+    private int kernelForce;
+    private int kernelProjectSetup;
+    private int kernelProject;
+    private int kernelDiffuse1;
+    private int kernelDiffuse2;
 
-    int threadCountX { get { return (resolution + 7) / 8; } }
-    int threadCountY { get { return (resolution * Screen.height / Screen.width + 7) / 8; } }
+    private int ThreadCountX => (resolution + 7) / 8;
+    private int ThreadCountY => (resolution * Screen.height / Screen.width + 7) / 8;
 
-    int resolutionX { get { return threadCountX * 8; } }
-    int resolutionY { get { return threadCountY * 8; } }
+    private int ResolutionX => ThreadCountX * 8;
+    private int ResolutionY => ThreadCountY * 8;
 
     // Vector field buffers
     private RenderTexture vfbRTV1;
@@ -46,11 +46,13 @@ public class Challenge7 : MonoBehaviour
         if (componentCount == 1) format = RenderTextureFormat.RHalf;
         if (componentCount == 2) format = RenderTextureFormat.RGHalf;
 
-        if (width == 0) width = resolutionX;
-        if (height == 0) height = resolutionY;
+        if (width == 0) width = ResolutionX;
+        if (height == 0) height = ResolutionY;
 
-        var rt = new RenderTexture(width, height, 0, format);
-        rt.enableRandomWrite = true;
+        var rt = new RenderTexture(width, height, 0, format)
+        {
+            enableRandomWrite = true
+        };
         rt.Create();
         return rt;
     }
@@ -109,7 +111,7 @@ public class Challenge7 : MonoBehaviour
         compute.SetTexture(kernelProject, "U_out", vfbRTV1);
         compute.SetFloat("ForceExponent", exponent);
 
-        //TO DO: 1 - Setup the correct force origin.
+        //TODO: 1 - Setup the correct force origin.
         //The StableFluids.compute shader wants the input to have the origin at the centre of the quad.
         //The public property forceOrigin has uv coordinates, with the origin at bottom left
         var inputForceOrigin = forceOrigin - 0.5f * Vector2.one;
@@ -119,7 +121,7 @@ public class Challenge7 : MonoBehaviour
         material.SetFloat("_ForceExponent", exponent);
         material.SetTexture("_VelocityField", vfbRTV1);
 
-        //TO DO: 2 - Get the material attached to this object and set colorRT1 as its _MainTex property
+        //TODO: 2 - Get the material attached to this object and set colorRT1 as its _MainTex property
         var renderer = GetComponent<MeshRenderer>();
         renderer.material.SetTexture("_MainTex", colorRT1);
     }
@@ -139,14 +141,14 @@ public class Challenge7 : MonoBehaviour
     private void Update()
     {
         var dt = Time.deltaTime;
-        var dx = 1.0f / resolutionY;
+        var dx = 1.0f / ResolutionY;
 
         // Common variables
         compute.SetFloat("Time", Time.time);
         compute.SetFloat("DeltaTime", dt);
 
         // Advection
-        compute.Dispatch(kernelAdvect, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelAdvect, ThreadCountX, ThreadCountY, 1);
 
         // Diffuse setup
         var difalpha = dx * dx / (viscosity * dt);
@@ -159,14 +161,14 @@ public class Challenge7 : MonoBehaviour
         {
             compute.SetTexture(kernelDiffuse2, "X2_in", vfbRTV2);
             compute.SetTexture(kernelDiffuse2, "X2_out", vfbRTV3);
-            compute.Dispatch(kernelDiffuse2, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse2, ThreadCountX, ThreadCountY, 1);
 
             compute.SetTexture(kernelDiffuse2, "X2_in", vfbRTV3);
             compute.SetTexture(kernelDiffuse2, "X2_out", vfbRTV2);
-            compute.Dispatch(kernelDiffuse2, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse2, ThreadCountX, ThreadCountY, 1);
         }
 
-        //TO DO: 3 - Add random vector to the forceVector
+        //TODO: 3 - Add random vector to the forceVector
         var deltaForce = new Vector2
         {
             x = Random.Range(-10f, 10f),
@@ -175,10 +177,10 @@ public class Challenge7 : MonoBehaviour
         compute.SetVector("ForceVector", forceVector * Random.value + deltaForce);
 
         // Add external force
-        compute.Dispatch(kernelForce, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelForce, ThreadCountX, ThreadCountY, 1);
 
         // Projection setup
-        compute.Dispatch(kernelProjectSetup, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelProjectSetup, ThreadCountX, ThreadCountY, 1);
 
         // Jacobi iteration
         compute.SetFloat("Alpha", -dx * dx);
@@ -188,22 +190,20 @@ public class Challenge7 : MonoBehaviour
         {
             compute.SetTexture(kernelDiffuse1, "X1_in", vfbRTP1);
             compute.SetTexture(kernelDiffuse1, "X1_out", vfbRTP2);
-            compute.Dispatch(kernelDiffuse1, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse1, ThreadCountX, ThreadCountY, 1);
 
             compute.SetTexture(kernelDiffuse1, "X1_in", vfbRTP2);
             compute.SetTexture(kernelDiffuse1, "X1_out", vfbRTP1);
-            compute.Dispatch(kernelDiffuse1, threadCountX, threadCountY, 1);
+            compute.Dispatch(kernelDiffuse1, ThreadCountX, ThreadCountY, 1);
         }
 
         // Projection finish
-        compute.Dispatch(kernelProject, threadCountX, threadCountY, 1);
+        compute.Dispatch(kernelProject, ThreadCountX, ThreadCountY, 1);
 
         // Apply the velocity field to the color buffer.
         Graphics.Blit(colorRT1, colorRT2, material, 0);
 
         // Swap the color buffers.
-        var temp = colorRT1;
-        colorRT1 = colorRT2;
-        colorRT2 = temp;
+        (colorRT2, colorRT1) = (colorRT1, colorRT2);
     }
 }

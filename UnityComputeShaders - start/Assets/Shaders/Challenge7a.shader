@@ -40,7 +40,7 @@ Shader "Custom/Challenge7a"
         float4 color = tex2D(_MainTex, i.uv - delta) * 0.98;
 
         // Smoke (inject smoke)
-        //TO DO: 4 - Set the smoke color including a suitable alpha value
+        //TODO: 4 - Set the smoke color including a suitable alpha value
         float4 smoke = float4(0.8, 0.8, 1.0, 0.7);
 
         // Blend smoke with the color from the buffer.   
@@ -62,7 +62,12 @@ Shader "Custom/Challenge7a"
 
     SubShader
     {
-        Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
+        Tags 
+        {   
+            "Queue" = "Transparent"
+            "RenderType" = "Transparent"
+            "IgnoreProjector" = "True"
+        }
 
         Cull Off ZWrite Off ZTest Always
         Blend SrcAlpha OneMinusSrcAlpha
