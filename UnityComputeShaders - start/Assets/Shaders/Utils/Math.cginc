@@ -1,4 +1,7 @@
-﻿float invLerp(float a, float b, float v)
+﻿#define PI 3.14159265359
+#define PI2 6.28318530718
+
+float invLerp(float a, float b, float v)
 {
     return saturate((v - a) / (b - a));
 }
