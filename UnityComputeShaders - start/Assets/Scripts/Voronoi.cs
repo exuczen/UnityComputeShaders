@@ -59,6 +59,7 @@ public class Voronoi : MonoBehaviour
         public int PointsRowThreadsCountID;
         public int AngularPairsStrideID;
         public int LinesLerpValueID;
+        public int CursorPositionID;
 
         public int OutputTextureID;
         public int IndexTextureID;
@@ -79,6 +80,7 @@ public class Voronoi : MonoBehaviour
             PointsRowThreadsCountID = Shader.PropertyToID("PointsRowThreadsCount");
             AngularPairsStrideID = Shader.PropertyToID("AngularPairsStride");
             LinesLerpValueID = Shader.PropertyToID("LinesLerpValue");
+            CursorPositionID = Shader.PropertyToID("CursorPosition");
 
             OutputTextureID = Shader.PropertyToID("outputTexture");
             IndexTextureID = Shader.PropertyToID("indexTexture");
@@ -202,6 +204,7 @@ public class Voronoi : MonoBehaviour
             return;
         }
         UpdatePointsCount();
+        SetCursorPosition();
         DispatchKernels();
 #if USE_DELAUNAY_SHADER
         if (delaunayVisible && delaunayDrawType == DelaunayDrawType.ProceduralIndirect)
@@ -338,13 +341,28 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat(shaderData.CircleRadiusInvID, 1f / circleRadius);
 
         delaunayLerpValue = Mathf.InverseLerp(20, 0, Mathf.Log(pointsCount, 2f));
-        delaunayLerpValue = Mathf.Clamp(delaunayLerpValue, 0.15f, 0.5f);
+        delaunayLerpValue = Mathf.Lerp(0.3f, 0.7f, delaunayLerpValue);
+        //delaunayLerpValue = Mathf.Clamp(delaunayLerpValue, 0.15f, 0.5f);
         shader.SetFloat(shaderData.LinesLerpValueID, delaunayLerpValue);
 
         if (log)
         {
             Debug.Log($"{GetType().Name}.SetPointsCount: circleThreadGroups: {circleThreadGroups} circleNumThreads: ({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
         }
+    }
+
+    private void SetCursorPosition()
+    {
+        if (!Input.GetMouseButton(1))
+        {
+            return;
+        }
+        var mousePos = Input.mousePosition;
+        int cursorPosY = (int)(TexResolution * mousePos.y / Screen.height);
+        float offsetX = (Screen.width - Screen.height) * 0.5f;
+        int cursorPosX = (int)(TexResolution * (mousePos.x - offsetX) / Screen.height);
+        Debug.Log($"{GetType().Name}.({cursorPosX}, {cursorPosY})");
+        shader.SetInts(shaderData.CursorPositionID, cursorPosX, cursorPosY);
     }
 
     private int GetThreadGroupCount(uint numthreads, int size, bool clamp = true)
@@ -367,6 +385,7 @@ public class Voronoi : MonoBehaviour
         shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
         shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
         shader.SetInt(shaderData.AngularPairsStrideID, AngularPairsStride);
+        shader.SetInts(shaderData.CursorPositionID, TexResolution >> 1, TexResolution >> 1);
 
         delaunayArgsBuffer = new ComputeBuffer(1, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
 

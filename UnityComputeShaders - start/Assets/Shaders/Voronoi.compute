@@ -88,7 +88,8 @@ void UpdateParticles(uint3 id : SV_DispatchThreadID)
     }
     if (getParticlePosition(i).x < 0)
     {
-        respawnParticle(i, 0.1, 1.0, Time);
+        //respawnParticle(i, 0.1, 1.0, Time);
+        respawnParticleAroundCenter(i, 0.1, 1.0, Time, CursorPosition);
         plotParticle(particlesBuffer[i], i); // Write particle's pixel
     }
 }
