@@ -750,7 +750,7 @@ GameObject:
   - component: {fileID: 1385668703}
   - component: {fileID: 1385668704}
   m_Layer: 0
-  m_Name: VoronoiQuad
+  m_Name: RandomVoronoiQuad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -2,15 +2,15 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(Voronoi))]
-public class VoronoiEditor : Editor
+[CustomEditor(typeof(RandomVoronoi))]
+public class RandomVoronoiEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
-        var voronoi = target as Voronoi;
+        var voronoi = target as RandomVoronoi;
 
-        int logMax = Maths.Log2(Voronoi.ParticlesCapacity);
+        int logMax = Maths.Log2(RandomVoronoi.ParticlesCapacity);
         int power;
         EditorGUI.BeginChangeCheck();
         {

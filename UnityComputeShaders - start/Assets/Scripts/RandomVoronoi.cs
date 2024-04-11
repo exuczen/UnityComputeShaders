@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using MustHave.UI;
 
 [ExecuteInEditMode]
-public class Voronoi : MonoBehaviour
+public class RandomVoronoi : MonoBehaviour
 {
     public const int ParticlesCapacity = 1 << 20;
 

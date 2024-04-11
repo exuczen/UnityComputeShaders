@@ -1,7 +1,7 @@
 ﻿//#define CENTER_COLOR float4(1.0, 1.0, 1.0, 1.0);
 #define USE_PARTICLE_COLOR 1
 
-#include "Utils/Particles.cginc"
+#include "Utils/RandomVoronoiParticles.cginc"
 
 shared RWTexture2D<float4> outputTexture;
 shared Buffer<float4> colorsBuffer;

@@ -17,7 +17,7 @@
 #pragma kernel FindPairs
 
 #include "Utils/Geometry.cginc"
-#include "Voronoi.hlsl"
+#include "RandomVoronoi.hlsl"
 
 shared RWBuffer<int> angularPairBuffer;
 shared RWBuffer<int> tempBuffer;
