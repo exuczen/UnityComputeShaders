@@ -1,0 +1,45 @@
+﻿Particles:
+	PassData,
+	BufferJoy,
+	OrbitingStars,
+	ParticleFun,
+	QuadParticles,
+Mesh:
+	MeshDeform
+Noise:
+	Challenge2 - polygon with noise
+	SimpleNoise,
+	ProceduralMarble,
+	ProceduralWood,
+	NightVision (PostProc)
+Blur: (PostProc)
+	RingHighlight,
+	BlurHighlight,
+	GaussianBlurHighlight,
+	StarGlow
+HUD: (PostProc)
+	HUDOverlay,
+	Challenge3 - tint effect
+Flocking:
+	Rules: Separation, Alignment, Cohesion
+	SimpleFlocking,
+	InstancedFlocking,
+	SkinnedFlocking,
+	Challenge4 - fish tail animation
+Physics:
+	SimplePhysics,
+	GPUPhysics,
+	GPUPhysicsCubes,
+	GPUPhysicsCompute,
+	Challenge5 - chess pawns
+Grass:
+	GrassClumps,
+	GrassBlades,
+	GrassTerrain,
+	GrassTrample,
+	Challenge6 - trampling grass with noise
+Fluids:
+	StableFluids,
+	SPHFluid,
+	PBDFluid,
+	Challenge7 - smoke using StableFluids
