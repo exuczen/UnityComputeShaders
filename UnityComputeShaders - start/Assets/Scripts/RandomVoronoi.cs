@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using MustHave.UI;
 
 [ExecuteInEditMode]
-public class RandomVoronoi : MonoBehaviour
+public class RandomVoronoi : ComputeShaderBehaviour
 {
     public const int ParticlesCapacity = 1 << 20;
 
@@ -99,8 +99,6 @@ public class RandomVoronoi : MonoBehaviour
     private bool IsChangingPointsCount => pointsCountChangeStartTime >= 0f;
 
     [SerializeField]
-    private ComputeShader shader = null;
-    [SerializeField]
     private Material delaunayMaterial = null;
 #if USE_DELAUNAY_SHADER
     [SerializeField]
@@ -128,8 +126,6 @@ public class RandomVoronoi : MonoBehaviour
     private Vector3Int pairsThreadGroups = Vector3Int.one;
     private uint circleThreadGroupSize;
 
-    private new Renderer renderer = null;
-    private RenderTexture outputTexture = null;
     private RenderTexture indexTexture = null;
 
     private ComputeBuffer particlesBuffer = null;
@@ -140,8 +136,6 @@ public class RandomVoronoi : MonoBehaviour
 
     private ShaderData shaderData = default;
 
-    private int[] kernelIDs = null;
-
     private int circleRadius = 16;
 
     private readonly uint[] circleNumThreads = new uint[3];
@@ -150,6 +144,11 @@ public class RandomVoronoi : MonoBehaviour
     private float pointsCountChangeEndTime = -1f;
     private float startLogPointsCount;
     private float targetLogPointsCountPrev;
+
+    public void Init()
+    {
+        InitOnStart();
+    }
 
     public void StartPointsCountChange()
     {
@@ -168,33 +167,15 @@ public class RandomVoronoi : MonoBehaviour
         }
     }
 
-    public void Init()
+    protected override void InitOnStart()
     {
         if (Application.isPlaying)
         {
-            particlesBuffer?.Release();
-            colorsBuffer?.Release();
-            angularPairBuffer?.Release();
-            tempBuffer?.Release();
-            delaunayArgsBuffer?.Release();
-
-            FindKernels();
+            ReleaseComputeBuffers();
+            FindKernels<Kernel>();
             GetThreadGroupSizes();
             InitShader();
         }
-    }
-
-    private void Start()
-    {
-        renderer = GetComponent<Renderer>();
-        renderer.enabled = true;
-
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-        CreateTextures();
-        Init();
     }
 
     private void Update()
@@ -240,46 +221,15 @@ public class RandomVoronoi : MonoBehaviour
 #endif
     }
 
-    private void OnDestroy()
+    protected override void CreateTextures()
     {
-        particlesBuffer?.Dispose();
-        colorsBuffer?.Dispose();
-        angularPairBuffer?.Dispose();
-        tempBuffer?.Dispose();
-        delaunayArgsBuffer?.Dispose();
-    }
+        outputTexture = CreateTexture(TexResolution, TexResolution);
 
-    private void CreateTextures()
-    {
-        outputTexture = new RenderTexture(TexResolution, TexResolution, 0)
-        {
-            enableRandomWrite = true,
-            filterMode = FilterMode.Bilinear
-        };
         indexTexture = new RenderTexture(TexResolution, TexResolution, 0, RenderTextureFormat.RInt)
         {
             enableRandomWrite = true
         };
-        outputTexture.Create();
         indexTexture.Create();
-    }
-
-    private void FindKernels()
-    {
-        var kernelNames = EnumUtils.GetNames<Kernel>();
-        kernelIDs = new int[kernelNames.Length];
-
-        for (int i = 0; i < kernelNames.Length; i++)
-        {
-            kernelIDs[i] = shader.FindKernel(kernelNames[i]);
-        }
-    }
-
-    private int GetKernelID(Kernel kernel) => kernelIDs[(int)kernel];
-
-    private void GetKernelThreadGroupSizes(Kernel kernel, uint[] numthreads)
-    {
-        shader.GetKernelThreadGroupSizes(GetKernelID(kernel), out numthreads[0], out numthreads[1], out numthreads[2]);
     }
 
     private void GetThreadGroupSizes()
@@ -361,19 +311,8 @@ public class RandomVoronoi : MonoBehaviour
         int cursorPosY = (int)(TexResolution * mousePos.y / Screen.height);
         float offsetX = (Screen.width - Screen.height) * 0.5f;
         int cursorPosX = (int)(TexResolution * (mousePos.x - offsetX) / Screen.height);
-        Debug.Log($"{GetType().Name}.({cursorPosX}, {cursorPosY})");
+        //Debug.Log($"{GetType().Name}.({cursorPosX}, {cursorPosY})");
         shader.SetInts(shaderData.CursorPositionID, cursorPosX, cursorPosY);
-    }
-
-    private int GetThreadGroupCount(uint numthreads, int size, bool clamp = true)
-    {
-        if (numthreads == 0)
-        {
-            return 0;
-        }
-        int n = (int)numthreads;
-        int count = (size + n - 1) / n;
-        return clamp ? Mathf.Clamp(count, 1, 65535) : count;
     }
 
     private void InitShader()
@@ -387,13 +326,12 @@ public class RandomVoronoi : MonoBehaviour
         shader.SetInt(shaderData.AngularPairsStrideID, AngularPairsStride);
         shader.SetInts(shaderData.CursorPositionID, TexResolution >> 1, TexResolution >> 1);
 
-        delaunayArgsBuffer = new ComputeBuffer(1, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
-
-        colorsBuffer = new ComputeBuffer(CircleColors.Length, 4 * sizeof(float));
+        delaunayArgsBuffer = CreateAddComputeBuffer(1, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
+        colorsBuffer = CreateAddComputeBuffer(CircleColors.Length, 4 * sizeof(float));
         colorsBuffer.SetData(CircleColors);
-        particlesBuffer = new ComputeBuffer(ParticlesCapacity, ParticleSize);
-        angularPairBuffer = new ComputeBuffer(ParticlesCapacity * AngularPairsStride, sizeof(int));
-        tempBuffer = new ComputeBuffer(1, sizeof(int));
+        particlesBuffer = CreateAddComputeBuffer(ParticlesCapacity, ParticleSize);
+        angularPairBuffer = CreateAddComputeBuffer(ParticlesCapacity * AngularPairsStride, sizeof(int));
+        tempBuffer = CreateAddComputeBuffer(1, sizeof(int));
 
         for (int i = 0; i < kernelIDs.Length; i++)
         {
@@ -452,16 +390,6 @@ public class RandomVoronoi : MonoBehaviour
             }
         }
         SetPointsCount(pointsCount, false);
-    }
-
-    private void DispatchKernel(int kernelID, Vector3Int threadGroups)
-    {
-        shader.Dispatch(kernelID, threadGroups.x, threadGroups.y, threadGroups.z);
-    }
-
-    private void DispatchKernel(Kernel kernel, Vector3Int threadGroups)
-    {
-        DispatchKernel(GetKernelID(kernel), threadGroups);
     }
 
     private void DispatchKernels()
