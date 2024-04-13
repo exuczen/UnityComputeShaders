@@ -13,17 +13,18 @@ public class OrbitalVoronoi : ComputeShaderBehaviour
 
     private void Update()
     {
-        if (Application.isPlaying)
+        if (!Application.isPlaying)
         {
             return;
         }
     }
 
+    protected override void CreateComputeBuffers() { }
+
     protected override void InitOnStart()
     {
         if (Application.isPlaying)
         {
-            ReleaseComputeBuffers();
             FindKernels<Kernel>();
             GetThreadGroupSizes();
             InitShader();

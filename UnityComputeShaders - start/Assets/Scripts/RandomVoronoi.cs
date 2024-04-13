@@ -167,17 +167,6 @@ public class RandomVoronoi : ComputeShaderBehaviour
         }
     }
 
-    protected override void InitOnStart()
-    {
-        if (Application.isPlaying)
-        {
-            ReleaseComputeBuffers();
-            FindKernels<Kernel>();
-            GetThreadGroupSizes();
-            InitShader();
-        }
-    }
-
     private void Update()
     {
         if (!Application.isPlaying)
@@ -230,6 +219,26 @@ public class RandomVoronoi : ComputeShaderBehaviour
             enableRandomWrite = true
         };
         indexTexture.Create();
+    }
+
+    protected override void CreateComputeBuffers()
+    {
+        delaunayArgsBuffer = CreateAddComputeBuffer(1, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
+        colorsBuffer = CreateAddComputeBuffer(CircleColors.Length, 4 * sizeof(float));
+        colorsBuffer.SetData(CircleColors);
+        particlesBuffer = CreateAddComputeBuffer(ParticlesCapacity, ParticleSize);
+        angularPairBuffer = CreateAddComputeBuffer(ParticlesCapacity * AngularPairsStride, sizeof(int));
+        tempBuffer = CreateAddComputeBuffer(1, sizeof(int));
+    }
+
+    protected override void InitOnStart()
+    {
+        if (Application.isPlaying)
+        {
+            FindKernels<Kernel>();
+            GetThreadGroupSizes();
+            InitShader();
+        }
     }
 
     private void GetThreadGroupSizes()
@@ -324,13 +333,6 @@ public class RandomVoronoi : ComputeShaderBehaviour
         shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
         shader.SetInt(shaderData.AngularPairsStrideID, AngularPairsStride);
         shader.SetInts(shaderData.CursorPositionID, TexResolution >> 1, TexResolution >> 1);
-
-        delaunayArgsBuffer = CreateAddComputeBuffer(1, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
-        colorsBuffer = CreateAddComputeBuffer(CircleColors.Length, 4 * sizeof(float));
-        colorsBuffer.SetData(CircleColors);
-        particlesBuffer = CreateAddComputeBuffer(ParticlesCapacity, ParticleSize);
-        angularPairBuffer = CreateAddComputeBuffer(ParticlesCapacity * AngularPairsStride, sizeof(int));
-        tempBuffer = CreateAddComputeBuffer(1, sizeof(int));
 
         foreach (var kernel in kernelsDict.Values)
         {

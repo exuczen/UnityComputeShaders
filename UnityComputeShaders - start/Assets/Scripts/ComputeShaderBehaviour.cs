@@ -39,7 +39,9 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
         {
             return;
         }
+        ReleaseComputeBuffers();
         CreateTextures();
+        CreateComputeBuffers();
         InitOnStart();
     }
 
@@ -49,6 +51,8 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
     }
 
     protected abstract void CreateTextures();
+
+    protected abstract void CreateComputeBuffers();
 
     protected abstract void InitOnStart();
 
