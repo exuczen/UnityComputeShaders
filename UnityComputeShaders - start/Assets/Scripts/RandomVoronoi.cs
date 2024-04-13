@@ -124,7 +124,7 @@ public class RandomVoronoi : ComputeShaderBehaviour
     private Vector3Int circleThreadGroups = Vector3Int.one; //[Range(1, 65535)]
     private Vector3Int clearThreadGroups = Vector3Int.one;
     private Vector3Int pairsThreadGroups = Vector3Int.one;
-    private uint circleThreadGroupSize;
+    private int circleThreadGroupSize;
 
     private RenderTexture indexTexture = null;
 
@@ -138,7 +138,7 @@ public class RandomVoronoi : ComputeShaderBehaviour
 
     private int circleRadius = 16;
 
-    private readonly uint[] circleNumThreads = new uint[3];
+    private Vector3Int circleNumThreads = Vector3Int.one;
 
     private float pointsCountChangeStartTime = -1f;
     private float pointsCountChangeEndTime = -1f;
@@ -234,22 +234,21 @@ public class RandomVoronoi : ComputeShaderBehaviour
 
     private void GetThreadGroupSizes()
     {
-        GetKernelThreadGroupSizes(Kernel.DrawCircles, circleNumThreads);
-        circleThreadGroupSize = circleNumThreads[0] * circleNumThreads[1] * circleNumThreads[2];
+        circleNumThreads = GetKernelNumThreads(Kernel.DrawCircles);
+        circleThreadGroupSize = circleNumThreads.x * circleNumThreads.y * circleNumThreads.z;
 
-        var numthreads = new uint[3];
-        GetKernelThreadGroupSizes(Kernel.ClearTextures, numthreads);
-        clearThreadGroups.x = GetThreadGroupCount(numthreads[0], TexResolution);
-        clearThreadGroups.y = GetThreadGroupCount(numthreads[1], TexResolution);
+        var numthreads = GetKernelNumThreads(Kernel.ClearTextures);
+        clearThreadGroups.x = GetThreadGroupCount(numthreads.x, TexResolution);
+        clearThreadGroups.y = GetThreadGroupCount(numthreads.y, TexResolution);
         clearThreadGroups.z = 1;
 
-        GetKernelThreadGroupSizes(Kernel.DrawPairLines, numthreads);
+        numthreads = GetKernelNumThreads(Kernel.DrawPairLines);
         // pairsThreadGroups.z * ANGULAR_PAIRS_THREADS = AngularPairsStride - 1
-        if ((AngularPairsStride - 1) % numthreads[2] != 0)
+        if ((AngularPairsStride - 1) % numthreads.z != 0)
         {
-            throw new Exception($"{GetType().Name}.GetThreadGroupSizes: {AngularPairsStride - 1} is not integer multiple of {numthreads[2]}");
+            throw new Exception($"{GetType().Name}.GetThreadGroupSizes: {AngularPairsStride - 1} is not integer multiple of {numthreads.z}");
         }
-        pairsThreadGroups.z = (AngularPairsStride - 1) / (int)numthreads[2];
+        pairsThreadGroups.z = (AngularPairsStride - 1) / numthreads.z;
     }
 
     private void SetPointsCount(int pointsCount, bool log)
@@ -333,9 +332,9 @@ public class RandomVoronoi : ComputeShaderBehaviour
         angularPairBuffer = CreateAddComputeBuffer(ParticlesCapacity * AngularPairsStride, sizeof(int));
         tempBuffer = CreateAddComputeBuffer(1, sizeof(int));
 
-        for (int i = 0; i < kernelIDs.Length; i++)
+        for (int i = 0; i < kernels.Length; i++)
         {
-            int kernelID = kernelIDs[i];
+            int kernelID = kernels[i].Index;
             shader.SetTexture(kernelID, shaderData.OutputTextureID, outputTexture);
             shader.SetTexture(kernelID, shaderData.IndexTextureID, indexTexture);
             shader.SetBuffer(kernelID, shaderData.ColorsBufferID, colorsBuffer);
@@ -467,7 +466,7 @@ public class RandomVoronoi : ComputeShaderBehaviour
         GUI.Label(getTextLineRect(), $"({circleThreadGroups.x * circleThreadGroups.y * circleThreadGroupSize})");
         GUI.Label(getTextLineRect(), $"({GetThreadGroupCount(circleThreadGroupSize, pointsCount, false)})");
         GUI.Label(getTextLineRect(), $"{circleThreadGroups}");
-        GUI.Label(getTextLineRect(), $"({circleNumThreads[0]}, {circleNumThreads[1]}, {circleNumThreads[2]})");
+        GUI.Label(getTextLineRect(), $"{circleNumThreads}");
 #endif
 #if DEBUG_POINTS_GUI
         y += Screen.height >> 2;

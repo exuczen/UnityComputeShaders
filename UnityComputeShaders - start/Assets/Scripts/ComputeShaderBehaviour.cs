@@ -6,6 +6,19 @@ using UnityEngine;
 
 public abstract class ComputeShaderBehaviour : MonoBehaviour
 {
+    protected readonly struct KernelData
+    {
+        public int Index { get; }
+        public Vector3Int NumThreads { get; }
+
+        public KernelData(ComputeShader shader, string name)
+        {
+            Index = shader.FindKernel(name);
+            shader.GetKernelThreadGroupSizes(Index, out uint numX, out uint numY, out uint numZ);
+            NumThreads = new((int)numX, (int)numY, (int)numZ);
+        }
+    };
+
     [SerializeField]
     protected ComputeShader shader = null;
 
@@ -13,7 +26,7 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
 
     protected new Renderer renderer = null;
 
-    protected int[] kernelIDs = null;
+    protected KernelData[] kernels = null;
 
     protected readonly List<ComputeBuffer> computeBuffers = new();
 
@@ -35,29 +48,34 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
         ReleaseComputeBuffers(true);
     }
 
-    protected abstract void InitOnStart();
-
     protected abstract void CreateTextures();
+
+    protected abstract void InitOnStart();
 
     protected void FindKernels<T>() where T : Enum
     {
         var kernelNames = EnumUtils.GetNames<T>();
-        kernelIDs = new int[kernelNames.Length];
+        kernels = new KernelData[kernelNames.Length];
 
         for (int i = 0; i < kernelNames.Length; i++)
         {
-            kernelIDs[i] = shader.FindKernel(kernelNames[i]);
+            kernels[i] = new KernelData(shader, kernelNames[i]);
         }
     }
 
-    //protected int GetKernelID(Enum kernel)
-    //{
-    //    return kernelIDs[(int)(object)kernel];
-    //}
+    protected Vector3Int GetKernelNumThreads<T>(T kernel) where T : Enum
+    {
+        return GetKernelData(kernel).NumThreads;
+    }
+
+    protected KernelData GetKernelData<T>(T kernel) where T : Enum
+    {
+        return kernels[(int)(object)kernel];
+    }
 
     protected int GetKernelID<T>(T kernel) where T : Enum
     {
-        return kernelIDs[(int)(object)kernel];
+        return kernels[(int)(object)kernel].Index;
     }
 
     protected void GetKernelThreadGroupSizes<T>(T kernel, uint[] numthreads) where T : Enum
@@ -65,13 +83,13 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
         shader.GetKernelThreadGroupSizes(GetKernelID(kernel), out numthreads[0], out numthreads[1], out numthreads[2]);
     }
 
-    protected int GetThreadGroupCount(uint numthreads, int size, bool clamp = true)
+    protected int GetThreadGroupCount(int numthreads, int size, bool clamp = true)
     {
         if (numthreads == 0)
         {
             return 0;
         }
-        int n = (int)numthreads;
+        int n = numthreads;
         int count = (size + n - 1) / n;
         return clamp ? Mathf.Clamp(count, 1, 65535) : count;
     }
@@ -84,6 +102,14 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
     protected void DispatchKernel<T>(T kernel, Vector3Int threadGroups) where T : Enum
     {
         DispatchKernel(GetKernelID(kernel), threadGroups);
+    }
+
+    protected void ForEachKernel(Action<int> action)
+    {
+        for (int i = 0; i < kernels.Length; i++)
+        {
+            action(kernels[i].Index);
+        }
     }
 
     protected RenderTexture CreateTexture(int width, int height)
