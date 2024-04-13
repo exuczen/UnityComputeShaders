@@ -11,9 +11,9 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
         public int Index { get; }
         public Vector3Int NumThreads { get; }
 
-        public KernelData(ComputeShader shader, string name)
+        public KernelData(ComputeShader shader, string kernelName)
         {
-            Index = shader.FindKernel(name);
+            Index = shader.FindKernel(kernelName);
             shader.GetKernelThreadGroupSizes(Index, out uint numX, out uint numY, out uint numZ);
             NumThreads = new((int)numX, (int)numY, (int)numZ);
         }
@@ -26,11 +26,11 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
 
     protected new Renderer renderer = null;
 
-    protected KernelData[] kernels = null;
+    protected readonly Dictionary<Enum, KernelData> kernelsDict = new();
 
     protected readonly List<ComputeBuffer> computeBuffers = new();
 
-    protected private void Start()
+    private void Start()
     {
         renderer = GetComponent<Renderer>();
         renderer.enabled = true;
@@ -54,12 +54,12 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
 
     protected void FindKernels<T>() where T : Enum
     {
-        var kernelNames = EnumUtils.GetNames<T>();
-        kernels = new KernelData[kernelNames.Length];
+        kernelsDict.Clear();
+        var kernelKeys = EnumUtils.GetValues<T>();
 
-        for (int i = 0; i < kernelNames.Length; i++)
+        foreach (var kernelKey in kernelKeys)
         {
-            kernels[i] = new KernelData(shader, kernelNames[i]);
+            kernelsDict.Add(kernelKey, new KernelData(shader, kernelKey.ToString()));
         }
     }
 
@@ -70,12 +70,12 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
 
     protected KernelData GetKernelData<T>(T kernel) where T : Enum
     {
-        return kernels[(int)(object)kernel];
+        return kernelsDict[kernel];
     }
 
     protected int GetKernelID<T>(T kernel) where T : Enum
     {
-        return kernels[(int)(object)kernel].Index;
+        return kernelsDict[kernel].Index;
     }
 
     protected void GetKernelThreadGroupSizes<T>(T kernel, uint[] numthreads) where T : Enum
@@ -106,9 +106,9 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
 
     protected void ForEachKernel(Action<int> action)
     {
-        for (int i = 0; i < kernels.Length; i++)
+        foreach (var kernel in kernelsDict.Values)
         {
-            action(kernels[i].Index);
+            action(kernel.Index);
         }
     }
 

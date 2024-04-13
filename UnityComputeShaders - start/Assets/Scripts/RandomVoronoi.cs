@@ -332,9 +332,9 @@ public class RandomVoronoi : ComputeShaderBehaviour
         angularPairBuffer = CreateAddComputeBuffer(ParticlesCapacity * AngularPairsStride, sizeof(int));
         tempBuffer = CreateAddComputeBuffer(1, sizeof(int));
 
-        for (int i = 0; i < kernels.Length; i++)
+        foreach (var kernel in kernelsDict.Values)
         {
-            int kernelID = kernels[i].Index;
+            int kernelID = kernel.Index;
             shader.SetTexture(kernelID, shaderData.OutputTextureID, outputTexture);
             shader.SetTexture(kernelID, shaderData.IndexTextureID, indexTexture);
             shader.SetBuffer(kernelID, shaderData.ColorsBufferID, colorsBuffer);
