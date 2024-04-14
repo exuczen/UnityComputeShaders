@@ -47,48 +47,26 @@ public class RandomVoronoi : ComputeShaderBehaviour
         FindPairs
     }
 
-    private struct ShaderData
+    private readonly struct ShaderData
     {
-        public int TimeID;
-        public int RadiusID;
-        public int RadiusSqrID;
-        public int CircleRadiusID;
-        public int CircleRadiusInvID;
-        public int PointsCapacityID;
-        public int PointsCountID;
-        public int PointsRowThreadsCountID;
-        public int AngularPairsStrideID;
-        public int LinesLerpValueID;
-        public int CursorPositionID;
+        public static readonly int TimeID = Shader.PropertyToID("Time");
+        public static readonly int RadiusID = Shader.PropertyToID("Radius");
+        public static readonly int RadiusSqrID = Shader.PropertyToID("RadiusSqr");
+        public static readonly int CircleRadiusID = Shader.PropertyToID("CircleRadius");
+        public static readonly int CircleRadiusInvID = Shader.PropertyToID("CircleRadiusInv");
+        public static readonly int PointsCapacityID = Shader.PropertyToID("PointsCapacity");
+        public static readonly int PointsCountID = Shader.PropertyToID("PointsCount");
+        public static readonly int PointsRowThreadsCountID = Shader.PropertyToID("PointsRowThreadsCount");
+        public static readonly int AngularPairsStrideID = Shader.PropertyToID("AngularPairsStride");
+        public static readonly int LinesLerpValueID = Shader.PropertyToID("LinesLerpValue");
+        public static readonly int CursorPositionID = Shader.PropertyToID("CursorPosition");
 
-        public int OutputTextureID;
-        public int IndexTextureID;
-        public int ColorsBufferID;
-        public int ParticlesBufferID;
-        public int AngularPairBufferID;
-        public int TempBufferID;
-
-        public ShaderData(ComputeShader shader)
-        {
-            TimeID = Shader.PropertyToID("Time");
-            RadiusID = Shader.PropertyToID("Radius");
-            RadiusSqrID = Shader.PropertyToID("RadiusSqr");
-            CircleRadiusID = Shader.PropertyToID("CircleRadius");
-            CircleRadiusInvID = Shader.PropertyToID("CircleRadiusInv");
-            PointsCapacityID = Shader.PropertyToID("PointsCapacity");
-            PointsCountID = Shader.PropertyToID("PointsCount");
-            PointsRowThreadsCountID = Shader.PropertyToID("PointsRowThreadsCount");
-            AngularPairsStrideID = Shader.PropertyToID("AngularPairsStride");
-            LinesLerpValueID = Shader.PropertyToID("LinesLerpValue");
-            CursorPositionID = Shader.PropertyToID("CursorPosition");
-
-            OutputTextureID = Shader.PropertyToID("outputTexture");
-            IndexTextureID = Shader.PropertyToID("indexTexture");
-            ColorsBufferID = Shader.PropertyToID("colorsBuffer");
-            ParticlesBufferID = Shader.PropertyToID("particlesBuffer");
-            AngularPairBufferID = Shader.PropertyToID("angularPairBuffer");
-            TempBufferID = Shader.PropertyToID("tempBuffer");
-        }
+        public static readonly int OutputTextureID = Shader.PropertyToID("outputTexture");
+        public static readonly int IndexTextureID = Shader.PropertyToID("indexTexture");
+        public static readonly int ColorsBufferID = Shader.PropertyToID("colorsBuffer");
+        public static readonly int ParticlesBufferID = Shader.PropertyToID("particlesBuffer");
+        public static readonly int AngularPairBufferID = Shader.PropertyToID("angularPairBuffer");
+        public static readonly int TempBufferID = Shader.PropertyToID("tempBuffer");
     }
 
     public int PointsCount { get => pointsCount; set => pointsCount = value; }
@@ -133,8 +111,6 @@ public class RandomVoronoi : ComputeShaderBehaviour
     private ComputeBuffer angularPairBuffer = null;
     private ComputeBuffer tempBuffer = null;
     private ComputeBuffer delaunayArgsBuffer = null;
-
-    private ShaderData shaderData = default;
 
     private int circleRadius = 16;
 
@@ -291,17 +267,17 @@ public class RandomVoronoi : ComputeShaderBehaviour
         }
         pairsThreadGroups.Set(circleThreadGroups.x, circleThreadGroups.y, pairsThreadGroups.z);
 
-        shader.SetInt(shaderData.PointsRowThreadsCountID, (int)circleNumThreads[0] * circleThreadGroups.x);
-        shader.SetInt(shaderData.PointsCountID, pointsCount);
+        shader.SetInt(ShaderData.PointsRowThreadsCountID, (int)circleNumThreads[0] * circleThreadGroups.x);
+        shader.SetInt(ShaderData.PointsCountID, pointsCount);
 
         circleRadius = Mathf.Clamp((int)(TexResolution * 2.3 / Mathf.Sqrt(pointsCount)), 3, 32);
-        shader.SetInt(shaderData.CircleRadiusID, circleRadius);
-        shader.SetFloat(shaderData.CircleRadiusInvID, 1f / circleRadius);
+        shader.SetInt(ShaderData.CircleRadiusID, circleRadius);
+        shader.SetFloat(ShaderData.CircleRadiusInvID, 1f / circleRadius);
 
         delaunayLerpValue = Mathf.InverseLerp(20, 0, Mathf.Log(pointsCount, 2f));
         delaunayLerpValue = Mathf.Lerp(0.3f, 0.7f, delaunayLerpValue);
         //delaunayLerpValue = Mathf.Clamp(delaunayLerpValue, 0.15f, 0.5f);
-        shader.SetFloat(shaderData.LinesLerpValueID, delaunayLerpValue);
+        shader.SetFloat(ShaderData.LinesLerpValueID, delaunayLerpValue);
 
         if (log)
         {
@@ -320,29 +296,27 @@ public class RandomVoronoi : ComputeShaderBehaviour
         float offsetX = (Screen.width - Screen.height) * 0.5f;
         int cursorPosX = (int)(TexResolution * (mousePos.x - offsetX) / Screen.height);
         //Debug.Log($"{GetType().Name}.({cursorPosX}, {cursorPosY})");
-        shader.SetInts(shaderData.CursorPositionID, cursorPosX, cursorPosY);
+        shader.SetInts(ShaderData.CursorPositionID, cursorPosX, cursorPosY);
     }
 
     private void InitShader()
     {
-        shaderData = new(shader);
-
         shader.SetInt("TexResolution", TexResolution);
         shader.SetVector("ClearColor", ColorUtils.ColorWithAlpha(clearColor, 0f));
-        shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
-        shader.SetInt(shaderData.PointsCapacityID, ParticlesCapacity);
-        shader.SetInt(shaderData.AngularPairsStrideID, AngularPairsStride);
-        shader.SetInts(shaderData.CursorPositionID, TexResolution >> 1, TexResolution >> 1);
+        shader.SetFloat(ShaderData.TimeID, Time.realtimeSinceStartup);
+        shader.SetInt(ShaderData.PointsCapacityID, ParticlesCapacity);
+        shader.SetInt(ShaderData.AngularPairsStrideID, AngularPairsStride);
+        shader.SetInts(ShaderData.CursorPositionID, TexResolution >> 1, TexResolution >> 1);
 
         foreach (var kernel in kernelsDict.Values)
         {
             int kernelID = kernel.Index;
-            shader.SetTexture(kernelID, shaderData.OutputTextureID, outputTexture);
-            shader.SetTexture(kernelID, shaderData.IndexTextureID, indexTexture);
-            shader.SetBuffer(kernelID, shaderData.ColorsBufferID, colorsBuffer);
-            shader.SetBuffer(kernelID, shaderData.ParticlesBufferID, particlesBuffer);
-            shader.SetBuffer(kernelID, shaderData.AngularPairBufferID, angularPairBuffer);
-            shader.SetBuffer(kernelID, shaderData.TempBufferID, tempBuffer);
+            shader.SetTexture(kernelID, ShaderData.OutputTextureID, outputTexture);
+            shader.SetTexture(kernelID, ShaderData.IndexTextureID, indexTexture);
+            shader.SetBuffer(kernelID, ShaderData.ColorsBufferID, colorsBuffer);
+            shader.SetBuffer(kernelID, ShaderData.ParticlesBufferID, particlesBuffer);
+            shader.SetBuffer(kernelID, ShaderData.AngularPairBufferID, angularPairBuffer);
+            shader.SetBuffer(kernelID, ShaderData.TempBufferID, tempBuffer);
         }
         renderer.material.SetTexture("_MainTex", outputTexture);
 
@@ -398,7 +372,7 @@ public class RandomVoronoi : ComputeShaderBehaviour
         //var tempData = new int[tempBuffer.count];
         //tempBuffer.SetData(tempData);
 
-        shader.SetFloat(shaderData.TimeID, Time.realtimeSinceStartup);
+        shader.SetFloat(ShaderData.TimeID, Time.realtimeSinceStartup);
 
         DispatchKernel(Kernel.ClearTextures, clearThreadGroups);
         DispatchKernel(Kernel.ClearPairs, pairsThreadGroups);
@@ -410,8 +384,8 @@ public class RandomVoronoi : ComputeShaderBehaviour
 
         for (int i = 1; i < circleRadius; i++)
         {
-            shader.SetInt(shaderData.RadiusID, i);
-            shader.SetInt(shaderData.RadiusSqrID, i * i);
+            shader.SetInt(ShaderData.RadiusID, i);
+            shader.SetInt(ShaderData.RadiusSqrID, i * i);
             DispatchKernel(drawCirclesKernelID, circleThreadGroups);
             //DispatchKernel(drawDiamondsKernelID, circleThreadGroups);
             //DispatchKernel(fillCirclesKernelID, circleThreadGroups);
