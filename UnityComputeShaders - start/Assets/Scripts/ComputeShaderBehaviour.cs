@@ -116,12 +116,12 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
         }
     }
 
-    protected RenderTexture CreateTexture(int width, int height)
+    protected RenderTexture CreateTexture(int width, int height, FilterMode filterMode = FilterMode.Bilinear)
     {
         var texture = new RenderTexture(width, height, 0)
         {
             enableRandomWrite = true,
-            filterMode = FilterMode.Bilinear
+            filterMode = filterMode
         };
         texture.Create();
         return texture;

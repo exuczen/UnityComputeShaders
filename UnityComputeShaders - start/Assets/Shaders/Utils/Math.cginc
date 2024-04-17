@@ -1,5 +1,6 @@
 ﻿#define PI 3.14159265359
 #define PI2 6.28318530718
+#define EPSILON 1E-5
 
 float invLerp(float a, float b, float v)
 {
