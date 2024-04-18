@@ -1,0 +1,176 @@
+#define PIXEL_THREADS int2(8, 8) // max 1024
+#define PARTICLE_THREADS 8
+
+#define CENTER float2(0.5, 0.5)
+
+#pragma kernel InitParticles
+#pragma kernel ComputeForces
+#pragma kernel UpdateParticles
+#pragma kernel PixelColors
+#pragma kernel NormalizeColors
+#pragma kernel DrawForces
+
+#include "Utils/Math.cginc"
+#include "Utils/Geometry.cginc"
+#include "Utils/Random.cginc"
+#include "Utils/Easing.cginc"
+
+struct Particle
+{
+    float2 repForce;
+    float2 position;
+};
+
+RWTexture2D<float4> OutputTexture;
+RWTexture2D<int> IndexTexture;
+RWTexture2D<float4> ForcesTexture;
+RWStructuredBuffer<Particle> ParticlesBuffer;
+
+uint TexResolution;
+float TexelSize;
+float DeltaTime;
+
+uint ParticlesCount;
+uint BegParticleIndex;
+float2 CursorPosition;
+float CursorStaticLerp;
+
+Particle getClearParticle()
+{
+    Particle p;
+    p.repForce = 0;
+    p.position = 0;
+    return p;
+}
+
+float getFading(float distSqr, float varianceInv)
+{
+    return 1.0 - exp(-distSqr * varianceInv);
+}
+
+float getGain(float distSqr, float varianceInv)
+{
+    return exp(-distSqr * varianceInv);
+}
+
+[numthreads(PARTICLE_THREADS, 1, 1)]
+void InitParticles(uint id : SV_DispatchThreadID)
+{
+    ParticlesBuffer[id] = getClearParticle();
+    rng_state = lgc_hash(id);
+    ParticlesBuffer[id].position = random2_xorshift();
+}
+
+[numthreads(PARTICLE_THREADS, PARTICLE_THREADS, 1)]
+void ComputeForces(uint2 id : SV_DispatchThreadID)
+{
+    if (id.x > id.y && id.y < ParticlesCount)
+    {
+        float distSqr;
+        float2 ray = ParticlesBuffer[id.x].position - ParticlesBuffer[id.y].position;
+        float dist = length(ray);
+        float mag = 1 * saturate(pow(1 - saturate(dist), 1));
+        //float mag = 1 - ease_in_out_Sine(saturate(dist));
+        float2 force = dist > EPSILON ? mag * ray / dist : 0;
+        
+        ForcesTexture[id.xy] = float4(force.x, force.y, 0, 0);
+    }
+}
+
+[numthreads(PARTICLE_THREADS, 1, 1)]
+void UpdateParticles(uint3 id : SV_DispatchThreadID)
+{
+    uint i = id.x; // + BegParticleIndex;
+    if (i >= ParticlesCount)
+    {
+        return;
+    }
+    Particle p = ParticlesBuffer[i];
+    
+    float2 force = 0;
+    for (uint x = i + 1; x < ParticlesCount; x++)
+    {
+        uint2 xy = uint2(x, i);
+        force -= ForcesTexture[xy].xy;
+    }
+    for (uint y = 0; y < i; y++)
+    {
+        uint2 xy = uint2(i, y);
+        force += ForcesTexture[xy].xy;
+    }
+    p.repForce = force;
+    
+    float2 ray = CENTER - p.position;
+    
+    float attrMlp = 1 + (ParticlesCount - 1) * 0.1;
+    force += attrMlp * 10 * ray;
+    
+    //force *= i >= BegParticleIndex ? 1 : 0;
+    force *= step(BegParticleIndex, i);
+    
+    float2 acc = force;
+    //float2 dv = acc * DeltaTime;
+    p.position += acc * DeltaTime;
+    
+    ParticlesBuffer[i] = p;
+}
+
+[numthreads(PIXEL_THREADS.x, PIXEL_THREADS.y, 1)]
+void PixelColors(uint3 id : SV_DispatchThreadID)
+{
+    float minDistSqr = 4;
+    float minDistFading = 1;
+    float4 color;
+    float colorValue = 1;
+    float totalFading = 1;
+    float totalGain = 0;
+    int particleIndex = 0;
+    float2 pixelPos = (id.xy + 0.5) * TexelSize;
+    
+    for (uint i = 0; i < ParticlesCount; i++)
+    {
+        Particle p = ParticlesBuffer[i];
+        float2 ray = p.position - pixelPos;
+        float distSqr = dot(ray, ray);
+        float fading = getFading(distSqr, 200);
+        totalFading *= fading;
+        totalGain += getGain(distSqr, 40);
+        
+        if (distSqr < minDistSqr)
+        {
+            minDistSqr = distSqr;
+            minDistFading = fading;
+            particleIndex = i;
+        }
+    }
+    IndexTexture[id.xy] = particleIndex;
+    
+    colorValue = getGain(minDistSqr, 40) * totalFading / minDistFading;
+    //totalGain /= 1 + log(ParticlesCount);
+    //totalGain /= sqrt(ParticlesCount);
+    //colorValue *= totalGain;
+    
+    color = float4(colorValue, colorValue, colorValue, 1);
+    
+    //float colorLerp = lerp(5 * DeltaTime, 1, CursorStaticLerp);
+    //OutputTexture[id.xy] = lerp(OutputTexture[id.xy], color, colorLerp);
+    OutputTexture[id.xy] = color;
+}
+
+[numthreads(PIXEL_THREADS.x, PIXEL_THREADS.y, 1)]
+void NormalizeColors(uint3 id : SV_DispatchThreadID)
+{
+    //int pIndex = IndexTexture[id.xy];
+    //Particle p = ParticlesBuffer[pIndex];
+    //float4 color = OutputTexture[id.xy];
+    //OutputTexture[id.xy] = color;
+}
+
+[numthreads(PARTICLE_THREADS, 1, 1)]
+void DrawForces(uint id : SV_DispatchThreadID)
+{
+    Particle p = ParticlesBuffer[id];
+    int2 p1 = p.position * TexResolution;
+    int2 p2 = (p.position + p.repForce * 0.1) * TexResolution;
+    drawLine(OutputTexture, p1, p2, float4(1, 0, 0, 1));
+}
