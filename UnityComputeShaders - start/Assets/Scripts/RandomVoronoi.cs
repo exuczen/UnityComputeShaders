@@ -23,6 +23,12 @@ public class RandomVoronoi : ComputeShaderBehaviour
 
     private readonly Color[] CircleColors = { Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta };
 
+    private enum ParticlesDistribution
+    {
+        Uniform,
+        Radial
+    }
+
     private enum DelaunayDrawType
     {
         ComputeShader,
@@ -43,7 +49,8 @@ public class RandomVoronoi : ComputeShaderBehaviour
         ClearPairs,
         InitParticles,
         RandomParticles,
-        UpdateParticles,
+        UpdateParticlesUniform,
+        UpdateParticlesRadial,
         FindPairs
     }
 
@@ -75,6 +82,18 @@ public class RandomVoronoi : ComputeShaderBehaviour
     public int CircleRadius => circleRadius;
 
     private bool IsChangingPointsCount => pointsCountChangeStartTime >= 0f;
+    private Kernel UpdateParticlesKernel
+    {
+        get
+        {
+            return distribution switch
+            {
+                ParticlesDistribution.Uniform => Kernel.UpdateParticlesUniform,
+                ParticlesDistribution.Radial => Kernel.UpdateParticlesRadial,
+                _ => Kernel.UpdateParticlesUniform,
+            };
+        }
+    }
 
     [SerializeField]
     private Material delaunayMaterial = null;
@@ -82,6 +101,8 @@ public class RandomVoronoi : ComputeShaderBehaviour
     [SerializeField]
     private DelaunayDrawType delaunayDrawType = default;
 #endif
+    [SerializeField]
+    private ParticlesDistribution distribution = ParticlesDistribution.Radial;
     [SerializeField]
     private Color clearColor = Color.clear;
     [SerializeField]
@@ -378,7 +399,7 @@ public class RandomVoronoi : ComputeShaderBehaviour
         DispatchKernel(Kernel.ClearPairs, pairsThreadGroups);
 
         DispatchKernel(Kernel.DrawPoints, circleThreadGroups);
-        DispatchKernel(Kernel.UpdateParticles, circleThreadGroups);
+        DispatchKernel(UpdateParticlesKernel, circleThreadGroups);
 
         int drawCirclesKernelID = GetKernelID(Kernel.DrawCircles);
 

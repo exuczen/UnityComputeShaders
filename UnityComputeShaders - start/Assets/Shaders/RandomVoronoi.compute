@@ -13,7 +13,8 @@
 #pragma kernel ClearPairs
 #pragma kernel InitParticles
 #pragma kernel RandomParticles
-#pragma kernel UpdateParticles
+#pragma kernel UpdateParticlesUniform
+#pragma kernel UpdateParticlesRadial
 #pragma kernel FindPairs
 
 #include "Utils/Geometry.cginc"
@@ -79,7 +80,7 @@ void DrawPoints(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
-void UpdateParticles(uint3 id : SV_DispatchThreadID)
+void UpdateParticlesUniform(uint3 id : SV_DispatchThreadID)
 {
     uint i = getParticleIndex(id);
     if (i >= PointsCount)
@@ -88,7 +89,21 @@ void UpdateParticles(uint3 id : SV_DispatchThreadID)
     }
     if (getParticlePosition(i).x < 0)
     {
-        //respawnParticle(i, 0.1, 1.0, Time);
+        respawnParticle(i, 0.1, 1.0, Time);
+        plotParticle(particlesBuffer[i], i); // Write particle's pixel
+    }
+}
+
+[numthreads(CIRCLE_THREADS.x, CIRCLE_THREADS.y, CIRCLE_THREADS.z)]
+void UpdateParticlesRadial(uint3 id : SV_DispatchThreadID)
+{
+    uint i = getParticleIndex(id);
+    if (i >= PointsCount)
+    {
+        return;
+    }
+    if (getParticlePosition(i).x < 0)
+    {
         respawnParticleAroundCenter(i, 0.1, 1.0, Time, CursorPosition);
         plotParticle(particlesBuffer[i], i); // Write particle's pixel
     }
