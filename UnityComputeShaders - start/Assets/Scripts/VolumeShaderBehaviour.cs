@@ -18,7 +18,7 @@ public class VolumeShaderBehaviour : MonoBehaviour
         public static readonly int ObjectScaleID = Shader.PropertyToID("_ObjectScale");
 
         public static readonly int CullID = Shader.PropertyToID("_Cull");
-        public static readonly int InteriorEnabledID = Shader.PropertyToID("_InteriorEnabled");
+        //public static readonly int InteriorEnabledID = Shader.PropertyToID("_InteriorEnabled");
     }
 
     [SerializeField]
@@ -47,15 +47,13 @@ public class VolumeShaderBehaviour : MonoBehaviour
         float maxScale = Mathf.Max(lossyScale.x, lossyScale.y, lossyScale.z);
         if (material)
         {
-            CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
+            //CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
+            //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Back ? 1 : 0);
+            //material.SetVector("_CamForward", GetCameraForward());
 
             //Debug.Log($"{GetType().Name}.{material.FindPass(InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
 
-            material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Back ? 1 : 0);
-
             material.SetFloat(ShaderData.ObjectScaleID, maxScale);
-
-            //material.SetVector("_CamForward", GetCameraForward());
 
             if (interiorMaterial)
             {

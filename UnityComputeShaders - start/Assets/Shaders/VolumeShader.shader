@@ -10,7 +10,7 @@ Shader "Unlit/VolumeShader"
         _ObjectScale("Object Scale", float) = 1
         //_CamForward("Cam Forward", Vector) = (0, 0, 1)
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Integer) = 2
-        [Toggle] _InteriorEnabled("Interior Enabled", Integer) = 1
+        //[Toggle] _InteriorEnabled("Interior Enabled", Integer) = 1
     }
     SubShader
     {
@@ -39,7 +39,7 @@ Shader "Unlit/VolumeShader"
 
             #pragma vertex vert
             #pragma fragment frag
-            
+
             struct v2f
             {
                 float4 vertex : SV_POSITION;
@@ -80,24 +80,36 @@ Shader "Unlit/VolumeShader"
                 float3 samplePosition = rayOrigin;
 
                 float4 color = float4(0, 0, 0, 0);
-                float sampleAlpha = _StepSize * _SampleAlpha;
-                float rayScale = _StepSize * _ObjectScale;
 
-                // Raymarch through object space
-                for (int i = 0; i < _StepCount; i++)
+                if (_Cull == 1)
                 {
-                    // Accumulate color only within unit cube bounds
-                    if (all(abs(samplePosition) < 0.5f + EPSILON))
+                    // Raymarch through object space
+                    for (int i = 0; i < _StepCount; i++)
                     {
-                        float4 clipSamplePos = UnityObjectToClipPos(samplePosition);
-                        float clipW = clipSamplePos.w;
-                        if (clipSamplePos.z >= 0 && all(clipSamplePos.xyz >= -clipW && clipSamplePos.xyz <= clipW))
+                        // Accumulate color only within unit cube bounds
+                        if (all(abs(samplePosition) < 0.5f + EPSILON))
                         {
-                            float4 sampledColor = tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
-                            sampledColor.a *= sampleAlpha;
-                            color = blendUnder(color, sampledColor);
+                            if (objectInClipView(samplePosition))
+                            {
+                                color = blendSampleTex3D(color, rayDirection, samplePosition);
+                            }
+                            else
+                            {
+                                samplePosition += rayDirection * RayScale;
+                            }
                         }
-                        samplePosition += rayDirection * rayScale;
+                    }
+                }
+                else
+                {
+                    // Raymarch through object space
+                    for (int i = 0; i < _StepCount; i++)
+                    {
+                        // Accumulate color only within unit cube bounds
+                        if (all(abs(samplePosition) < 0.5f + EPSILON))
+                        {
+                            color = blendSampleTex3D(color, rayDirection, samplePosition);
+                        }
                     }
                 }
                 color.a = _FragAlpha;
@@ -128,7 +140,7 @@ Shader "Unlit/VolumeShader"
                 //float4 vertexRay : TEXCOORD1;
             };
 
-            int _InteriorEnabled;
+            static const int InteriorEnabled = _Cull == 2;
 
             v2f vert(appdata v)
             {
@@ -154,7 +166,7 @@ Shader "Unlit/VolumeShader"
 
             float4 frag(v2f i) : SV_Target
             {
-                if (_InteriorEnabled)
+                if (InteriorEnabled)
                 {
                     float3 camForward = unity_CameraToWorld._m02_m12_m22;
 
@@ -171,12 +183,10 @@ Shader "Unlit/VolumeShader"
 
                     float3 camNearIsecPoint = _WorldSpaceCameraPos + vertexRay * (camNearIsecDist + EPSILON);
                     
-                    float3 samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
                     float3 rayDirection = mul(unity_WorldToObject, vertexRay);
+                    float3 samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
 
                     float4 color = float4(0, 0, 0, 0);
-                    float sampleAlpha = _StepSize * _SampleAlpha;
-                    float rayScale = _StepSize * _ObjectScale;
 
                     // Raymarch through object space
                     for (int i = 0; i < _StepCount; i++)
@@ -184,11 +194,7 @@ Shader "Unlit/VolumeShader"
                         // Accumulate color only within unit cube bounds
                         if (all(abs(samplePosition) < 0.5f + EPSILON))
                         {
-                            float4 sampledColor = tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
-                            sampledColor.a *= sampleAlpha;
-                            color = blendUnder(color, sampledColor);
-
-                            samplePosition += rayDirection * rayScale;
+                            color = blendSampleTex3D(color, rayDirection, samplePosition);
                         }
                     }
                     color.a = _FragAlpha;
