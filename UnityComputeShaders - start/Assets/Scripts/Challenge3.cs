@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
-public class Challenge3 : BaseCompletePP
+public class Challenge3 : BasePP
 {
     [Range(0.0f, 1.0f)]
     public float height = 0.3f;

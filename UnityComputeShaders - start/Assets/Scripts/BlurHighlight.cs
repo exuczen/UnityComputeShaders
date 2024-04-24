@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
-public class BlurHighlight : BaseCompletePP
+public class BlurHighlight : BasePP
 {
     [Range(0, 50)]
     public int blurRadius = 20;

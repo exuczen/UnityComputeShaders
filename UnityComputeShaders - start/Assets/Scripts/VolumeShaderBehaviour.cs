@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
+[RequireComponent(typeof(UpdateInEditMode))]
 public class VolumeShaderBehaviour : MonoBehaviour
 {
     //private const string InteriorPassName = "Interior";

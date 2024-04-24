@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
-public class NightVision : BaseCompletePP
+public class NightVision : BasePP
 {
     [Range(0.0f, 100.0f)]
     public float radius = 70;

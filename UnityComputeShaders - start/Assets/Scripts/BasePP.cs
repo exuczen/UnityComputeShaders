@@ -5,7 +5,8 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class BasePP : MonoBehaviour
 {
-    public ComputeShader shader = null;
+    [SerializeField]
+    protected ComputeShader shader = null;
 
     protected string kernelName = "CSMain";
 
@@ -143,5 +144,4 @@ public class BasePP : MonoBehaviour
             DispatchWithSource(ref source, ref destination);
         }
     }
-
 }
