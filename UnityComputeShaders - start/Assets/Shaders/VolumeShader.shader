@@ -22,6 +22,9 @@ Shader "Unlit/VolumeShader"
         #include "UnityCG.cginc"
         #include "VolumeShader.hlsl"
 
+        static const bool CullFront = _Cull == 1;
+        static const bool CullBack = _Cull == 2;
+
         //float3 _CamForward;
         
         ENDHLSL
@@ -47,6 +50,8 @@ Shader "Unlit/VolumeShader"
                 float3 vertexRay : TEXCOORD1;
             };
 
+            static const float VertexRaySign = 1 - 2 * abs(_Cull - 1);
+
             v2f vert(appdata v)
             {
                 v2f o;
@@ -55,12 +60,12 @@ Shader "Unlit/VolumeShader"
                 o.objectVertex = v.vertex;
 
                 // Calculate vector from camera to vertex in world space
-                float sign = 2 * abs(_Cull - 1) - 1;
+                //float sign = 2 * abs(_Cull - 1) - 1;
                 //float3 worldVertex = mul(unity_ObjectToWorld, v.vertex).xyz;
                 ////float3 localCamPos = mul(unity_WorldToObject, _WorldSpaceCameraPos);
                 ////o.vertexRay = sign * normalize((o.objectVertex.xyz - localCamPos));
                 //o.vertexRay = sign * (worldVertex - _WorldSpaceCameraPos);
-                o.vertexRay = -sign * WorldSpaceViewDir(v.vertex);
+                o.vertexRay = VertexRaySign * WorldSpaceViewDir(v.vertex);
 
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 return o;
@@ -81,7 +86,7 @@ Shader "Unlit/VolumeShader"
 
                 float4 color = float4(0, 0, 0, 0);
 
-                if (_Cull == 1)
+                if (CullFront)
                 {
                     // Raymarch through object space
                     for (int i = 0; i < _StepCount; i++)
@@ -140,8 +145,6 @@ Shader "Unlit/VolumeShader"
                 //float4 vertexRay : TEXCOORD1;
             };
 
-            static const int InteriorEnabled = _Cull == 2;
-
             v2f vert(appdata v)
             {
                 v2f o;
@@ -166,10 +169,9 @@ Shader "Unlit/VolumeShader"
 
             float4 frag(v2f i) : SV_Target
             {
-                if (InteriorEnabled)
+                if (CullBack) // Interior enabled
                 {
                     float3 camForward = unity_CameraToWorld._m02_m12_m22;
-
                     float camNear = _ProjectionParams.y;
                     
                     float3 vertexRay = -WorldSpaceViewDir(i.objectVertex);
