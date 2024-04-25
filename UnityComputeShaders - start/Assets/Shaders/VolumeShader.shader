@@ -4,8 +4,8 @@ Shader "Unlit/VolumeShader"
     {
         _MainTex("Texture", 3D) = "white" {}
         _SampleAlpha("Sample Alpha", Range(0.0, 1.0)) = 0.02
-        _FragAlpha("Frag Alpha", Range(-3.0, 1.0)) = 0.0
-        _StepSize("Step Size", Range(0.01, 1.0)) = 0.01
+        _FragAlpha("Frag Alpha", Range(-2.0, 2.0)) = 0.0
+        _StepSize("Step Size", Range(0.015, 1.0)) = 0.01
         _StepCount("Step Count", Range(1, 128)) = 1
         _ObjectScale("Object Scale", float) = 1
         //_CamForward("Cam Forward", Vector) = (0, 0, 1)
@@ -117,7 +117,7 @@ Shader "Unlit/VolumeShader"
                         }
                     }
                 }
-                color.a = _FragAlpha;
+                color.a *= _FragAlpha;
                 return color;
             }
             ENDHLSL
@@ -199,7 +199,7 @@ Shader "Unlit/VolumeShader"
                             color = blendSampleTex3D(color, rayDirection, samplePosition);
                         }
                     }
-                    color.a = _FragAlpha;
+                    color.a *= _FragAlpha;
                     return color;
 
                     //if (all(_CamForward - camForward < EPSILON))

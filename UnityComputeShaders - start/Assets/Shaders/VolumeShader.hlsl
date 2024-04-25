@@ -18,7 +18,7 @@ int _Cull;
 float _ObjectScale;
 
 static const float RayScale = _StepSize * _ObjectScale;
-static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(1.0, 0.5, invLerp(0.01, 1.0, _StepSize));
+static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(1.0, 0.5, invLerp(0.015, 1.0, _StepSize));
 
 float4 blendUpper(float4 color, float4 newColor)
 {
