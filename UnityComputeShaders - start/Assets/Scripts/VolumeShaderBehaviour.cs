@@ -24,7 +24,7 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
     [SerializeField]
     private Material material = null;
-    [SerializeField]
+    [SerializeField, HideInInspector]
     private Material interiorMaterial = null;
 
     //private MeshRenderer meshRenderer = null;
@@ -44,28 +44,17 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
     private void Update()
     {
-        var lossyScale = transform.lossyScale;
-        float maxScale = Mathf.Max(lossyScale.x, lossyScale.y, lossyScale.z);
-        if (material)
-        {
-            //CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
-            //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Back ? 1 : 0);
-            //material.SetVector("_CamForward", GetCameraForward());
-
-            //Debug.Log($"{GetType().Name}.{material.FindPass(InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
-
-            material.SetFloat(ShaderData.ObjectScaleID, maxScale);
-
-            if (interiorMaterial)
-            {
-                SetInteriorShaderProperties();
-            }
-        }
+        UpdateShader();
     }
 
     private void OnValidate()
     {
         Debug.Log($"{GetType().Name}.OnValidate");
+    }
+
+    private void OnMouseDown()
+    {
+        Debug.Log($"{GetType().Name}.OnMouseDown");
     }
 
     private void OnRenderObject() { }
@@ -105,6 +94,27 @@ public class VolumeShaderBehaviour : MonoBehaviour
             cameraForward = CameraUtils.MainOrCurrent.transform.forward;
         }
         return cameraForward;
+    }
+
+    public void UpdateShader()
+    {
+        if (material)
+        {
+            //var lossyScale = transform.lossyScale;
+            //float maxScale = Mathf.Max(lossyScale.x, lossyScale.y, lossyScale.z);
+
+            //CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
+            //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Back ? 1 : 0);
+            //material.SetVector("_CamForward", GetCameraForward());
+            //material.SetFloat(ShaderData.ObjectScaleID, maxScale);
+
+            //Debug.Log($"{GetType().Name}.{material.FindPass(InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
+
+            if (interiorMaterial)
+            {
+                SetInteriorShaderProperties();
+            }
+        }
     }
 
     private void SetInteriorShaderProperties()

@@ -1,5 +1,5 @@
 ﻿// Allowed floating point inaccuracy
-#define EPSILON 0.00001f
+//#define EPSILON 0.00001f
 
 #include "Utils/Math.cginc"
 
@@ -15,10 +15,8 @@ float _FragAlpha;
 float _StepSize;
 int _StepCount;
 int _Cull;
-float _ObjectScale;
 
-static const float RayScale = _StepSize * _ObjectScale;
-static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(1.0, 0.5, invLerp(0.015, 1.0, _StepSize));
+static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(2.0, 1.0, invLerp(0.015, 1.0, _StepSize));
 
 float4 blendUpper(float4 color, float4 newColor)
 {
@@ -34,15 +32,21 @@ float4 blendUnder(float4 color, float4 newColor)
     return color;
 }
 
-float4 blendSampleTex3D(float4 color, float3 rayDirection, inout float3 samplePosition)
+float4 blendSampleTex3D(float4 color, float3 rayDelta, inout float3 samplePosition)
 {
     float4 sampledColor = tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
     sampledColor.a *= ScaledSampleAlpha;
     color = blendUnder(color, sampledColor);
 
-    samplePosition += rayDirection * RayScale;
+    samplePosition += rayDelta;
     
     return color;
+}
+
+float3 getObjectDeltaRay(float3 worldVertexRay)
+{
+    float3 rayDelta = mul(unity_WorldToObject, worldVertexRay);
+    return normalize(rayDelta) * _StepSize;
 }
 
 bool objectInClipView(float3 objectPosition)

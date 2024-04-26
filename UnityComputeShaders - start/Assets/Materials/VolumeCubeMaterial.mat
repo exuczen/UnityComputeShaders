@@ -68,7 +68,7 @@ Material:
     - _DebugAlpha: 0
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _FragAlpha: 0
+    - _FragAlpha: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -78,7 +78,7 @@ Material:
     - _ObjectScale: 10
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _SampleAlpha: 1
+    - _SampleAlpha: 0.75
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1

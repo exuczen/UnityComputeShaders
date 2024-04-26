@@ -7,7 +7,6 @@ Shader "Unlit/VolumeShader"
         _FragAlpha("Frag Alpha", Range(-2.0, 2.0)) = 0.0
         _StepSize("Step Size", Range(0.015, 1.0)) = 0.01
         _StepCount("Step Count", Range(1, 128)) = 1
-        _ObjectScale("Object Scale", float) = 1
         //_CamForward("Cam Forward", Vector) = (0, 0, 1)
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Integer) = 2
         //[Toggle] _InteriorEnabled("Interior Enabled", Integer) = 1
@@ -81,7 +80,7 @@ Shader "Unlit/VolumeShader"
                 // Use vector from camera to object surface to get ray direction
                 ////float3 rayDirection = i.vertexRay;
                 ////float3 rayDirection = -normalize(ObjSpaceViewDir(i.objectVertex));
-                float3 rayDirection = mul(unity_WorldToObject, normalize(i.vertexRay));
+                float3 rayDelta = getObjectDeltaRay(i.vertexRay);
                 float3 samplePosition = rayOrigin;
 
                 float4 color = float4(0, 0, 0, 0);
@@ -96,11 +95,11 @@ Shader "Unlit/VolumeShader"
                         {
                             if (objectInClipView(samplePosition))
                             {
-                                color = blendSampleTex3D(color, rayDirection, samplePosition);
+                                color = blendSampleTex3D(color, rayDelta, samplePosition);
                             }
                             else
                             {
-                                samplePosition += rayDirection * RayScale;
+                                samplePosition += rayDelta;
                             }
                         }
                     }
@@ -113,7 +112,7 @@ Shader "Unlit/VolumeShader"
                         // Accumulate color only within unit cube bounds
                         if (all(abs(samplePosition) < 0.5f + EPSILON))
                         {
-                            color = blendSampleTex3D(color, rayDirection, samplePosition);
+                            color = blendSampleTex3D(color, rayDelta, samplePosition);
                         }
                     }
                 }
@@ -181,11 +180,9 @@ Shader "Unlit/VolumeShader"
                     // vertexRayLength / vertexFwdDist = camNearIsecDist / camNear
                     float camNearIsecDist = camNear * vertexRayLength / vertexFwdDist;
 
-                    vertexRay /= vertexRayLength;
-
-                    float3 camNearIsecPoint = _WorldSpaceCameraPos + vertexRay * (camNearIsecDist + EPSILON);
+                    float3 camNearIsecPoint = _WorldSpaceCameraPos + (camNearIsecDist + EPSILON) * vertexRay / vertexRayLength;
                     
-                    float3 rayDirection = mul(unity_WorldToObject, vertexRay);
+                    float3 rayDelta = getObjectDeltaRay(vertexRay);
                     float3 samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
 
                     float4 color = float4(0, 0, 0, 0);
@@ -196,7 +193,7 @@ Shader "Unlit/VolumeShader"
                         // Accumulate color only within unit cube bounds
                         if (all(abs(samplePosition) < 0.5f + EPSILON))
                         {
-                            color = blendSampleTex3D(color, rayDirection, samplePosition);
+                            color = blendSampleTex3D(color, rayDelta, samplePosition);
                         }
                     }
                     color.a *= _FragAlpha;
