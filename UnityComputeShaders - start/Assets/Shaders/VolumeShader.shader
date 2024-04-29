@@ -86,29 +86,12 @@ Shader "Unlit/VolumeShader"
                 ////float3 rayDirection = i.vertexRay;
                 ////float3 rayDirection = -normalize(ObjSpaceViewDir(i.objectVertex));
                 float3 rayDirection = worldToObjectDirection(i.vertexRay);
-                float3 rayDelta = rayDirection * _StepSize;
                 float3 samplePosition = i.objectVertex;
-
-                float4 color = COLOR_CLEAR;
+                float4 color;
 
                 if (CullFront)
                 {
-                    // Raymarch through object space
-                    for (int i = 0; i < _StepCount; i++)
-                    {
-                        // Accumulate color only within unit cube bounds
-                        if (all(abs(samplePosition) < 0.5f + EPSILON))
-                        {
-                            if (objectBelowCrossSection(samplePosition) && objectInClipView(samplePosition))
-                            {
-                                color = blendSampleTex3D(color, rayDelta, samplePosition);
-                            }
-                            else
-                            {
-                                samplePosition += rayDelta;
-                            }
-                        }
-                    }
+                    color = blendTex3DInClipView(samplePosition, rayDirection);
                 }
                 else
                 {
@@ -116,24 +99,10 @@ Shader "Unlit/VolumeShader"
                     {
                         samplePosition = getIntersectionWithPlane(samplePosition, rayDirection, LocalCrossSectionPoint, LocalCrossSectionNormal);
                     }
-                    // Raymarch through object space
-                    for (int i = 0; i < _StepCount; i++)
-                    {
-                        // Accumulate color only within unit cube bounds
-                        if (all(abs(samplePosition) < 0.5f + EPSILON))
-                        {
-                            if (objectBelowCrossSection(samplePosition))
-                            {
-                                color = blendSampleTex3D(color, rayDelta, samplePosition);
-                            }
-                            else
-                            {
-                                samplePosition += rayDelta;
-                            }
-                        }
-                    }
+                    color = blendTex3D(samplePosition, rayDirection);
                 }
                 color.a *= _FragAlpha;
+
                 return color;
             }
             ENDHLSL
@@ -187,9 +156,9 @@ Shader "Unlit/VolumeShader"
 
             float4 frag(v2f i) : SV_Target
             {
-                if (InteriorEnabled) // Interior enabled
+                if (InteriorEnabled)
                 {
-                    float3 rayDelta;
+                    float3 rayDirection;
                     float3 samplePosition;
 
                     if (IsCameraAboveCrossSection)
@@ -218,7 +187,7 @@ Shader "Unlit/VolumeShader"
                         {
                             discard;
                         }
-                        rayDelta = vertexRay * _StepSize;
+                        rayDirection = vertexRay;
                         samplePosition = planeIsecPoint;
                     }
                     else
@@ -226,30 +195,12 @@ Shader "Unlit/VolumeShader"
                         float3 vertexRay;
                         float3 camNearIsecPoint = getWorldIntersectionWithCameraNearPlane(i.objectVertex, vertexRay);
                     
-                        float3 rayDirection = worldToObjectDirection(vertexRay);
-                        rayDelta = rayDirection * _StepSize;
+                        rayDirection = worldToObjectDirection(vertexRay);
                         samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
                     }
-
-                    float4 color = COLOR_CLEAR;
-
-                    // Raymarch through object space
-                    for (int i = 0; i < _StepCount; i++)
-                    {
-                        // Accumulate color only within unit cube bounds
-                        if (all(abs(samplePosition) < 0.5f + EPSILON))
-                        {
-                            if (objectBelowCrossSection(samplePosition))
-                            {
-                                color = blendSampleTex3D(color, rayDelta, samplePosition);
-                            }
-                            else
-                            {
-                                samplePosition += rayDelta;   
-                            }
-                        }
-                    }
+                    float4 color = blendTex3D(samplePosition, rayDirection);
                     color.a *= _FragAlpha;
+
                     return color;
                     //return float4(1, 0, 0, 0);
                     

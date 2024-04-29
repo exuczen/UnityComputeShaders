@@ -135,3 +135,51 @@ float3 getIntersectionWithPlane(float3 rayPoint, float3 rayDir, float3 planePoin
     float distance;
     return getIntersectionWithPlane(rayPoint, rayDir, planePoint, planeNormal, distance);
 }
+
+float4 blendTex3D(float3 samplePosition, float3 rayDirection)
+{
+    float4 color = COLOR_CLEAR;
+    float3 rayDelta = rayDirection * _StepSize;
+    
+    // Raymarch through object space
+    for (int i = 0; i < _StepCount; i++)
+    {
+        // Accumulate color only within unit cube bounds
+        if (all(abs(samplePosition) < 0.5f + EPSILON))
+        {
+            if (objectBelowCrossSection(samplePosition))
+            {
+                color = blendSampleTex3D(color, rayDelta, samplePosition);
+            }
+            else
+            {
+                samplePosition += rayDelta;
+            }
+        }
+    }
+    return color;
+}
+
+float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
+{
+    float4 color = COLOR_CLEAR;
+    float3 rayDelta = rayDirection * _StepSize;
+
+    // Raymarch through object space
+    for (int i = 0; i < _StepCount; i++)
+    {
+        // Accumulate color only within unit cube bounds
+        if (all(abs(samplePosition) < 0.5f + EPSILON))
+        {
+            if (objectBelowCrossSection(samplePosition) && objectInClipView(samplePosition))
+            {
+                color = blendSampleTex3D(color, rayDelta, samplePosition);
+            }
+            else
+            {
+                samplePosition += rayDelta;
+            }
+        }
+    }
+    return color;
+}
