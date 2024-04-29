@@ -7,7 +7,6 @@ Shader "Unlit/VolumeShader"
         _FragAlpha("Frag Alpha", Range(-2.0, 2.0)) = 0.0
         _StepSize("Step Size", Range(0.015, 1.0)) = 0.01
         _StepCount("Step Count", Range(1, 128)) = 1
-        //_CamForward("Cam Forward", Vector) = (0, 0, 1)
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Integer) = 2
         //[Toggle] _InteriorEnabled("Interior Enabled", Integer) = 1
     }
@@ -24,8 +23,14 @@ Shader "Unlit/VolumeShader"
         static const bool CullFront = _Cull == 1;
         static const bool CullBack = _Cull == 2;
 
-        //float3 _CamForward;
-        
+        //float3 WorldCrossSectionNormal;
+        //float3 WorldCrossSectionPoint;
+        //matrix ModelMatrix;
+        //matrix ModelMatrixInv;
+        //float3 ModelPosition;
+        //float3 WorldCameraPosition;
+        //float3 WorldCameraForward;
+
         ENDHLSL
 
         Pass
@@ -59,11 +64,10 @@ Shader "Unlit/VolumeShader"
                 o.objectVertex = v.vertex;
 
                 // Calculate vector from camera to vertex in world space
-                //float sign = 2 * abs(_Cull - 1) - 1;
                 //float3 worldVertex = mul(unity_ObjectToWorld, v.vertex).xyz;
                 ////float3 localCamPos = mul(unity_WorldToObject, _WorldSpaceCameraPos);
-                ////o.vertexRay = sign * normalize((o.objectVertex.xyz - localCamPos));
-                //o.vertexRay = sign * (worldVertex - _WorldSpaceCameraPos);
+                ////o.vertexRay = -VertexRaySign * normalize((o.objectVertex.xyz - localCamPos));
+                //o.vertexRay = -VertexRaySign * (worldVertex - _WorldSpaceCameraPos);
                 o.vertexRay = VertexRaySign * WorldSpaceViewDir(v.vertex);
 
                 o.vertex = UnityObjectToClipPos(v.vertex);
@@ -72,18 +76,16 @@ Shader "Unlit/VolumeShader"
 
             float4 frag(v2f i) : SV_Target
             {
-                //float sign = 2 * abs(_Cull - 1) - 1;
-                //i.vertexRay = -sign * WorldSpaceViewDir(i.objectVertex);
-
+                //i.vertexRay = VertexRaySign * WorldSpaceViewDir(i.objectVertex);
+                
                 // Start raymarching at the front surface of the object
-                float3 rayOrigin = i.objectVertex;
                 // Use vector from camera to object surface to get ray direction
                 ////float3 rayDirection = i.vertexRay;
                 ////float3 rayDirection = -normalize(ObjSpaceViewDir(i.objectVertex));
                 float3 rayDelta = getObjectDeltaRay(i.vertexRay);
-                float3 samplePosition = rayOrigin;
+                float3 samplePosition = i.objectVertex;
 
-                float4 color = float4(0, 0, 0, 0);
+                float4 color = COLOR_CLEAR;
 
                 if (CullFront)
                 {
@@ -93,7 +95,7 @@ Shader "Unlit/VolumeShader"
                         // Accumulate color only within unit cube bounds
                         if (all(abs(samplePosition) < 0.5f + EPSILON))
                         {
-                            if (objectInClipView(samplePosition))
+                            if (objectBelowCrossSection(samplePosition) && objectInClipView(samplePosition))
                             {
                                 color = blendSampleTex3D(color, rayDelta, samplePosition);
                             }
@@ -112,7 +114,14 @@ Shader "Unlit/VolumeShader"
                         // Accumulate color only within unit cube bounds
                         if (all(abs(samplePosition) < 0.5f + EPSILON))
                         {
-                            color = blendSampleTex3D(color, rayDelta, samplePosition);
+                            if (objectBelowCrossSection(samplePosition))
+                            {
+                                color = blendSampleTex3D(color, rayDelta, samplePosition);
+                            }
+                            else
+                            {
+                                samplePosition += rayDelta;
+                            }
                         }
                     }
                 }
@@ -144,6 +153,8 @@ Shader "Unlit/VolumeShader"
                 //float4 vertexRay : TEXCOORD1;
             };
 
+            static const float3 LocalCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1));
+
             v2f vert(appdata v)
             {
                 v2f o;
@@ -170,22 +181,48 @@ Shader "Unlit/VolumeShader"
             {
                 if (CullBack) // Interior enabled
                 {
-                    float3 camForward = unity_CameraToWorld._m02_m12_m22;
-                    float camNear = _ProjectionParams.y;
+                    float3 rayDelta;
+                    float3 samplePosition;
+
+                    if (objectAboveCrossSection(LocalCameraPos))
+                    {
+                        float distance;
+                        float3 camPos = LocalCameraPos;
+                        //float3 vertexRay = normalize(i.objectVertex.xyz - camPos);
+                        float3 vertexRay = -normalize(ObjSpaceViewDir(i.objectVertex));
+                        float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, LocalCrossSectionPoint, LocalCrossSectionNormal, distance);
+                        
+                        //float3 camPos = _WorldSpaceCameraPos;
+                        //float3 vertexRay = -normalize(WorldSpaceViewDir(i.objectVertex));
+                        ////float3 vertexRay = normalize(mul(unity_ObjectToWorld, i.objectVertex) - camPos);
+                        //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, distance);
+                        //planeIsecPoint = mul(unity_WorldToObject, float4(planeIsecPoint, 1));
+                        ////vertexRay = normalize(mul(unity_WorldToObject, vertexRay));
+
+                        //float3 camPos = WorldCameraPosition;
+                        //float3 vertexRay = normalize(/*ModelPosition +*/ mul(ModelMatrix, i.objectVertex) - camPos);
+                        ////float3 vertexRay = normalize(mul(ModelMatrix, i.objectVertex.xyz) - camPos);
+                        //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, distance);
+                        //planeIsecPoint = mul(ModelMatrixInv, float4(planeIsecPoint.xyz, 1) /*- ModelPosition*/);
+                        ////vertexRay = normalize(mul(ModelMatrixInv, vertexRay));
+
+                        if (distance < 0)
+                        {
+                            discard;
+                        }
+                        rayDelta = vertexRay * _StepSize;
+                        samplePosition = planeIsecPoint;
+                    }
+                    else
+                    {
+                        float3 vertexRay;
+                        float3 camNearIsecPoint = getWorldIntersectionWithCameraNearPlane(i.objectVertex, vertexRay);
                     
-                    float3 vertexRay = -WorldSpaceViewDir(i.objectVertex);
-                    float vertexRayLength = length(vertexRay);
-                    float vertexFwdDist = dot(vertexRay, camForward);
+                        rayDelta = getObjectDeltaRay(vertexRay);
+                        samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
+                    }
 
-                    // vertexRayLength / vertexFwdDist = camNearIsecDist / camNear
-                    float camNearIsecDist = camNear * vertexRayLength / vertexFwdDist;
-
-                    float3 camNearIsecPoint = _WorldSpaceCameraPos + (camNearIsecDist + EPSILON) * vertexRay / vertexRayLength;
-                    
-                    float3 rayDelta = getObjectDeltaRay(vertexRay);
-                    float3 samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
-
-                    float4 color = float4(0, 0, 0, 0);
+                    float4 color = COLOR_CLEAR;
 
                     // Raymarch through object space
                     for (int i = 0; i < _StepCount; i++)
@@ -193,11 +230,28 @@ Shader "Unlit/VolumeShader"
                         // Accumulate color only within unit cube bounds
                         if (all(abs(samplePosition) < 0.5f + EPSILON))
                         {
-                            color = blendSampleTex3D(color, rayDelta, samplePosition);
+                            if (objectBelowCrossSection(samplePosition))
+                            {
+                                color = blendSampleTex3D(color, rayDelta, samplePosition);
+                            }
+                            else
+                            {
+                                samplePosition += rayDelta;   
+                            }
                         }
                     }
                     color.a *= _FragAlpha;
                     return color;
+                    
+                    //if (all(abs(samplePosition) < 0.5f + EPSILON))
+                    //{
+                    //    return tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
+                    //}
+                    //else
+                    //{
+                    //    discard;
+                    //    return COLOR_CLEAR;
+                    //}
 
                     //if (all(_CamForward - camForward < EPSILON))
                     //{
@@ -212,7 +266,7 @@ Shader "Unlit/VolumeShader"
                 else
                 {
                     discard;
-                    return float4(0, 0, 0, 0);
+                    return COLOR_CLEAR;
                 }
             }
 

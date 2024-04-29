@@ -26,6 +26,8 @@ public class VolumeShaderBehaviour : MonoBehaviour
     private Material material = null;
     [SerializeField, HideInInspector]
     private Material interiorMaterial = null;
+    [SerializeField]
+    private VolumeCrossSection crossSection = null;
 
     //private MeshRenderer meshRenderer = null;
     private MeshFilter meshFilter = null;
@@ -74,26 +76,36 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
     private Vector3 GetCameraForward()
     {
-        Vector3 cameraForward;
+        var camera = GetCamera();
+        return camera ? camera.transform.forward : Vector3.forward;
+    }
+
+    private Vector3 GetCameraPosition()
+    {
+        var camera = GetCamera();
+        return camera ? camera.transform.position : Vector3.zero;
+    }
+
+    private Camera GetCamera()
+    {
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
             SceneView sceneView = SceneView.lastActiveSceneView;
             if (sceneView && sceneView.camera)
             {
-                cameraForward = sceneView.camera.transform.forward;
+                return sceneView.camera;
             }
             else
             {
-                cameraForward = Vector3.forward;
+                return null;
             }
         }
         else
 #endif
         {
-            cameraForward = CameraUtils.MainOrCurrent.transform.forward;
+            return CameraUtils.MainOrCurrent;
         }
-        return cameraForward;
     }
 
     public void UpdateShader()
@@ -105,7 +117,7 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
             //CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
             //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Back ? 1 : 0);
-            //material.SetVector("_CamForward", GetCameraForward());
+            //material.SetVector("WorldCameraForward", GetCameraForward());
             //material.SetFloat(ShaderData.ObjectScaleID, maxScale);
 
             //Debug.Log($"{GetType().Name}.{material.FindPass(InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
@@ -114,6 +126,24 @@ public class VolumeShaderBehaviour : MonoBehaviour
             {
                 SetInteriorShaderProperties();
             }
+        }
+        if (crossSection)
+        {
+            var csTransform = crossSection.transform;
+            var crossSectionNormal = transform.InverseTransformDirection(-csTransform.forward);
+            var crossSectionPoint = csTransform.localPosition;
+            //var crossSectionPoint = transform.InverseTransformPoint(csTransform.position);
+
+            material.SetVector("LocalCrossSectionNormal", crossSectionNormal);
+            material.SetVector("LocalCrossSectionPoint", crossSectionPoint);
+
+            //material.SetVector("WorldCrossSectionNormal", -csTransform.forward);
+            //material.SetVector("WorldCrossSectionPoint", csTransform.position);
+
+            //material.SetMatrix("ModelMatrix", transform.localToWorldMatrix);
+            //material.SetMatrix("ModelMatrixInv", transform.worldToLocalMatrix);
+            //material.SetVector("ModelPosition", transform.position);
+            //material.SetVector("WorldCameraPosition", GetCameraPosition());
         }
     }
 
