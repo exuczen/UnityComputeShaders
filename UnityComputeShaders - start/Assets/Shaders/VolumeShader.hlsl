@@ -23,6 +23,8 @@ float3 LocalCrossSectionPoint;
 
 static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(2.0, 1.0, invLerp(0.015, 1.0, _StepSize));
 
+static const float CamNear = _ProjectionParams.y;
+
 float4 blendUpper(float4 color, float4 newColor)
 {
     newColor.rgb += (1.0 - color.a) * newColor.a * newColor.rgb;
@@ -48,11 +50,17 @@ float4 blendSampleTex3D(float4 color, float3 rayDelta, inout float3 samplePositi
     return color;
 }
 
-float3 getObjectDeltaRay(float3 worldVertexRay)
+float3 worldToObjectDirection(float3 worldVertexRay)
 {
-    float3 rayDelta = mul(unity_WorldToObject, worldVertexRay);
-    return normalize(rayDelta) * _StepSize;
+    float3 direction = mul(unity_WorldToObject, worldVertexRay);
+    return normalize(direction);
 }
+
+//float3 getObjectDeltaRay(float3 worldVertexRay)
+//{
+//    float3 rayDelta = mul(unity_WorldToObject, worldVertexRay);
+//    return normalize(rayDelta) * _StepSize;
+//}
 
 bool objectInClipView(float3 objectPosition)
 {
@@ -106,7 +114,7 @@ bool objectAboveCrossSection(float3 position)
 
 float3 getIntersectionWithPlane(float3 rayPoint, float3 rayDir, float3 planePoint, float3 planeNormal, out float distance)
 {
-    rayDir = normalize(rayDir);
+    //rayDir = normalize(rayDir);
     float cosAngle = dot(rayDir, planeNormal);
     
     if (abs(cosAngle) > EPSILON)

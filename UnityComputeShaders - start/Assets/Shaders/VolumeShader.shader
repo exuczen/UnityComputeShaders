@@ -23,6 +23,9 @@ Shader "Unlit/VolumeShader"
         static const bool CullFront = _Cull == 1;
         static const bool CullBack = _Cull == 2;
 
+        static const float3 LocalCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1));
+        static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos);
+
         //float3 WorldCrossSectionNormal;
         //float3 WorldCrossSectionPoint;
         //matrix ModelMatrix;
@@ -82,7 +85,8 @@ Shader "Unlit/VolumeShader"
                 // Use vector from camera to object surface to get ray direction
                 ////float3 rayDirection = i.vertexRay;
                 ////float3 rayDirection = -normalize(ObjSpaceViewDir(i.objectVertex));
-                float3 rayDelta = getObjectDeltaRay(i.vertexRay);
+                float3 rayDirection = worldToObjectDirection(i.vertexRay);
+                float3 rayDelta = rayDirection * _StepSize;
                 float3 samplePosition = i.objectVertex;
 
                 float4 color = COLOR_CLEAR;
@@ -108,6 +112,10 @@ Shader "Unlit/VolumeShader"
                 }
                 else
                 {
+                    if (IsCameraAboveCrossSection && objectAboveCrossSection(samplePosition))
+                    {
+                        samplePosition = getIntersectionWithPlane(samplePosition, rayDirection, LocalCrossSectionPoint, LocalCrossSectionNormal);
+                    }
                     // Raymarch through object space
                     for (int i = 0; i < _StepCount; i++)
                     {
@@ -153,7 +161,7 @@ Shader "Unlit/VolumeShader"
                 //float4 vertexRay : TEXCOORD1;
             };
 
-            static const float3 LocalCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1));
+            static const bool InteriorEnabled = CullBack && all(abs(LocalCameraPos) < 0.5f + CamNear);
 
             v2f vert(appdata v)
             {
@@ -184,7 +192,7 @@ Shader "Unlit/VolumeShader"
                     float3 rayDelta;
                     float3 samplePosition;
 
-                    if (objectAboveCrossSection(LocalCameraPos))
+                    if (IsCameraAboveCrossSection)
                     {
                         float distance;
                         float3 camPos = LocalCameraPos;
@@ -218,7 +226,8 @@ Shader "Unlit/VolumeShader"
                         float3 vertexRay;
                         float3 camNearIsecPoint = getWorldIntersectionWithCameraNearPlane(i.objectVertex, vertexRay);
                     
-                        rayDelta = getObjectDeltaRay(vertexRay);
+                        float3 rayDirection = worldToObjectDirection(vertexRay);
+                        rayDelta = rayDirection * _StepSize;
                         samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
                     }
 
@@ -242,6 +251,7 @@ Shader "Unlit/VolumeShader"
                     }
                     color.a *= _FragAlpha;
                     return color;
+                    //return float4(1, 0, 0, 0);
                     
                     //if (all(abs(samplePosition) < 0.5f + EPSILON))
                     //{
