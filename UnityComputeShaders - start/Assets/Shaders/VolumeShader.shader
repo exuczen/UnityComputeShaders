@@ -24,7 +24,7 @@ Shader "Unlit/VolumeShader"
         static const bool CullBack = _Cull == 2;
 
         static const float3 LocalCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1));
-        static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos);
+        static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos, CamNear);
 
         //float3 WorldCrossSectionNormal;
         //float3 WorldCrossSectionPoint;
@@ -187,7 +187,7 @@ Shader "Unlit/VolumeShader"
 
             float4 frag(v2f i) : SV_Target
             {
-                if (CullBack) // Interior enabled
+                if (InteriorEnabled) // Interior enabled
                 {
                     float3 rayDelta;
                     float3 samplePosition;

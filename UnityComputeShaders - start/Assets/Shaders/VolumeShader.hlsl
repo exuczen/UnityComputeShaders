@@ -87,29 +87,29 @@ float3 getWorldIntersectionWithCameraNearPlane(float4 objectVertex, out float3 w
     return camNearIsecPoint;
 }
 
-float3 getDistanceFromPlane(float3 position, float3 planePoint, float3 planeNormal)
+float getDistanceFromPlane(float3 position, float3 planePoint, float3 planeNormal)
 {
     return dot(position - planePoint, planeNormal);
 }
 
-bool isPointBelowPlane(float3 position, float3 planePoint, float3 planeNormal)
+bool isPointBelowPlane(float3 position, float3 planePoint, float3 planeNormal, float epsilon = 0)
 {
-    return getDistanceFromPlane(position, planePoint, planeNormal) <= 0;
+    return getDistanceFromPlane(position, planePoint, planeNormal) <= epsilon;
 }
 
-bool isPointAbovePlane(float3 position, float3 planePoint, float3 planeNormal)
+bool isPointAbovePlane(float3 position, float3 planePoint, float3 planeNormal, float epsilon = 0)
 {
-    return !isPointBelowPlane(position, planePoint, planeNormal);
+    return !isPointBelowPlane(position, planePoint, planeNormal, epsilon);
 }
 
-bool objectBelowCrossSection(float3 position)
+bool objectBelowCrossSection(float3 position, float epsilon = 0)
 {
-    return isPointBelowPlane(position, LocalCrossSectionPoint, LocalCrossSectionNormal);
+    return isPointBelowPlane(position, LocalCrossSectionPoint, LocalCrossSectionNormal, epsilon);
 }
 
-bool objectAboveCrossSection(float3 position)
+bool objectAboveCrossSection(float3 position, float epsilon = 0)
 {
-    return isPointAbovePlane(position, LocalCrossSectionPoint, LocalCrossSectionNormal);
+    return isPointAbovePlane(position, LocalCrossSectionPoint, LocalCrossSectionNormal, epsilon);
 }
 
 float3 getIntersectionWithPlane(float3 rayPoint, float3 rayDir, float3 planePoint, float3 planeNormal, out float distance)
