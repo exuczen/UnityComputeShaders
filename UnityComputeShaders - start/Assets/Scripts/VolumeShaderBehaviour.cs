@@ -141,8 +141,11 @@ public class VolumeShaderBehaviour : MonoBehaviour
             //material.SetVector("WorldCrossSectionPoint", csTransform.position);
 
             //material.SetMatrix("ModelMatrix", transform.localToWorldMatrix);
-            //material.SetMatrix("ModelMatrixInv", transform.worldToLocalMatrix);
+            //material.SetMatrix("ModelMatrixInv", transform.worldToLocalMatrix); // !!! transform.worldToLocalMatrix axes are scaled !!!
             //material.SetVector("ModelPosition", transform.position);
+
+            //material.SetVector("ModelCameraForward", transform.InverseTransformVector(GetCameraForward()).normalized);
+            //material.SetVector("WorldCameraForward", GetCameraForward());
             //material.SetVector("WorldCameraPosition", GetCameraPosition());
         }
     }

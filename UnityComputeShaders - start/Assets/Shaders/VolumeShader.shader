@@ -24,13 +24,16 @@ Shader "Unlit/VolumeShader"
         static const bool CullBack = _Cull == 2;
 
         static const float3 LocalCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1));
-        static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos, CamNear);
+        static const float3 LocalCameraForward = normalize(mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0)).xyz);
+
+        //static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos, CamNear);
 
         //float3 WorldCrossSectionNormal;
         //float3 WorldCrossSectionPoint;
         //matrix ModelMatrix;
         //matrix ModelMatrixInv;
         //float3 ModelPosition;
+        //float3 ModelCameraForward;
         //float3 WorldCameraPosition;
         //float3 WorldCameraForward;
 
@@ -95,7 +98,7 @@ Shader "Unlit/VolumeShader"
                 }
                 else
                 {
-                    if (IsCameraAboveCrossSection && objectAboveCrossSection(samplePosition))
+                    if (objectAboveCrossSection(samplePosition))
                     {
                         samplePosition = getIntersectionWithPlane(samplePosition, rayDirection, LocalCrossSectionPoint, LocalCrossSectionNormal);
                     }
@@ -160,69 +163,72 @@ Shader "Unlit/VolumeShader"
                 {
                     float3 rayDirection;
                     float3 samplePosition;
+                    float4 color;
 
-                    if (IsCameraAboveCrossSection)
-                    {
-                        float distance;
-                        float3 camPos = LocalCameraPos;
-                        //float3 vertexRay = normalize(i.objectVertex.xyz - camPos);
-                        float3 vertexRay = -normalize(ObjSpaceViewDir(i.objectVertex));
-                        float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, LocalCrossSectionPoint, LocalCrossSectionNormal, distance);
+                    float planeIsecDist;
+                    float planeDist;
+
+                    float3 camPos = LocalCameraPos;
+                    //float3 vertexRay = normalize(i.objectVertex.xyz - camPos);
+                    float3 vertexRay = -normalize(ObjSpaceViewDir(i.objectVertex));
+                    float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, LocalCrossSectionPoint, LocalCrossSectionNormal, planeIsecDist, planeDist);
                         
-                        //float3 camPos = _WorldSpaceCameraPos;
-                        //float3 vertexRay = -normalize(WorldSpaceViewDir(i.objectVertex));
-                        ////float3 vertexRay = normalize(mul(unity_ObjectToWorld, i.objectVertex) - camPos);
-                        //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, distance);
-                        //planeIsecPoint = mul(unity_WorldToObject, float4(planeIsecPoint, 1));
-                        ////vertexRay = normalize(mul(unity_WorldToObject, vertexRay));
+                    //float3 camPos = _WorldSpaceCameraPos;
+                    //float3 vertexRay = -normalize(WorldSpaceViewDir(i.objectVertex));
+                    ////float3 vertexRay = normalize(mul(unity_ObjectToWorld, i.objectVertex) - camPos);
+                    //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, planeIsecDist, planeDist);
+                    //planeIsecPoint = mul(unity_WorldToObject, float4(planeIsecPoint, 1));
+                    ////vertexRay = normalize(mul(unity_WorldToObject, vertexRay));
 
-                        //float3 camPos = WorldCameraPosition;
-                        //float3 vertexRay = normalize(/*ModelPosition +*/ mul(ModelMatrix, i.objectVertex) - camPos);
-                        ////float3 vertexRay = normalize(mul(ModelMatrix, i.objectVertex.xyz) - camPos);
-                        //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, distance);
-                        //planeIsecPoint = mul(ModelMatrixInv, float4(planeIsecPoint.xyz, 1) /*- ModelPosition*/);
-                        ////vertexRay = normalize(mul(ModelMatrixInv, vertexRay));
+                    //float3 camPos = WorldCameraPosition;
+                    //float3 vertexRay = normalize(/*ModelPosition +*/ mul(ModelMatrix, i.objectVertex) - camPos);
+                    ////float3 vertexRay = normalize(mul(ModelMatrix, i.objectVertex.xyz) - camPos);
+                    //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, planeIsecDist, planeDist);
+                    //planeIsecPoint = mul(ModelMatrixInv, float4(planeIsecPoint.xyz, 1) /*- ModelPosition*/);
+                    ////vertexRay = normalize(mul(ModelMatrixInv, vertexRay));
 
-                        if (distance < 0)
-                        {
-                            discard;
-                        }
+                    bool planeIsecInClipView = objectInClipView(planeIsecPoint);
+
+                    if (planeDist > 0 && planeIsecDist > 0 && planeIsecInClipView)
+                    {
                         rayDirection = vertexRay;
                         samplePosition = planeIsecPoint;
+                        //color = float4(1, 0, 0, 0);
                     }
                     else
                     {
-                        float3 vertexRay;
-                        float3 camNearIsecPoint = getWorldIntersectionWithCameraNearPlane(i.objectVertex, vertexRay);
-                    
-                        rayDirection = worldToObjectDirection(vertexRay);
-                        samplePosition = mul(unity_WorldToObject, camNearIsecPoint);
+                        float camNearIsecDistance;
+                        float3 worldVertexRay;
+                        float3 camNearIsecPoint = getWorldIntersectionWithCameraNearPlane(i.objectVertex, worldVertexRay, camNearIsecDistance);
+
+                        rayDirection = worldToObjectDirection(worldVertexRay);
+                        samplePosition = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
+
+                        if (objectAboveCrossSection(samplePosition))
+                        {
+                            discard;
+                        }
+                        //color = float4(0, 0, 1, 0);
                     }
-                    float4 color = blendTex3D(samplePosition, rayDirection);
+
+                    //color = getTex3DColor(samplePosition, false);
+                    color = blendTex3D(samplePosition, rayDirection);
                     color.a *= _FragAlpha;
 
-                    return color;
-                    //return float4(1, 0, 0, 0);
-                    
-                    //if (all(abs(samplePosition) < 0.5f + EPSILON))
+                    //float3 localCameraForward = mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0));
+                    //float3 modelCameraForward = mul(ModelMatrixInv, float4(unity_CameraToWorld._m02_m12_m22, 0));
+                    //float3 modelCameraForward = mul(ModelMatrixInv, float4(WorldCameraForward, 0));
+
+                    //if (all(ModelCameraForward - LocalCameraForward < EPSILON))
                     //{
-                    //    return tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
+                    //    color = float4(1, 0, 0, 0);
                     //}
                     //else
                     //{
-                    //    discard;
-                    //    return COLOR_CLEAR;
+                    //    color = float4(0, 1, 0, 0);
                     //}
 
-                    //if (all(_CamForward - camForward < EPSILON))
-                    //{
-                    //    return float4(1, 0, 0, 0);
-                    //}
-                    //else
-                    //{
-                    //    return float4(0, 1, 0, 0);
-                    //}
-                    //return float4(1, 0, 0, 0);
+                    return color;
                 }
                 else
                 {

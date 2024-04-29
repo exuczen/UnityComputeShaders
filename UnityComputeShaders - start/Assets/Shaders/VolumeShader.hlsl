@@ -21,7 +21,7 @@ int _Cull;
 float3 LocalCrossSectionNormal;
 float3 LocalCrossSectionPoint;
 
-static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(2.0, 1.0, invLerp(0.015, 1.0, _StepSize));
+static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(2.0, 0.75, invLerp(0.015, 1.0, _StepSize));
 
 static const float CamNear = _ProjectionParams.y;
 
@@ -69,7 +69,7 @@ bool objectInClipView(float3 objectPosition)
     return clipPos.z >= 0 && all(clipPos.xyz >= -clipW && clipPos.xyz <= clipW);
 }
 
-float3 getWorldIntersectionWithCameraNearPlane(float4 objectVertex, out float3 worldVertexRay)
+float3 getWorldIntersectionWithCameraNearPlane(float4 objectVertex, out float3 worldVertexRay, out float distance)
 {
     float3 camForward = unity_CameraToWorld._m02_m12_m22;
     float camNear = _ProjectionParams.y;
@@ -83,6 +83,7 @@ float3 getWorldIntersectionWithCameraNearPlane(float4 objectVertex, out float3 w
 
     float3 camNearIsecPoint = _WorldSpaceCameraPos + (camNearIsecDist + EPSILON) * vertexRay / vertexRayLength;
     
+    distance = camNearIsecDist;
     worldVertexRay = vertexRay;
     return camNearIsecPoint;
 }
@@ -102,30 +103,31 @@ bool isPointAbovePlane(float3 position, float3 planePoint, float3 planeNormal, f
     return !isPointBelowPlane(position, planePoint, planeNormal, epsilon);
 }
 
-bool objectBelowCrossSection(float3 position, float epsilon = 0)
+bool objectBelowCrossSection(float3 position, float epsilon = EPSILON)
 {
     return isPointBelowPlane(position, LocalCrossSectionPoint, LocalCrossSectionNormal, epsilon);
 }
 
-bool objectAboveCrossSection(float3 position, float epsilon = 0)
+bool objectAboveCrossSection(float3 position, float epsilon = EPSILON)
 {
     return isPointAbovePlane(position, LocalCrossSectionPoint, LocalCrossSectionNormal, epsilon);
 }
 
-float3 getIntersectionWithPlane(float3 rayPoint, float3 rayDir, float3 planePoint, float3 planeNormal, out float distance)
+float3 getIntersectionWithPlane(float3 rayPoint, float3 rayDir, float3 planePoint, float3 planeNormal, out float isecDist, out float planeDist)
 {
     //rayDir = normalize(rayDir);
     float cosAngle = dot(rayDir, planeNormal);
     
     if (abs(cosAngle) > EPSILON)
     {
-        float distFromPlane = getDistanceFromPlane(rayPoint, planePoint, planeNormal);
-        distance = -distFromPlane / cosAngle;
-        return rayPoint + distance * rayDir;
+        planeDist = getDistanceFromPlane(rayPoint, planePoint, planeNormal);
+        isecDist = -planeDist / cosAngle;
+        return rayPoint + isecDist * rayDir;
     }
     else
     {
-        distance = 0;
+        planeDist = 0;
+        isecDist = 0;
         return float3(0, 0, 0);
     }
 }
@@ -133,7 +135,8 @@ float3 getIntersectionWithPlane(float3 rayPoint, float3 rayDir, float3 planePoin
 float3 getIntersectionWithPlane(float3 rayPoint, float3 rayDir, float3 planePoint, float3 planeNormal)
 {
     float distance;
-    return getIntersectionWithPlane(rayPoint, rayDir, planePoint, planeNormal, distance);
+    float distFromPlane;
+    return getIntersectionWithPlane(rayPoint, rayDir, planePoint, planeNormal, distance, distFromPlane);
 }
 
 float4 blendTex3D(float3 samplePosition, float3 rayDirection)
@@ -182,4 +185,23 @@ float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
         }
     }
     return color;
+}
+
+float4 getTex3DColor(float3 samplePosition, bool belowCrossSection)
+{
+    if (all(abs(samplePosition) < 0.5f + EPSILON))
+    {
+        if (!belowCrossSection || objectBelowCrossSection(samplePosition))
+        {
+            return tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
+        }
+        else
+        {
+            return COLOR_CLEAR;
+        }
+    }
+    else
+    {
+        return COLOR_CLEAR;
+    }
 }
