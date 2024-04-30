@@ -1,4 +1,6 @@
-﻿using MustHave;
+﻿//#define DEBUG_MODEL_VIEW
+
+using MustHave;
 using System.Collections;
 using UnityEditor;
 using UnityEngine;
@@ -137,16 +139,17 @@ public class VolumeShaderBehaviour : MonoBehaviour
             material.SetVector("LocalCrossSectionNormal", crossSectionNormal);
             material.SetVector("LocalCrossSectionPoint", crossSectionPoint);
 
-            //material.SetVector("WorldCrossSectionNormal", -csTransform.forward);
-            //material.SetVector("WorldCrossSectionPoint", csTransform.position);
+            material.SetVector("WorldCrossSectionNormal", -csTransform.forward);
+            material.SetVector("WorldCrossSectionPoint", csTransform.position);
+#if DEBUG_MODEL_VIEW
+            material.SetMatrix("ModelMatrix", transform.localToWorldMatrix);
+            material.SetMatrix("ModelMatrixInv", transform.worldToLocalMatrix); // !!! transform.worldToLocalMatrix axes are scaled !!!
+            material.SetVector("ModelPosition", transform.position);
 
-            //material.SetMatrix("ModelMatrix", transform.localToWorldMatrix);
-            //material.SetMatrix("ModelMatrixInv", transform.worldToLocalMatrix); // !!! transform.worldToLocalMatrix axes are scaled !!!
-            //material.SetVector("ModelPosition", transform.position);
-
-            //material.SetVector("ModelCameraForward", transform.InverseTransformVector(GetCameraForward()).normalized);
-            //material.SetVector("WorldCameraForward", GetCameraForward());
-            //material.SetVector("WorldCameraPosition", GetCameraPosition());
+            material.SetVector("ModelCameraForward", transform.InverseTransformVector(GetCameraForward()).normalized);
+            material.SetVector("WorldCameraForward", GetCameraForward());
+            material.SetVector("WorldCameraPosition", GetCameraPosition());
+#endif
         }
     }
 

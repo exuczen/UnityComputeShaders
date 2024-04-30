@@ -20,22 +20,7 @@ Shader "Unlit/VolumeShader"
         #include "UnityCG.cginc"
         #include "VolumeShader.hlsl"
 
-        static const bool CullFront = _Cull == 1;
-        static const bool CullBack = _Cull == 2;
-
-        static const float3 LocalCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1));
-        static const float3 LocalCameraForward = normalize(mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0)).xyz);
-
-        //static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos, CamNear);
-
-        //float3 WorldCrossSectionNormal;
-        //float3 WorldCrossSectionPoint;
-        //matrix ModelMatrix;
-        //matrix ModelMatrixInv;
-        //float3 ModelPosition;
-        //float3 ModelCameraForward;
-        //float3 WorldCameraPosition;
-        //float3 WorldCameraForward;
+        //static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos, CameraNear);
 
         ENDHLSL
 
@@ -92,16 +77,16 @@ Shader "Unlit/VolumeShader"
                 float3 samplePosition = i.objectVertex;
                 float4 color;
 
+                if (objectAboveCrossSection(samplePosition))
+                {
+                    samplePosition = objectIsecWithCrossSection(samplePosition, rayDirection);
+                }
                 if (CullFront)
                 {
                     color = blendTex3DInClipView(samplePosition, rayDirection);
                 }
                 else
                 {
-                    if (objectAboveCrossSection(samplePosition))
-                    {
-                        samplePosition = getIntersectionWithPlane(samplePosition, rayDirection, LocalCrossSectionPoint, LocalCrossSectionNormal);
-                    }
                     color = blendTex3D(samplePosition, rayDirection);
                 }
                 color.a *= _FragAlpha;
@@ -133,7 +118,7 @@ Shader "Unlit/VolumeShader"
                 //float4 vertexRay : TEXCOORD1;
             };
 
-            static const bool InteriorEnabled = CullBack && all(abs(LocalCameraPos) < 0.5f + CamNear);
+            static const bool InteriorEnabled = CullBack && all(abs(LocalCameraPos) < 0.5f + CameraNear);
 
             v2f vert(appdata v)
             {
@@ -171,21 +156,23 @@ Shader "Unlit/VolumeShader"
                     float3 camPos = LocalCameraPos;
                     //float3 vertexRay = normalize(i.objectVertex.xyz - camPos);
                     float3 vertexRay = -normalize(ObjSpaceViewDir(i.objectVertex));
-                    float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, LocalCrossSectionPoint, LocalCrossSectionNormal, planeIsecDist, planeDist);
-                        
+                    float3 planeIsecPoint = objectIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
+
+                    #ifdef DEBUG_MODEL_VIEW
                     //float3 camPos = _WorldSpaceCameraPos;
                     //float3 vertexRay = -normalize(WorldSpaceViewDir(i.objectVertex));
                     ////float3 vertexRay = normalize(mul(unity_ObjectToWorld, i.objectVertex) - camPos);
-                    //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, planeIsecDist, planeDist);
+                    //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
                     //planeIsecPoint = mul(unity_WorldToObject, float4(planeIsecPoint, 1));
                     ////vertexRay = normalize(mul(unity_WorldToObject, vertexRay));
 
                     //float3 camPos = WorldCameraPosition;
                     //float3 vertexRay = normalize(/*ModelPosition +*/ mul(ModelMatrix, i.objectVertex) - camPos);
                     ////float3 vertexRay = normalize(mul(ModelMatrix, i.objectVertex.xyz) - camPos);
-                    //float3 planeIsecPoint = getIntersectionWithPlane(camPos, vertexRay, WorldCrossSectionPoint, WorldCrossSectionNormal, planeIsecDist, planeDist);
+                    //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
                     //planeIsecPoint = mul(ModelMatrixInv, float4(planeIsecPoint.xyz, 1) /*- ModelPosition*/);
                     ////vertexRay = normalize(mul(ModelMatrixInv, vertexRay));
+                    #endif
 
                     bool planeIsecInClipView = objectInClipView(planeIsecPoint);
 
@@ -197,9 +184,9 @@ Shader "Unlit/VolumeShader"
                     }
                     else
                     {
-                        float camNearIsecDistance;
+                        float camNearIsecDist;
                         float3 worldVertexRay;
-                        float3 camNearIsecPoint = getWorldIntersectionWithCameraNearPlane(i.objectVertex, worldVertexRay, camNearIsecDistance);
+                        float3 camNearIsecPoint = worldIsecWithCamNearPlane(i.objectVertex, worldVertexRay, camNearIsecDist);
 
                         rayDirection = worldToObjectDirection(worldVertexRay);
                         samplePosition = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
@@ -215,6 +202,7 @@ Shader "Unlit/VolumeShader"
                     color = blendTex3D(samplePosition, rayDirection);
                     color.a *= _FragAlpha;
 
+                    #ifdef DEBUG_MODEL_VIEW
                     //float3 localCameraForward = mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0));
                     //float3 modelCameraForward = mul(ModelMatrixInv, float4(unity_CameraToWorld._m02_m12_m22, 0));
                     //float3 modelCameraForward = mul(ModelMatrixInv, float4(WorldCameraForward, 0));
@@ -227,6 +215,7 @@ Shader "Unlit/VolumeShader"
                     //{
                     //    color = float4(0, 1, 0, 0);
                     //}
+                    #endif
 
                     return color;
                 }
