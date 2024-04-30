@@ -155,6 +155,14 @@ public class VolumeShaderBehaviour : MonoBehaviour
         {
             material.DisableKeyword("DEBUG_MODEL_VIEW");
         }
+        if (material.GetInteger("_BlendEnabled") > 0)
+        {
+            material.EnableKeyword("BLEND_ENABLED");
+        }
+        else
+        {
+            material.DisableKeyword("BLEND_ENABLED");
+        }
     }
 
     private void SetInteriorShaderProperties()

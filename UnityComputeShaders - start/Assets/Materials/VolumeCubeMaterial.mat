@@ -10,7 +10,7 @@ Material:
   m_Name: VolumeCubeMaterial
   m_Shader: {fileID: 4800000, guid: 3468da7ed0142144bbe0a3df606252c5, type: 3}
   m_ValidKeywords:
-  - DEBUG_MODEL_VIEW
+  - BLEND_ENABLED
   m_InvalidKeywords:
   - _BLENDENABLED_ON
   - _INTERIORENABLED_ON
@@ -63,7 +63,7 @@ Material:
     m_Ints:
     - _BlendEnabled: 1
     - _Cull: 2
-    - _DebugModelView: 1
+    - _DebugModelView: 0
     - _ExampleFeatureEnabled: 0
     - _InteriorEnabled: 1
     m_Floats:
