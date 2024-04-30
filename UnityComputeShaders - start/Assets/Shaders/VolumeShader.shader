@@ -9,6 +9,7 @@ Shader "Unlit/VolumeShader"
         [IntRange] _StepCount("Step Count", Range(1, 128)) = 1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Integer) = 2
         [Toggle] _BlendEnabled("Blend Enabled", Integer) = 1
+        [Toggle(DEBUG_MODEL_VIEW)] _DebugModelView ("Debug Model View", Integer) = 0
     }
     SubShader
     {
@@ -19,6 +20,17 @@ Shader "Unlit/VolumeShader"
 
         #include "UnityCG.cginc"
         #include "VolumeShader.hlsl"
+
+        #pragma multi_compile __ DEBUG_MODEL_VIEW
+
+        #ifdef DEBUG_MODEL_VIEW
+        matrix ModelMatrix;
+        matrix ModelMatrixInv;
+        float3 ModelPosition;
+        float3 ModelCameraForward;
+        float3 WorldCameraPosition;
+        float3 WorldCameraForward;
+        #endif
 
         //static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos, CameraNear);
 
@@ -215,18 +227,20 @@ Shader "Unlit/VolumeShader"
                     color.a *= _FragAlpha;
 
                     #ifdef DEBUG_MODEL_VIEW
-                    //float3 localCameraForward = mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0));
-                    //float3 modelCameraForward = mul(ModelMatrixInv, float4(unity_CameraToWorld._m02_m12_m22, 0));
-                    //float3 modelCameraForward = mul(ModelMatrixInv, float4(WorldCameraForward, 0));
+                    {
+                        //float3 localCameraForward = mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0));
+                        //float3 modelCameraForward = mul(ModelMatrixInv, float4(unity_CameraToWorld._m02_m12_m22, 0));
+                        //float3 modelCameraForward = mul(ModelMatrixInv, float4(WorldCameraForward, 0));
 
-                    //if (all(ModelCameraForward - LocalCameraForward < EPSILON))
-                    //{
-                    //    color = float4(1, 0, 0, 0);
-                    //}
-                    //else
-                    //{
-                    //    color = float4(0, 1, 0, 0);
-                    //}
+                        //if (all(ModelCameraForward - LocalCameraForward < EPSILON))
+                        //{
+                        //    color = float4(1, 0, 0, 0);
+                        //}
+                        //else
+                        //{
+                        //    color = float4(0, 1, 0, 0);
+                        //}
+                    }
                     #endif
 
                     return color;

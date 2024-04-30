@@ -1,6 +1,4 @@
-﻿//#define DEBUG_MODEL_VIEW
-
-using MustHave;
+﻿using MustHave;
 using System.Collections;
 using UnityEditor;
 using UnityEngine;
@@ -119,7 +117,6 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
             //CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
             //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Back ? 1 : 0);
-            //material.SetVector("WorldCameraForward", GetCameraForward());
             //material.SetFloat(ShaderData.ObjectScaleID, maxScale);
 
             //Debug.Log($"{GetType().Name}.{material.FindPass(InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
@@ -141,7 +138,11 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
             material.SetVector("WorldCrossSectionNormal", -csTransform.forward);
             material.SetVector("WorldCrossSectionPoint", csTransform.position);
-#if DEBUG_MODEL_VIEW
+        }
+        if (material.GetInteger("_DebugModelView") > 0)
+        {
+            material.EnableKeyword("DEBUG_MODEL_VIEW");
+
             material.SetMatrix("ModelMatrix", transform.localToWorldMatrix);
             material.SetMatrix("ModelMatrixInv", transform.worldToLocalMatrix); // !!! transform.worldToLocalMatrix axes are scaled !!!
             material.SetVector("ModelPosition", transform.position);
@@ -149,7 +150,10 @@ public class VolumeShaderBehaviour : MonoBehaviour
             material.SetVector("ModelCameraForward", transform.InverseTransformVector(GetCameraForward()).normalized);
             material.SetVector("WorldCameraForward", GetCameraForward());
             material.SetVector("WorldCameraPosition", GetCameraPosition());
-#endif
+        }
+        else
+        {
+            material.DisableKeyword("DEBUG_MODEL_VIEW");
         }
     }
 

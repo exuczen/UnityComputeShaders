@@ -1,6 +1,5 @@
 ﻿// Allowed floating point inaccuracy
 //#define EPSILON 0.00001f
-//#define DEBUG_MODEL_VIEW
 #define COLOR_CLEAR float4(0, 0, 0, 0);
 
 #include "Utils/Math.cginc"
@@ -25,15 +24,6 @@ float3 WorldCrossSectionPoint;
 
 float3 LocalCrossSectionNormal;
 float3 LocalCrossSectionPoint;
-
-#ifdef DEBUG_MODEL_VIEW
-matrix ModelMatrix;
-matrix ModelMatrixInv;
-float3 ModelPosition;
-float3 ModelCameraForward;
-float3 WorldCameraPosition;
-float3 WorldCameraForward;
-#endif
 
 static const float3 LocalCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1));
 static const float3 LocalCameraForward = normalize(mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0)).xyz);
