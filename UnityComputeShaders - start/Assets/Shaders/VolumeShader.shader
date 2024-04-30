@@ -6,9 +6,9 @@ Shader "Unlit/VolumeShader"
         _SampleAlpha("Sample Alpha", Range(0.0, 1.0)) = 0.02
         _FragAlpha("Frag Alpha", Range(-2.0, 2.0)) = 0.0
         _StepSize("Step Size", Range(0.015, 1.0)) = 0.01
-        _StepCount("Step Count", Range(1, 128)) = 1
+        [IntRange] _StepCount("Step Count", Range(1, 128)) = 1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Integer) = 2
-        //[Toggle] _InteriorEnabled("Interior Enabled", Integer) = 1
+        [Toggle] _BlendEnabled("Blend Enabled", Integer) = 1
     }
     SubShader
     {
@@ -81,13 +81,20 @@ Shader "Unlit/VolumeShader"
                 {
                     samplePosition = objectIsecWithCrossSection(samplePosition, rayDirection);
                 }
-                if (CullFront)
+                if (_BlendEnabled)
                 {
-                    color = blendTex3DInClipView(samplePosition, rayDirection);
+                    if (CullFront)
+                    {
+                        color = blendTex3DInClipView(samplePosition, rayDirection);
+                    }
+                    else
+                    {
+                        color = blendTex3D(samplePosition, rayDirection);
+                    }
                 }
                 else
                 {
-                    color = blendTex3D(samplePosition, rayDirection);
+                    color = getTex3DColor(samplePosition);
                 }
                 color.a *= _FragAlpha;
 
@@ -197,9 +204,14 @@ Shader "Unlit/VolumeShader"
                         }
                         //color = float4(0, 0, 1, 0);
                     }
-
-                    //color = getTex3DColor(samplePosition, false);
-                    color = blendTex3D(samplePosition, rayDirection);
+                    if (_BlendEnabled)
+                    {
+                        color = blendTex3D(samplePosition, rayDirection);
+                    }
+                    else
+                    {
+                        color = getTex3DColor(samplePosition);
+                    }
                     color.a *= _FragAlpha;
 
                     #ifdef DEBUG_MODEL_VIEW

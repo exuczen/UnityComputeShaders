@@ -1,6 +1,5 @@
 ﻿// Allowed floating point inaccuracy
 //#define EPSILON 0.00001f
-//#define DEBUG_BLEND_DISABLED
 //#define DEBUG_MODEL_VIEW
 #define COLOR_CLEAR float4(0, 0, 0, 0);
 
@@ -19,6 +18,7 @@ float _FragAlpha;
 float _StepSize;
 int _StepCount;
 int _Cull;
+bool _BlendEnabled;
 
 float3 WorldCrossSectionNormal;
 float3 WorldCrossSectionPoint;
@@ -168,7 +168,7 @@ float3 worldIsecWithCamNearPlane(float4 objectVertex, out float3 worldVertexRay,
     return camNearIsecPoint;
 }
 
-float4 getTex3DColor(float3 samplePosition, bool belowCrossSection)
+float4 getTex3DColor(float3 samplePosition, bool belowCrossSection = true)
 {
     if (all(abs(samplePosition) < 0.5f + EPSILON))
     {
@@ -189,9 +189,6 @@ float4 getTex3DColor(float3 samplePosition, bool belowCrossSection)
 
 float4 blendTex3D(float3 samplePosition, float3 rayDirection)
 {
-#ifdef DEBUG_BLEND_DISABLED
-    return getTex3DColor(samplePosition, true);
-#else
     float4 color = COLOR_CLEAR;
     float3 rayDelta = rayDirection * _StepSize;
     
@@ -212,14 +209,10 @@ float4 blendTex3D(float3 samplePosition, float3 rayDirection)
         }
     }
     return color;
-#endif
 }
 
 float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
 {
-#ifdef DEBUG_BLEND_DISABLED
-    return getTex3DColor(samplePosition, true);
-#else
     float4 color = COLOR_CLEAR;
     float3 rayDelta = rayDirection * _StepSize;
 
@@ -240,5 +233,4 @@ float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
         }
     }
     return color;
-#endif
 }
