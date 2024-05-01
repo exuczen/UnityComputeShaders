@@ -212,6 +212,16 @@ Shader "Unlit/VolumeShader"
                     {
                         rayDirection = vertexRay;
                         samplePosition = planeIsecPoint;
+
+                        float camNearIsecDist;
+                        float3 worldVertexRay;
+                        float3 camNearIsecPoint = worldIsecWithCamNearPlane(i.objectVertex, worldVertexRay, camNearIsecDist);
+
+                        camNearIsecPoint = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
+                        if (!objectPointInCube(camNearIsecPoint, 0))
+                        {
+                            discard;
+                        }
                         //color = float4(1, 0, 0, 0);
                     }
                     else

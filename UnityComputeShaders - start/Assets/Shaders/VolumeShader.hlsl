@@ -159,9 +159,9 @@ float3 worldIsecWithCamNearPlane(float4 objectVertex, out float3 worldVertexRay,
     return camNearIsecPoint;
 }
 
-bool objectPointInCube(float3 samplePosition)
+bool objectPointInCube(float3 samplePosition, float epsilon = EPSILON)
 {
-    return all(abs(samplePosition) < 0.5f + EPSILON);
+    return all(abs(samplePosition) < 0.5f + epsilon);
 }
 
 bool clipPosInClipView(float4 clipPos)
