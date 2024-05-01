@@ -42,6 +42,12 @@ public class VolumeShaderBehaviour : MonoBehaviour
         //Camera.onPostRender += OnPostRenderWithCamera;
         //Camera.onPreCull -= RenderMeshWithCamera;
         //Camera.onPreCull += RenderMeshWithCamera;
+
+        var camera = GetCamera();
+        if (camera)
+        {
+            camera.depthTextureMode = DepthTextureMode.Depth;
+        }
     }
 
     private void Update()

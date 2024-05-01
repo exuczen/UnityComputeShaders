@@ -15,7 +15,8 @@ Shader "Unlit/VolumeShader"
     }
     SubShader
     {
-        Tags { "Queue" = "Transparent" "RenderType" = "Transparent" }
+        Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "LightMode" = "Always" }
+        ZTest Always
         LOD 100
 
         HLSLINCLUDE
@@ -44,7 +45,7 @@ Shader "Unlit/VolumeShader"
 
         Pass
         {
-            Tags { "LightMode" = "Always" }
+            Name "Exterior"
             Blend [_BlendSrc] [_BlendDst]
             Cull [_Cull]
 
@@ -134,7 +135,6 @@ Shader "Unlit/VolumeShader"
         Pass
         {
             Name "Interior"
-            Tags { "LightMode" = "Always" }
             Blend [_BlendSrc] [_BlendDst]
             Cull Front
 

@@ -10,6 +10,8 @@ struct appdata
     float4 vertex : POSITION;
 };
 
+uniform sampler2D _CameraDepthTexture;
+
 sampler3D _MainTex;
 float4 _MainTex_ST;
 float _SampleAlpha;
@@ -65,13 +67,6 @@ float3 worldToObjectDirection(float3 worldVertexRay)
 {
     float3 direction = mul(unity_WorldToObject, worldVertexRay);
     return normalize(direction);
-}
-
-bool objectInClipView(float3 objectPosition)
-{
-    float4 clipPos = UnityObjectToClipPos(objectPosition);
-    float clipW = clipPos.w;
-    return clipPos.z >= 0 && all(clipPos.xyz >= -clipW && clipPos.xyz <= clipW);
 }
 
 float getDistanceFromPlane(float3 position, float3 planePoint, float3 planeNormal)
@@ -169,13 +164,65 @@ bool objectPointInCube(float3 samplePosition)
     return all(abs(samplePosition) < 0.5f + EPSILON);
 }
 
+bool clipPosInClipView(float4 clipPos)
+{
+    float clipW = clipPos.w;
+    return clipPos.z >= 0 && all(clipPos.xyz >= -clipW && clipPos.xyz <= clipW);
+}
+
+bool objectInClipView(float3 objectPosition)
+{
+    float4 clipPos = UnityObjectToClipPos(objectPosition);
+    return clipPosInClipView(clipPos);
+}
+
+bool clipPosDepthTest(float4 clipPos, float texDepth)
+{
+    float depth = clipPos.z / clipPos.w;
+    return depth > texDepth;
+}
+
+bool objectPosDepthTest(float3 samplePosition, float texDepth)
+{
+    float4 clipPos = UnityObjectToClipPos(samplePosition);
+    return clipPosDepthTest(clipPos, texDepth);
+}
+
+float clipPosCamTexDepth(float4 clipPos)
+{
+    float4 screenPos = ComputeScreenPos(clipPos);
+    float2 screenUV = screenPos.xy / screenPos.w;
+    float texDepth = UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, screenUV));
+    return texDepth;
+}
+
+float objectCamTexDepth(float3 samplePosition)
+{
+    float4 clipPos = UnityObjectToClipPos(samplePosition);
+    return clipPosCamTexDepth(clipPos);
+}
+
+bool objectPosDepthTest(float3 samplePosition)
+{
+    float4 clipPos = UnityObjectToClipPos(samplePosition);
+    float texDepth = clipPosCamTexDepth(clipPos);
+    return clipPosDepthTest(clipPos, texDepth);
+}
+
 float4 getTex3DColor(float3 samplePosition, bool belowCrossSection = true)
 {
     if (objectPointInCube(samplePosition))
     {
         if (!belowCrossSection || objectBelowCrossSection(samplePosition))
         {
-            return tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
+            if (objectPosDepthTest(samplePosition))
+            {
+                return tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
+            }
+            else
+            {
+                return COLOR_CLEAR;
+            }
         }
         else
         {
@@ -192,6 +239,7 @@ float4 blendTex3D(float3 samplePosition, float3 rayDirection)
 {
     float4 color = COLOR_CLEAR;
     float3 rayDelta = rayDirection * _StepSize;
+    float texDepth = objectCamTexDepth(samplePosition);
     
     // Raymarch through object space
     for (int i = 0; i < _StepCount; i++)
@@ -201,7 +249,16 @@ float4 blendTex3D(float3 samplePosition, float3 rayDirection)
         {
             if (objectBelowCrossSection(samplePosition))
             {
-                color = blendSampleTex3D(color, rayDelta, samplePosition);
+                float4 clipPos = UnityObjectToClipPos(samplePosition);
+                
+                if (clipPosDepthTest(clipPos, texDepth))
+                {
+                    color = blendSampleTex3D(color, rayDelta, samplePosition);
+                }
+                else
+                {
+                    samplePosition += rayDelta;
+                }
             }
             else
             {
@@ -216,6 +273,7 @@ float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
 {
     float4 color = COLOR_CLEAR;
     float3 rayDelta = rayDirection * _StepSize;
+    float texDepth = objectCamTexDepth(samplePosition);
 
     // Raymarch through object space
     for (int i = 0; i < _StepCount; i++)
@@ -223,9 +281,18 @@ float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
         // Accumulate color only within unit cube bounds
         if (objectPointInCube(samplePosition))
         {
-            if (objectBelowCrossSection(samplePosition) && objectInClipView(samplePosition))
+            if (objectBelowCrossSection(samplePosition))
             {
-                color = blendSampleTex3D(color, rayDelta, samplePosition);
+                float4 clipPos = UnityObjectToClipPos(samplePosition);
+                
+                if (clipPosDepthTest(clipPos, texDepth) && clipPosInClipView(clipPos))
+                {
+                    color = blendSampleTex3D(color, rayDelta, samplePosition);
+                }
+                else
+                {
+                    samplePosition += rayDelta;
+                }
             }
             else
             {
