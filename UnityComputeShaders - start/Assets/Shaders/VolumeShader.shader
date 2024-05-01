@@ -208,16 +208,17 @@ Shader "Unlit/VolumeShader"
 
                     bool planeIsecInClipView = objectInClipView(planeIsecPoint);
 
+                    float camNearIsecDist;
+                    float3 worldVertexRay;
+                    float3 camNearIsecPoint = worldIsecWithCamNearPlane(i.objectVertex, worldVertexRay, camNearIsecDist);
+
+                    camNearIsecPoint = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
+
                     if (planeDist > 0 && planeIsecDist > 0 && planeIsecInClipView)
                     {
                         rayDirection = vertexRay;
                         samplePosition = planeIsecPoint;
 
-                        float camNearIsecDist;
-                        float3 worldVertexRay;
-                        float3 camNearIsecPoint = worldIsecWithCamNearPlane(i.objectVertex, worldVertexRay, camNearIsecDist);
-
-                        camNearIsecPoint = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
                         if (!objectPointInCube(camNearIsecPoint, 0))
                         {
                             discard;
@@ -226,12 +227,8 @@ Shader "Unlit/VolumeShader"
                     }
                     else
                     {
-                        float camNearIsecDist;
-                        float3 worldVertexRay;
-                        float3 camNearIsecPoint = worldIsecWithCamNearPlane(i.objectVertex, worldVertexRay, camNearIsecDist);
-
                         rayDirection = worldToObjectDirection(worldVertexRay);
-                        samplePosition = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
+                        samplePosition = camNearIsecPoint;
 
                         if (objectAboveCrossSection(samplePosition))
                         {
