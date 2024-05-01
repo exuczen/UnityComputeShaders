@@ -9,7 +9,9 @@ Shader "Unlit/VolumeShader"
         [IntRange] _StepCount("Step Count", Range(1, 128)) = 1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Integer) = 2
         [Toggle(BLEND_ENABLED)] _BlendEnabled("Blend Enabled", Integer) = 1
-        [Toggle(DEBUG_MODEL_VIEW)] _DebugModelView ("Debug Model View", Integer) = 0
+        [Toggle(DEBUG_MODEL_VIEW)] _DebugModelView("Debug Model View", Integer) = 0
+        [Enum(UnityEngine.Rendering.BlendMode)] _BlendSrc("Blend Src", Integer) = 1
+        [Enum(UnityEngine.Rendering.BlendMode)] _BlendDst("Blend Dst", Integer) = 10
     }
     SubShader
     {
@@ -20,6 +22,8 @@ Shader "Unlit/VolumeShader"
 
         #include "UnityCG.cginc"
         #include "VolumeShader.hlsl"
+
+        #pragma multi_compile CULL_OFF CULL_BACK CULL_FRONT
 
         #pragma shader_feature __ DEBUG_MODEL_VIEW
         #pragma shader_feature __ BLEND_ENABLED
@@ -41,10 +45,7 @@ Shader "Unlit/VolumeShader"
         Pass
         {
             Tags { "LightMode" = "Always" }
-            Blend One OneMinusSrcAlpha
-            //Blend OneMinusDstAlpha One
-            //Blend OneMinusDstColor One
-            //Blend One OneMinusSrcColor
+            Blend [_BlendSrc] [_BlendDst]
             Cull [_Cull]
 
             HLSLPROGRAM
@@ -134,10 +135,7 @@ Shader "Unlit/VolumeShader"
         {
             Name "Interior"
             Tags { "LightMode" = "Always" }
-            Blend One OneMinusSrcAlpha
-            //Blend OneMinusDstAlpha One
-            //Blend OneMinusDstColor One
-            //Blend One OneMinusSrcColor
+            Blend [_BlendSrc] [_BlendDst]
             Cull Front
 
             HLSLPROGRAM
