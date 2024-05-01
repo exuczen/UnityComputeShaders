@@ -33,7 +33,8 @@ Shader "Unlit/VolumeShader"
         float3 WorldCameraForward;
         #endif
 
-        //static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos, CameraNear);
+        //static const float IsCameraAboveCrossSection = objectAboveCrossSection(LocalCameraPos);
+        //static const float IsCameraBelowCrossSection = !IsCameraAboveCrossSection;
 
         ENDHLSL
 
@@ -92,7 +93,19 @@ Shader "Unlit/VolumeShader"
 
                 if (objectAboveCrossSection(samplePosition))
                 {
-                    samplePosition = objectIsecWithCrossSection(samplePosition, rayDirection);
+                    // CullOff   = 0; VertexRaySign = -1
+                    // CullFront = 1; VertexRaySign =  1; IsCameraAboveCrossSection;
+                    // CullBack  = 2; VertexRaySign = -1; IsCameraBelowCrossSection;
+                    float camDistFromPlane = objectDistanceFromCrossSection(LocalCameraPos);
+
+                    if (VertexRaySign * camDistFromPlane > VertexRaySign * EPSILON)
+                    {
+                        discard;
+                    }
+                    else
+                    {
+                        samplePosition = objectIsecWithCrossSection(samplePosition, rayDirection);
+                    }
                 }
                 #ifdef BLEND_ENABLED
                 {
@@ -139,7 +152,7 @@ Shader "Unlit/VolumeShader"
                 //float4 vertexRay : TEXCOORD1;
             };
 
-            static const bool InteriorEnabled = CullBack && all(abs(LocalCameraPos) < 0.5f + CameraNear);
+            static const bool InteriorEnabled = !CullFront && all(abs(LocalCameraPos) < 0.5f + CameraNear);
 
             v2f vert(appdata v)
             {

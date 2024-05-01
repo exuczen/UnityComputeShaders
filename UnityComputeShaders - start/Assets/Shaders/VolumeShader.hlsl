@@ -32,6 +32,7 @@ static const float CameraNear = _ProjectionParams.y;
 
 static const float ScaledSampleAlpha = _StepSize * _SampleAlpha * lerp(2.0, 0.75, invLerp(0.015, 1.0, _StepSize));
 
+static const bool CullOff = _Cull == 0;
 static const bool CullFront = _Cull == 1;
 static const bool CullBack = _Cull == 2;
 
@@ -86,6 +87,11 @@ bool isPointBelowPlane(float3 position, float3 planePoint, float3 planeNormal, f
 bool isPointAbovePlane(float3 position, float3 planePoint, float3 planeNormal, float epsilon = 0)
 {
     return !isPointBelowPlane(position, planePoint, planeNormal, epsilon);
+}
+
+float objectDistanceFromCrossSection(float3 position)
+{
+    return getDistanceFromPlane(position, LocalCrossSectionPoint, LocalCrossSectionNormal);
 }
 
 bool objectBelowCrossSection(float3 position, float epsilon = EPSILON)
@@ -158,9 +164,14 @@ float3 worldIsecWithCamNearPlane(float4 objectVertex, out float3 worldVertexRay,
     return camNearIsecPoint;
 }
 
+bool objectPointInCube(float3 samplePosition)
+{
+    return all(abs(samplePosition) < 0.5f + EPSILON);
+}
+
 float4 getTex3DColor(float3 samplePosition, bool belowCrossSection = true)
 {
-    if (all(abs(samplePosition) < 0.5f + EPSILON))
+    if (objectPointInCube(samplePosition))
     {
         if (!belowCrossSection || objectBelowCrossSection(samplePosition))
         {
@@ -186,7 +197,7 @@ float4 blendTex3D(float3 samplePosition, float3 rayDirection)
     for (int i = 0; i < _StepCount; i++)
     {
         // Accumulate color only within unit cube bounds
-        if (all(abs(samplePosition) < 0.5f + EPSILON))
+        if (objectPointInCube(samplePosition))
         {
             if (objectBelowCrossSection(samplePosition))
             {
@@ -210,7 +221,7 @@ float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
     for (int i = 0; i < _StepCount; i++)
     {
         // Accumulate color only within unit cube bounds
-        if (all(abs(samplePosition) < 0.5f + EPSILON))
+        if (objectPointInCube(samplePosition))
         {
             if (objectBelowCrossSection(samplePosition) && objectInClipView(samplePosition))
             {
