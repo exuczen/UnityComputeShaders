@@ -67,7 +67,9 @@ Material:
     - _Cull: 2
     - _DebugModelView: 0
     - _ExampleFeatureEnabled: 0
+    - _ExteriorZTest: 0
     - _InteriorEnabled: 1
+    - _InteriorZTest: 0
     m_Floats:
     - _Alpha: 1
     - _Blend: 1

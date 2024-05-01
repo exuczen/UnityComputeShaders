@@ -12,11 +12,12 @@ Shader "Unlit/VolumeShader"
         [Toggle(DEBUG_MODEL_VIEW)] _DebugModelView("Debug Model View", Integer) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _BlendSrc("Blend Src", Integer) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _BlendDst("Blend Dst", Integer) = 10
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ExteriorZTest("Exterior ZTest", Integer) = 0
+        [Enum(UnityEngine.Rendering.CompareFunction)] _InteriorZTest("Interior ZTest", Integer) = 0
     }
     SubShader
     {
         Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "LightMode" = "Always" }
-        ZTest Always
         LOD 100
 
         HLSLINCLUDE
@@ -48,6 +49,7 @@ Shader "Unlit/VolumeShader"
             Name "Exterior"
             Blend [_BlendSrc] [_BlendDst]
             Cull [_Cull]
+            ZTest [_ExteriorZTest]
 
             HLSLPROGRAM
 
@@ -137,6 +139,7 @@ Shader "Unlit/VolumeShader"
             Name "Interior"
             Blend [_BlendSrc] [_BlendDst]
             Cull Front
+            ZTest [_InteriorZTest]
 
             HLSLPROGRAM
 
@@ -214,15 +217,16 @@ Shader "Unlit/VolumeShader"
 
                     camNearIsecPoint = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
 
+                    if (!objectPointInCube(camNearIsecPoint, 0))
+                    {
+                        discard;
+                        return COLOR_CLEAR;
+                    }
                     if (planeDist > 0 && planeIsecDist > 0 && planeIsecInClipView)
                     {
                         rayDirection = vertexRay;
                         samplePosition = planeIsecPoint;
 
-                        if (!objectPointInCube(camNearIsecPoint, 0))
-                        {
-                            discard;
-                        }
                         //color = float4(1, 0, 0, 0);
                     }
                     else
