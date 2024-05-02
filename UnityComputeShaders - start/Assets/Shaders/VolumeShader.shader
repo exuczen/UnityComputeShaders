@@ -129,6 +129,10 @@ Shader "Unlit/VolumeShader"
                 #endif
                 color.a *= _FragAlpha;
 
+                if (all(color < EPSILON))
+                {
+                    discard;
+                }
                 return color;
             }
             ENDHLSL
@@ -153,7 +157,7 @@ Shader "Unlit/VolumeShader"
                 //float4 vertexRay : TEXCOORD1;
             };
 
-            static const bool InteriorEnabled = !CullFront && all(abs(LocalCameraPos) < 0.5f + CameraNear);
+            static const bool InteriorEnabled = !CullFront && objectPointInCube(LocalCameraPos, CameraNear);
 
             v2f vert(appdata v)
             {
@@ -268,6 +272,10 @@ Shader "Unlit/VolumeShader"
                     }
                     #endif
 
+                    if (all(color < EPSILON))
+                    {
+                        discard;
+                    }
                     return color;
                 }
                 else
