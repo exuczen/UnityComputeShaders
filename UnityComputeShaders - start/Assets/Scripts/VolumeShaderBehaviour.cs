@@ -165,8 +165,10 @@ public class VolumeShaderBehaviour : MonoBehaviour
         }
         if (material.GetInteger(ShaderData.DebugModelViewID) > 0)
         {
-            material.EnableKeyword(ShaderData.DEBUG_MODEL_VIEW);
-
+            if (!material.IsKeywordEnabled(ShaderData.DEBUG_MODEL_VIEW))
+            {
+                throw new Exception("DebugModelView != DEBUG_MODEL_VIEW");
+            }
             material.SetMatrix(ShaderData.ModelMatrixID, transform.localToWorldMatrix);
             material.SetMatrix(ShaderData.ModelMatrixInvID, transform.worldToLocalMatrix); // !!! transform.worldToLocalMatrix axes are scaled !!!
             material.SetVector(ShaderData.ModelPositionID, transform.position);
@@ -175,17 +177,9 @@ public class VolumeShaderBehaviour : MonoBehaviour
             material.SetVector(ShaderData.WorldCameraForwardID, GetCameraForward());
             material.SetVector(ShaderData.WorldCameraPositionID, GetCameraPosition());
         }
-        else
+        if (material.GetInteger(ShaderData.BlendEnabledID) > 0 && !material.IsKeywordEnabled(ShaderData.BLEND_ENABLED))
         {
-            material.DisableKeyword(ShaderData.DEBUG_MODEL_VIEW);
-        }
-        if (material.GetInteger(ShaderData.BlendEnabledID) > 0)
-        {
-            material.EnableKeyword(ShaderData.BLEND_ENABLED);
-        }
-        else
-        {
-            material.DisableKeyword(ShaderData.BLEND_ENABLED);
+            throw new Exception("BlendEnabled != BLEND_ENABLED");
         }
     }
 
