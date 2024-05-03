@@ -1047,6 +1047,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   keyboardMovement: 1
   keyTranslationSpeed: 10
+  keyTranslationMlp: 1
   zoomSpeed: 2
   rotationSpeed: 4
   distance: 20.34
