@@ -1,17 +1,12 @@
-
 using MustHave;
 using System;
-using System.Collections;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(UpdateInEditMode))]
 public class VolumeShaderBehaviour : MonoBehaviour
 {
-    //private const string InteriorPassName = "Interior";
-
     private readonly struct ShaderData
     {
         public const string BLEND_ENABLED = "BLEND_ENABLED";
@@ -26,9 +21,6 @@ public class VolumeShaderBehaviour : MonoBehaviour
         public static readonly int BlendEnabledID = Shader.PropertyToID("_BlendEnabled");
         public static readonly int CrossSectionID = Shader.PropertyToID("_CrossSection");
         public static readonly int DebugModelViewID = Shader.PropertyToID("_DebugModelView");
-
-        //public static readonly int ObjectScaleID = Shader.PropertyToID("_ObjectScale");
-        //public static readonly int InteriorEnabledID = Shader.PropertyToID("_InteriorEnabled");
 
         public static readonly int LocalCrossSectionNormalID = Shader.PropertyToID("LocalCrossSectionNormal");
         public static readonly int LocalCrossSectionPointID = Shader.PropertyToID("LocalCrossSectionPoint");
@@ -46,25 +38,11 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
     [SerializeField]
     private Material material = null;
-    [SerializeField, HideInInspector]
-    private Material interiorMaterial = null;
     [SerializeField]
     private VolumeCrossSection crossSection = null;
 
-    //private MeshRenderer meshRenderer = null;
-    private MeshFilter meshFilter = null;
-
     private void OnEnable()
     {
-        //meshRenderer = GetComponent<MeshRenderer>();
-        meshFilter = GetComponent<MeshFilter>();
-        //Camera.onPostRender -= RenderMeshWithCamera;
-        //Camera.onPostRender -= RenderMeshWithCamera;
-        //Camera.onPostRender -= OnPostRenderWithCamera;
-        //Camera.onPostRender += OnPostRenderWithCamera;
-        //Camera.onPreCull -= RenderMeshWithCamera;
-        //Camera.onPreCull += RenderMeshWithCamera;
-
         var camera = GetCamera();
         if (camera)
         {
@@ -86,12 +64,6 @@ public class VolumeShaderBehaviour : MonoBehaviour
     {
         Debug.Log($"{GetType().Name}.OnMouseDown");
     }
-
-    private void OnRenderObject() { }
-
-    private void OnPreRender() { }
-
-    private void OnPostRenderWithCamera(Camera camera) { }
 
     private void OnGUI()
     {
@@ -138,22 +110,6 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
     public void UpdateShader()
     {
-        if (material)
-        {
-            //var lossyScale = transform.lossyScale;
-            //float maxScale = Mathf.Max(lossyScale.x, lossyScale.y, lossyScale.z);
-
-            //CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
-            //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Front ? 0 : 1);
-            //material.SetFloat(ShaderData.ObjectScaleID, maxScale);
-
-            //Debug.Log($"{GetType().Name}.{material.FindPass(ShaderData.InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
-
-            if (interiorMaterial)
-            {
-                SetInteriorShaderProperties();
-            }
-        }
         if (crossSection && material.GetInteger(ShaderData.CrossSectionID) > 0)
         {
             if (!material.IsKeywordEnabled(ShaderData.CROSS_SECTION))
@@ -189,24 +145,5 @@ public class VolumeShaderBehaviour : MonoBehaviour
         {
             throw new Exception("BlendEnabled != BLEND_ENABLED");
         }
-    }
-
-    private void SetInteriorShaderProperties()
-    {
-        interiorMaterial.SetFloat(ShaderData.SampleAlphaID, material.GetFloat(ShaderData.SampleAlphaID));
-        interiorMaterial.SetFloat(ShaderData.FragAlphaID, material.GetFloat(ShaderData.FragAlphaID));
-        interiorMaterial.SetFloat(ShaderData.StepSizeID, material.GetFloat(ShaderData.StepSizeID));
-        interiorMaterial.SetInt(ShaderData.StepCountID, material.GetInt(ShaderData.StepCountID));
-        //interiorMaterial.SetFloat(ShaderData.ObjectScaleID, material.GetFloat(ShaderData.ObjectScaleID));
-    }
-
-    private void RenderMeshWithCamera(Camera camera)
-    {
-        var matrix = transform.localToWorldMatrix;
-        matrix.SetColumn(3, new Vector4(20, 0, 0, matrix.m33));
-        //Graphics.DrawMeshNow(meshFilter.sharedMesh, matrix);
-        //Graphics.DrawMesh(meshFilter.sharedMesh, matrix, material, (int)meshRenderer.renderingLayerMask);
-        var renderParams = new RenderParams(material);
-        Graphics.RenderMesh(renderParams, meshFilter.sharedMesh, 0, matrix);
     }
 }

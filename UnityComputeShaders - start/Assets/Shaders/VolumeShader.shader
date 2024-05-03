@@ -75,13 +75,10 @@ Shader "Unlit/VolumeShader"
                 o.objectVertex = v.vertex;
 
                 // Calculate vector from camera to vertex in world space
-                //float3 worldVertex = mul(unity_ObjectToWorld, v.vertex).xyz;
-                ////float3 localCamPos = mul(unity_WorldToObject, _WorldSpaceCameraPos);
-                ////o.vertexRay = -VertexRaySign * normalize((o.objectVertex.xyz - localCamPos));
-                //o.vertexRay = -VertexRaySign * (worldVertex - _WorldSpaceCameraPos);
                 o.vertexRay = VertexRaySign * WorldSpaceViewDir(v.vertex);
 
                 o.vertex = UnityObjectToClipPos(v.vertex);
+
                 return o;
             }
 
@@ -89,12 +86,8 @@ Shader "Unlit/VolumeShader"
             {
                 bool discarding = false;
 
-                //i.vertexRay = VertexRaySign * WorldSpaceViewDir(i.objectVertex);
-                
-                // Start raymarching at the front surface of the object
+                // Start raymarching at the front or back surface of the object
                 // Use vector from camera to object surface to get ray direction
-                ////float3 rayDirection = i.vertexRay;
-                ////float3 rayDirection = -normalize(ObjSpaceViewDir(i.objectVertex));
                 float3 rayDirection = worldToObjectDirection(i.vertexRay);
                 float3 samplePosition = i.objectVertex;
                 float4 color;
@@ -126,12 +119,12 @@ Shader "Unlit/VolumeShader"
                     }
                     else
                     {
-                        color = discarding ? colorClear :blendTex3D(samplePosition, rayDirection);
+                        color = discarding ? colorClear : blendTex3D(samplePosition, rayDirection);
                     }
                 }
                 #else
                 {
-                    color = getTex3DColor(samplePosition);
+                    color = discarding ? colorClear : getTex3DColor(samplePosition);
                 }
                 #endif
                 color.a *= _FragAlpha;
@@ -161,7 +154,6 @@ Shader "Unlit/VolumeShader"
             {
                 float4 vertex : SV_POSITION;
                 float4 objectVertex : TEXCOORD0;
-                //float4 vertexRay : TEXCOORD1;
             };
 
             static const bool InteriorEnabled = !CullFront && objectPointInCube(LocalCameraPos, CameraNear);
@@ -173,17 +165,7 @@ Shader "Unlit/VolumeShader"
                 // Vertex in object space this will be the starting point of raymarching
                 o.objectVertex = v.vertex;
 
-                //o.vertexRay.xyz = -WorldSpaceViewDir(v.vertex);
-                //o.vertexRay.w = length(o.vertexRay.xyz);
-
                 o.vertex = UnityObjectToClipPos(v.vertex);
-
-                //float3 camForward = UNITY_MATRIX_V[2].xyz;
-                //float3 camForward = UNITY_MATRIX_I_V[2].xyz;
-                //float3 camForward = mul((float3x3)UNITY_MATRIX_V, float3(0, 0, 1));
-                //float3 camForward = unity_CameraToWorld[2].xyz;
-                //float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0 ,0 ,1));
-                //float3 camForward = unity_CameraToWorld._m02_m12_m22;
 
                 return o;
             }
@@ -212,25 +194,8 @@ Shader "Unlit/VolumeShader"
                         float planeDist;
 
                         float3 camPos = LocalCameraPos;
-                        //float3 vertexRay = normalize(i.objectVertex.xyz - camPos);
                         float3 vertexRay = -normalize(ObjSpaceViewDir(i.objectVertex));
                         float3 planeIsecPoint = objectIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
-
-                        #ifdef DEBUG_MODEL_VIEW
-                        //float3 camPos = _WorldSpaceCameraPos;
-                        //float3 vertexRay = -normalize(WorldSpaceViewDir(i.objectVertex));
-                        ////float3 vertexRay = normalize(mul(unity_ObjectToWorld, i.objectVertex) - camPos);
-                        //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
-                        //planeIsecPoint = mul(unity_WorldToObject, float4(planeIsecPoint, 1));
-                        ////vertexRay = normalize(mul(unity_WorldToObject, vertexRay));
-
-                        //float3 camPos = WorldCameraPosition;
-                        //float3 vertexRay = normalize(/*ModelPosition +*/ mul(ModelMatrix, i.objectVertex) - camPos);
-                        ////float3 vertexRay = normalize(mul(ModelMatrix, i.objectVertex.xyz) - camPos);
-                        //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
-                        //planeIsecPoint = mul(ModelMatrixInv, float4(planeIsecPoint.xyz, 1) /*- ModelPosition*/);
-                        ////vertexRay = normalize(mul(ModelMatrixInv, vertexRay));
-                        #endif
 
                         bool planeIsecInClipView = objectInClipView(planeIsecPoint);
 
@@ -238,8 +203,6 @@ Shader "Unlit/VolumeShader"
                         {
                             rayDirection = vertexRay;
                             samplePosition = planeIsecPoint;
-
-                            //color = float4(1, 0, 0, 0);
                         }
                         else
                         #endif
@@ -252,7 +215,6 @@ Shader "Unlit/VolumeShader"
                                 discarding = objectAboveCrossSection(samplePosition);
                             }
                             #endif
-                            //color = float4(0, 0, 1, 0);
                         }
                     }
                     else
@@ -269,23 +231,6 @@ Shader "Unlit/VolumeShader"
                     }
                     #endif
                     color.a *= _FragAlpha;
-
-                    #ifdef DEBUG_MODEL_VIEW
-                    {
-                        //float3 localCameraForward = mul(unity_WorldToObject, float4(unity_CameraToWorld._m02_m12_m22, 0));
-                        //float3 modelCameraForward = mul(ModelMatrixInv, float4(unity_CameraToWorld._m02_m12_m22, 0));
-                        //float3 modelCameraForward = mul(ModelMatrixInv, float4(WorldCameraForward, 0));
-
-                        //if (all(ModelCameraForward - LocalCameraForward < EPSILON))
-                        //{
-                        //    color = float4(1, 0, 0, 0);
-                        //}
-                        //else
-                        //{
-                        //    color = float4(0, 1, 0, 0);
-                        //}
-                    }
-                    #endif
 
                     if (all(color < EPSILON))
                     {
