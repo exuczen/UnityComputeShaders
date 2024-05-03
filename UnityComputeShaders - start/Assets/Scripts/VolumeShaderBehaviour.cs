@@ -12,14 +12,32 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
     private readonly struct ShaderData
     {
+        public const string DEBUG_MODEL_VIEW = "DEBUG_MODEL_VIEW";
+        public const string BLEND_ENABLED = "BLEND_ENABLED";
+
         public static readonly int SampleAlphaID = Shader.PropertyToID("_SampleAlpha");
         public static readonly int FragAlphaID = Shader.PropertyToID("_FragAlpha");
         public static readonly int StepSizeID = Shader.PropertyToID("_StepSize");
         public static readonly int StepCountID = Shader.PropertyToID("_StepCount");
-        public static readonly int ObjectScaleID = Shader.PropertyToID("_ObjectScale");
-
         public static readonly int CullID = Shader.PropertyToID("_Cull");
+        public static readonly int BlendEnabledID = Shader.PropertyToID("_BlendEnabled");
+        public static readonly int DebugModelViewID = Shader.PropertyToID("_DebugModelView");
+
+        //public static readonly int ObjectScaleID = Shader.PropertyToID("_ObjectScale");
         //public static readonly int InteriorEnabledID = Shader.PropertyToID("_InteriorEnabled");
+
+        public static readonly int LocalCrossSectionNormalID = Shader.PropertyToID("LocalCrossSectionNormal");
+        public static readonly int LocalCrossSectionPointID = Shader.PropertyToID("LocalCrossSectionPoint");
+        public static readonly int WorldCrossSectionNormalID = Shader.PropertyToID("WorldCrossSectionNormal");
+        public static readonly int WorldCrossSectionPointID = Shader.PropertyToID("WorldCrossSectionPoint");
+
+        public static readonly int ModelMatrixID = Shader.PropertyToID("ModelMatrix");
+        public static readonly int ModelMatrixInvID = Shader.PropertyToID("ModelMatrixInv");
+        public static readonly int ModelPositionID = Shader.PropertyToID("ModelPosition");
+
+        public static readonly int ModelCameraForwardID = Shader.PropertyToID("ModelCameraForward");
+        public static readonly int WorldCameraForwardID = Shader.PropertyToID("WorldCameraForward");
+        public static readonly int WorldCameraPositionID = Shader.PropertyToID("WorldCameraPosition");
     }
 
     [SerializeField]
@@ -77,7 +95,7 @@ public class VolumeShaderBehaviour : MonoBehaviour
         int y = -dy;
         Rect getTextLineRect(int width = 400, int height = 20) => new(10, y += dy, width, height);
 
-        GUI.Label(getTextLineRect(), $"({GetCameraForward()})");
+        GUI.Label(getTextLineRect(), $"{GetCameraForward()}");
     }
 
     private Vector3 GetCameraForward()
@@ -122,10 +140,10 @@ public class VolumeShaderBehaviour : MonoBehaviour
             //float maxScale = Mathf.Max(lossyScale.x, lossyScale.y, lossyScale.z);
 
             //CullMode cullMode = (CullMode)material.GetInteger(ShaderData.CullID);
-            //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Back ? 1 : 0);
+            //material.SetInteger(ShaderData.InteriorEnabledID, cullMode == CullMode.Front ? 0 : 1);
             //material.SetFloat(ShaderData.ObjectScaleID, maxScale);
 
-            //Debug.Log($"{GetType().Name}.{material.FindPass(InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
+            //Debug.Log($"{GetType().Name}.{material.FindPass(ShaderData.InteriorPassName)} | {material.passCount} | {material.GetPassName(1)} | {cullMode == CullMode.Back}");
 
             if (interiorMaterial)
             {
@@ -139,35 +157,35 @@ public class VolumeShaderBehaviour : MonoBehaviour
             var crossSectionPoint = csTransform.localPosition;
             //var crossSectionPoint = transform.InverseTransformPoint(csTransform.position);
 
-            material.SetVector("LocalCrossSectionNormal", crossSectionNormal);
-            material.SetVector("LocalCrossSectionPoint", crossSectionPoint);
+            material.SetVector(ShaderData.LocalCrossSectionNormalID, crossSectionNormal);
+            material.SetVector(ShaderData.LocalCrossSectionPointID, crossSectionPoint);
 
-            material.SetVector("WorldCrossSectionNormal", -csTransform.forward);
-            material.SetVector("WorldCrossSectionPoint", csTransform.position);
+            material.SetVector(ShaderData.WorldCrossSectionNormalID, -csTransform.forward);
+            material.SetVector(ShaderData.WorldCrossSectionPointID, csTransform.position);
         }
-        if (material.GetInteger("_DebugModelView") > 0)
+        if (material.GetInteger(ShaderData.DebugModelViewID) > 0)
         {
-            material.EnableKeyword("DEBUG_MODEL_VIEW");
+            material.EnableKeyword(ShaderData.DEBUG_MODEL_VIEW);
 
-            material.SetMatrix("ModelMatrix", transform.localToWorldMatrix);
-            material.SetMatrix("ModelMatrixInv", transform.worldToLocalMatrix); // !!! transform.worldToLocalMatrix axes are scaled !!!
-            material.SetVector("ModelPosition", transform.position);
+            material.SetMatrix(ShaderData.ModelMatrixID, transform.localToWorldMatrix);
+            material.SetMatrix(ShaderData.ModelMatrixInvID, transform.worldToLocalMatrix); // !!! transform.worldToLocalMatrix axes are scaled !!!
+            material.SetVector(ShaderData.ModelPositionID, transform.position);
 
-            material.SetVector("ModelCameraForward", transform.InverseTransformVector(GetCameraForward()).normalized);
-            material.SetVector("WorldCameraForward", GetCameraForward());
-            material.SetVector("WorldCameraPosition", GetCameraPosition());
+            material.SetVector(ShaderData.ModelCameraForwardID, transform.InverseTransformVector(GetCameraForward()).normalized);
+            material.SetVector(ShaderData.WorldCameraForwardID, GetCameraForward());
+            material.SetVector(ShaderData.WorldCameraPositionID, GetCameraPosition());
         }
         else
         {
-            material.DisableKeyword("DEBUG_MODEL_VIEW");
+            material.DisableKeyword(ShaderData.DEBUG_MODEL_VIEW);
         }
-        if (material.GetInteger("_BlendEnabled") > 0)
+        if (material.GetInteger(ShaderData.BlendEnabledID) > 0)
         {
-            material.EnableKeyword("BLEND_ENABLED");
+            material.EnableKeyword(ShaderData.BLEND_ENABLED);
         }
         else
         {
-            material.DisableKeyword("BLEND_ENABLED");
+            material.DisableKeyword(ShaderData.BLEND_ENABLED);
         }
     }
 
@@ -177,7 +195,7 @@ public class VolumeShaderBehaviour : MonoBehaviour
         interiorMaterial.SetFloat(ShaderData.FragAlphaID, material.GetFloat(ShaderData.FragAlphaID));
         interiorMaterial.SetFloat(ShaderData.StepSizeID, material.GetFloat(ShaderData.StepSizeID));
         interiorMaterial.SetInt(ShaderData.StepCountID, material.GetInt(ShaderData.StepCountID));
-        interiorMaterial.SetFloat(ShaderData.ObjectScaleID, material.GetFloat(ShaderData.ObjectScaleID));
+        //interiorMaterial.SetFloat(ShaderData.ObjectScaleID, material.GetFloat(ShaderData.ObjectScaleID));
     }
 
     private void RenderMeshWithCamera(Camera camera)
