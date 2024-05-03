@@ -3,12 +3,13 @@ Shader "Unlit/VolumeShader"
     Properties
     {
         _MainTex("Texture", 3D) = "white" {}
-        _SampleAlpha("Sample Alpha", Range(0.0, 1.0)) = 0.02
-        _FragAlpha("Frag Alpha", Range(-2.0, 2.0)) = 0.0
+        _SampleAlpha("Sample Alpha", Range(0.0, 1.0)) = 1.0
+        _FragAlpha("Frag Alpha", Range(-2.0, 2.0)) = 1.0
         _StepSize("Step Size", Range(0.015, 1.0)) = 0.01
         [IntRange] _StepCount("Step Count", Range(1, 128)) = 1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Integer) = 2
         [Toggle(BLEND_ENABLED)] _BlendEnabled("Blend Enabled", Integer) = 1
+        [Toggle(CROSS_SECTION)] _CrossSection("Cross Section", Integer) = 0
         [Toggle(DEBUG_MODEL_VIEW)] _DebugModelView("Debug Model View", Integer) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _BlendSrc("Blend Src", Integer) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _BlendDst("Blend Dst", Integer) = 10
@@ -27,8 +28,9 @@ Shader "Unlit/VolumeShader"
 
         #pragma multi_compile CULL_OFF CULL_BACK CULL_FRONT
 
-        #pragma shader_feature __ DEBUG_MODEL_VIEW
         #pragma shader_feature __ BLEND_ENABLED
+        #pragma shader_feature __ CROSS_SECTION
+        #pragma shader_feature __ DEBUG_MODEL_VIEW
 
         #ifdef DEBUG_MODEL_VIEW
         matrix ModelMatrix;
@@ -85,6 +87,8 @@ Shader "Unlit/VolumeShader"
 
             float4 frag(v2f i) : SV_Target
             {
+                bool discarding = false;
+
                 //i.vertexRay = VertexRaySign * WorldSpaceViewDir(i.objectVertex);
                 
                 // Start raymarching at the front surface of the object
@@ -94,7 +98,9 @@ Shader "Unlit/VolumeShader"
                 float3 rayDirection = worldToObjectDirection(i.vertexRay);
                 float3 samplePosition = i.objectVertex;
                 float4 color;
+                float4 colorClear = COLOR_CLEAR;
 
+                #ifdef CROSS_SECTION
                 if (objectAboveCrossSection(samplePosition))
                 {
                     // CullOff   = 0; VertexRaySign = -1
@@ -104,22 +110,23 @@ Shader "Unlit/VolumeShader"
 
                     if (VertexRaySign * camDistFromPlane > VertexRaySign * EPSILON)
                     {
-                        discard;
+                        discarding = true;
                     }
                     else
                     {
                         samplePosition = objectIsecWithCrossSection(samplePosition, rayDirection);
                     }
                 }
+                #endif
                 #ifdef BLEND_ENABLED
                 {
                     if (CullFront)
                     {
-                        color = blendTex3DInClipView(samplePosition, rayDirection);
+                        color = discarding ? colorClear : blendTex3DInClipView(samplePosition, rayDirection);
                     }
                     else
                     {
-                        color = blendTex3D(samplePosition, rayDirection);
+                        color = discarding ? colorClear :blendTex3D(samplePosition, rayDirection);
                     }
                 }
                 #else
@@ -185,35 +192,12 @@ Shader "Unlit/VolumeShader"
             {
                 if (InteriorEnabled)
                 {
+                    bool discarding = false;
+
                     float3 rayDirection;
                     float3 samplePosition;
                     float4 color;
-
-                    float planeIsecDist;
-                    float planeDist;
-
-                    float3 camPos = LocalCameraPos;
-                    //float3 vertexRay = normalize(i.objectVertex.xyz - camPos);
-                    float3 vertexRay = -normalize(ObjSpaceViewDir(i.objectVertex));
-                    float3 planeIsecPoint = objectIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
-
-                    #ifdef DEBUG_MODEL_VIEW
-                    //float3 camPos = _WorldSpaceCameraPos;
-                    //float3 vertexRay = -normalize(WorldSpaceViewDir(i.objectVertex));
-                    ////float3 vertexRay = normalize(mul(unity_ObjectToWorld, i.objectVertex) - camPos);
-                    //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
-                    //planeIsecPoint = mul(unity_WorldToObject, float4(planeIsecPoint, 1));
-                    ////vertexRay = normalize(mul(unity_WorldToObject, vertexRay));
-
-                    //float3 camPos = WorldCameraPosition;
-                    //float3 vertexRay = normalize(/*ModelPosition +*/ mul(ModelMatrix, i.objectVertex) - camPos);
-                    ////float3 vertexRay = normalize(mul(ModelMatrix, i.objectVertex.xyz) - camPos);
-                    //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
-                    //planeIsecPoint = mul(ModelMatrixInv, float4(planeIsecPoint.xyz, 1) /*- ModelPosition*/);
-                    ////vertexRay = normalize(mul(ModelMatrixInv, vertexRay));
-                    #endif
-
-                    bool planeIsecInClipView = objectInClipView(planeIsecPoint);
+                    float4 colorClear = COLOR_CLEAR;
 
                     float camNearIsecDist;
                     float3 worldVertexRay;
@@ -221,36 +205,67 @@ Shader "Unlit/VolumeShader"
 
                     camNearIsecPoint = mul(unity_WorldToObject, float4(camNearIsecPoint, 1));
 
-                    if (!objectPointInCube(camNearIsecPoint, 0))
+                    if (objectPointInCube(camNearIsecPoint, 0))
                     {
-                        discard;
-                        return COLOR_CLEAR;
-                    }
-                    if (planeDist > 0 && planeIsecDist > 0 && planeIsecInClipView)
-                    {
-                        rayDirection = vertexRay;
-                        samplePosition = planeIsecPoint;
+                        #ifdef CROSS_SECTION
+                        float planeIsecDist;
+                        float planeDist;
 
-                        //color = float4(1, 0, 0, 0);
+                        float3 camPos = LocalCameraPos;
+                        //float3 vertexRay = normalize(i.objectVertex.xyz - camPos);
+                        float3 vertexRay = -normalize(ObjSpaceViewDir(i.objectVertex));
+                        float3 planeIsecPoint = objectIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
+
+                        #ifdef DEBUG_MODEL_VIEW
+                        //float3 camPos = _WorldSpaceCameraPos;
+                        //float3 vertexRay = -normalize(WorldSpaceViewDir(i.objectVertex));
+                        ////float3 vertexRay = normalize(mul(unity_ObjectToWorld, i.objectVertex) - camPos);
+                        //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
+                        //planeIsecPoint = mul(unity_WorldToObject, float4(planeIsecPoint, 1));
+                        ////vertexRay = normalize(mul(unity_WorldToObject, vertexRay));
+
+                        //float3 camPos = WorldCameraPosition;
+                        //float3 vertexRay = normalize(/*ModelPosition +*/ mul(ModelMatrix, i.objectVertex) - camPos);
+                        ////float3 vertexRay = normalize(mul(ModelMatrix, i.objectVertex.xyz) - camPos);
+                        //float3 planeIsecPoint = worldIsecWithCrossSection(camPos, vertexRay, planeIsecDist, planeDist);
+                        //planeIsecPoint = mul(ModelMatrixInv, float4(planeIsecPoint.xyz, 1) /*- ModelPosition*/);
+                        ////vertexRay = normalize(mul(ModelMatrixInv, vertexRay));
+                        #endif
+
+                        bool planeIsecInClipView = objectInClipView(planeIsecPoint);
+
+                        if (planeDist > 0 && planeIsecDist > 0 && planeIsecInClipView)
+                        {
+                            rayDirection = vertexRay;
+                            samplePosition = planeIsecPoint;
+
+                            //color = float4(1, 0, 0, 0);
+                        }
+                        else
+                        #endif
+                        {
+                            rayDirection = worldToObjectDirection(worldVertexRay);
+                            samplePosition = camNearIsecPoint;
+
+                            #ifdef CROSS_SECTION
+                            {
+                                discarding = objectAboveCrossSection(samplePosition);
+                            }
+                            #endif
+                            //color = float4(0, 0, 1, 0);
+                        }
                     }
                     else
                     {
-                        rayDirection = worldToObjectDirection(worldVertexRay);
-                        samplePosition = camNearIsecPoint;
-
-                        if (objectAboveCrossSection(samplePosition))
-                        {
-                            discard;
-                        }
-                        //color = float4(0, 0, 1, 0);
+                        discarding = true;
                     }
                     #ifdef BLEND_ENABLED
                     {
-                        color = blendTex3D(samplePosition, rayDirection);
+                        color = discarding ? colorClear : blendTex3D(samplePosition, rayDirection);
                     }
                     #else
                     {
-                        color = getTex3DColor(samplePosition);
+                        color = discarding ? colorClear : getTex3DColor(samplePosition);
                     }
                     #endif
                     color.a *= _FragAlpha;

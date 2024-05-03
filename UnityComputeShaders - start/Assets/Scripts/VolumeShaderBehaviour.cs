@@ -1,4 +1,6 @@
-﻿using MustHave;
+
+using MustHave;
+using System;
 using System.Collections;
 using UnityEditor;
 using UnityEngine;
@@ -12,8 +14,9 @@ public class VolumeShaderBehaviour : MonoBehaviour
 
     private readonly struct ShaderData
     {
-        public const string DEBUG_MODEL_VIEW = "DEBUG_MODEL_VIEW";
         public const string BLEND_ENABLED = "BLEND_ENABLED";
+        public const string CROSS_SECTION = "CROSS_SECTION";
+        public const string DEBUG_MODEL_VIEW = "DEBUG_MODEL_VIEW";
 
         public static readonly int SampleAlphaID = Shader.PropertyToID("_SampleAlpha");
         public static readonly int FragAlphaID = Shader.PropertyToID("_FragAlpha");
@@ -21,6 +24,7 @@ public class VolumeShaderBehaviour : MonoBehaviour
         public static readonly int StepCountID = Shader.PropertyToID("_StepCount");
         public static readonly int CullID = Shader.PropertyToID("_Cull");
         public static readonly int BlendEnabledID = Shader.PropertyToID("_BlendEnabled");
+        public static readonly int CrossSectionID = Shader.PropertyToID("_CrossSection");
         public static readonly int DebugModelViewID = Shader.PropertyToID("_DebugModelView");
 
         //public static readonly int ObjectScaleID = Shader.PropertyToID("_ObjectScale");
@@ -150,8 +154,12 @@ public class VolumeShaderBehaviour : MonoBehaviour
                 SetInteriorShaderProperties();
             }
         }
-        if (crossSection)
+        if (crossSection && material.GetInteger(ShaderData.CrossSectionID) > 0)
         {
+            if (!material.IsKeywordEnabled(ShaderData.CROSS_SECTION))
+            {
+                throw new Exception("CrossSection != CROSS_SECTION");
+            }
             var csTransform = crossSection.transform;
             var crossSectionNormal = transform.InverseTransformDirection(-csTransform.forward);
             var crossSectionPoint = csTransform.localPosition;

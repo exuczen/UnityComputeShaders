@@ -213,7 +213,13 @@ float4 getTex3DColor(float3 samplePosition, bool belowCrossSection = true)
 {
     if (objectPointInCube(samplePosition))
     {
-        if (!belowCrossSection || objectBelowCrossSection(samplePosition))
+        #ifdef CROSS_SECTION
+        if (belowCrossSection && objectAboveCrossSection(samplePosition))
+        {
+            return COLOR_CLEAR;
+        }
+        else
+        #endif
         {
             if (objectPosDepthTest(samplePosition))
             {
@@ -223,10 +229,6 @@ float4 getTex3DColor(float3 samplePosition, bool belowCrossSection = true)
             {
                 return COLOR_CLEAR;
             }
-        }
-        else
-        {
-            return COLOR_CLEAR;
         }
     }
     else
@@ -247,7 +249,13 @@ float4 blendTex3D(float3 samplePosition, float3 rayDirection)
         // Accumulate color only within unit cube bounds
         if (objectPointInCube(samplePosition))
         {
-            if (objectBelowCrossSection(samplePosition))
+            #ifdef CROSS_SECTION
+            if (objectAboveCrossSection(samplePosition))
+            {
+                samplePosition += rayDelta;
+            }
+            else
+            #endif
             {
                 float4 clipPos = UnityObjectToClipPos(samplePosition);
                 
@@ -259,10 +267,6 @@ float4 blendTex3D(float3 samplePosition, float3 rayDirection)
                 {
                     samplePosition += rayDelta;
                 }
-            }
-            else
-            {
-                samplePosition += rayDelta;
             }
         }
     }
@@ -281,7 +285,13 @@ float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
         // Accumulate color only within unit cube bounds
         if (objectPointInCube(samplePosition))
         {
-            if (objectBelowCrossSection(samplePosition))
+            #ifdef CROSS_SECTION
+            if (objectAboveCrossSection(samplePosition))
+            {
+                samplePosition += rayDelta;
+            }
+            else
+            #endif
             {
                 float4 clipPos = UnityObjectToClipPos(samplePosition);
                 
@@ -293,10 +303,6 @@ float4 blendTex3DInClipView(float3 samplePosition, float3 rayDirection)
                 {
                     samplePosition += rayDelta;
                 }
-            }
-            else
-            {
-                samplePosition += rayDelta;
             }
         }
     }

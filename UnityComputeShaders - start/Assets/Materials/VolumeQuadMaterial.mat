@@ -59,10 +59,15 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints:
+    - _BlendDst: 10
     - _BlendEnabled: 1
+    - _BlendSrc: 1
+    - _CrossSection: 0
     - _Cull: 2
     - _DebugModelView: 0
+    - _ExteriorZTest: 0
     - _InteriorEnabled: 0
+    - _InteriorZTest: 0
     m_Floats:
     - _Alpha: 1
     - _BumpScale: 1
