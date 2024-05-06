@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
 public class BasePP : MonoBehaviour
@@ -128,9 +126,13 @@ public class BasePP : MonoBehaviour
         if (texSize.x != thisCamera.pixelWidth || texSize.y != thisCamera.pixelHeight)
         {
             resChange = true;
+            ClearTextures();
             CreateTextures();
+            OnScreenSizeChange();
         }
     }
+
+    protected virtual void OnScreenSizeChange() { }
 
     protected virtual void OnRenderImage(RenderTexture source, RenderTexture destination)
     {

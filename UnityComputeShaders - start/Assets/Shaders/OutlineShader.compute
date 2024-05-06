@@ -1,0 +1,124 @@
+﻿//#define DEBUG_SHAPE_TEXTURE
+#define EPSILON 0.00001f
+#define COLOR_CLEAR float4(0, 0, 0, 0)
+
+#pragma kernel CSMain
+
+#include "Utils/Random.cginc"
+#include "Utils/Geometry.cginc"
+
+Texture2D<float4> source;
+Texture2D<float4> shapeTexture;
+RWTexture2D<float4> output;
+
+int LineWidth;
+
+int2 getShapeTexSize()
+{
+    int width, height;
+    shapeTexture.GetDimensions(width, height);
+    return int2(width, height);
+}
+
+bool getShapeColor(int x, int y, int2 c, out float4 color)
+{
+    x += c.x;
+    y += c.y;
+    int2 xy = int2(x, y);
+    bool inBounds = all(xy >= 0 && xy < getShapeTexSize());
+    if (inBounds && shapeTexture[xy].a > EPSILON)
+    {
+        color = shapeTexture[xy];
+        return true;
+    }
+    else
+    {
+        color = COLOR_CLEAR;
+        return false;
+    }
+}
+
+bool getShapeRect4Color(int x, int y, int2 center, out float4 color)
+{
+    color = COLOR_CLEAR;
+    
+    for (int i = -1; i <= 1; i += 2)
+    {
+        for (int j = -1; j <= 1; j += 2)
+        {
+            if (getShapeColor(i * x, j * y, center, color))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool getShapeRect8Color(int x, int y, int2 center, out float4 color)
+{
+    color = COLOR_CLEAR;
+    
+    if (getShapeRect4Color(x, y, center, color))
+    {
+        return true;
+    }
+    else
+    {
+        return getShapeRect4Color(y, x, center, color);
+    }
+}
+
+bool getShapeCircleColor(int2 c, int r, out float4 color)
+{
+    int x = r;
+    int y = 0;
+    int d = 1 - r;
+    bool result = false;
+
+    color = COLOR_CLEAR;
+    
+    while (x >= y && !result)
+    {
+        result = getShapeRect8Color(x, y, c, color);
+        y++;
+
+        if (d < 0)
+        {
+            d += (y << 1) + 3;
+        }
+        else
+        {
+            d += ((y - x) << 1) + 5;
+            x--;
+        }
+    }
+    return result;
+}
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float4 shapeColor = shapeTexture[id.xy];
+
+#ifdef DEBUG_SHAPE_TEXTURE
+    if (shapeColor.a > EPSILON)
+    {
+        output[id.xy] = shapeTexture[id.xy];
+    }
+    else
+    {
+        output[id.xy] = source[id.xy];
+    }
+#else
+    float4 color = shapeColor;
+    if (shapeColor.a < EPSILON && getShapeCircleColor(id.xy, LineWidth, color))
+    {
+        output[id.xy] = color;
+    }
+    else
+    {
+        output[id.xy] = source[id.xy];
+    }
+#endif
+}
