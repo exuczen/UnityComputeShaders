@@ -23,9 +23,13 @@ public class HUDOverlay : BasePP
         shader.SetVector("sweepColor", sweepColor);
     }
 
+    protected override void SetupOnRenderImage()
+    {
+        shader.SetFloat("time", Time.time);
+    }
+
     protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        if (shader) shader.SetFloat("time", Time.time);
         base.OnRenderImage(source, destination);
     }
 

@@ -28,8 +28,8 @@ public class OutlineCamera : BasePP
         base.CreateTextures();
 
         objectCamera.CreateTextures();
+
         shader.SetTexture(kernelHandle, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
-        shader.SetInt(ShaderData.LineWidthID, LineWidth);
     }
 
     protected override void ClearTextures()
@@ -43,10 +43,13 @@ public class OutlineCamera : BasePP
         objectCamera.Setup(thisCamera);
     }
 
-    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
+    protected override void SetupOnRenderImage()
     {
         shader.SetInt(ShaderData.LineWidthID, LineWidth);
+    }
 
+    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
+    {
         base.OnRenderImage(source, destination);
     }
 }

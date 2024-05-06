@@ -35,9 +35,18 @@ public class NightVision : BasePP
         shader.SetInts("texSize", texSize.x, texSize.y);
     }
 
-    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
+    protected override void OnScreenSizeChange()
+    {
+        SetProperties();
+    }
+
+    protected override void SetupOnRenderImage()
     {
         shader.SetFloat("time", Time.time);
+    }
+
+    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
+    {
         base.OnRenderImage(source, destination);
     }
 }

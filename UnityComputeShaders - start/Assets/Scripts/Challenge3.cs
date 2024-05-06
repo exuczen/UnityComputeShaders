@@ -43,6 +43,7 @@ public class Challenge3 : BasePP
         else
         {
             CheckResolution(out _);
+            SetupOnRenderImage();
             DispatchWithSource(ref source, ref destination);
         }
     }

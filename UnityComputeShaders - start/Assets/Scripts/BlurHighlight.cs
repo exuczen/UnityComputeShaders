@@ -97,6 +97,22 @@ public class BlurHighlight : BasePP
         Graphics.Blit(output, destination);
     }
 
+    protected override void OnScreenSizeChange()
+    {
+        SetShaderProperties();
+    }
+
+    protected override void SetupOnRenderImage()
+    {
+        if (trackedObject && thisCamera)
+        {
+            Vector3 pos = thisCamera.WorldToScreenPoint(trackedObject.position);
+            center.x = pos.x;
+            center.y = pos.y;
+            shader.SetVector("center", center);
+        }
+    }
+
     protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if (shader == null)
@@ -105,18 +121,8 @@ public class BlurHighlight : BasePP
         }
         else
         {
-            if (trackedObject && thisCamera)
-            {
-                Vector3 pos = thisCamera.WorldToScreenPoint(trackedObject.position);
-                center.x = pos.x;
-                center.y = pos.y;
-                shader.SetVector("center", center);
-            }
-            CheckResolution(out bool resChange);
-            if (resChange)
-            {
-                SetShaderProperties();
-            }
+            CheckResolution(out _);
+            SetupOnRenderImage();
             DispatchWithSource(ref source, ref destination);
         }
     }

@@ -128,6 +128,22 @@ public class GaussianBlurHighlight : BasePP
         Graphics.Blit(output, destination);
     }
 
+    protected override void OnScreenSizeChange()
+    {
+        SetProperties();
+    }
+
+    protected override void SetupOnRenderImage()
+    {
+        if (trackedObject && thisCamera)
+        {
+            Vector3 pos = thisCamera.WorldToScreenPoint(trackedObject.position);
+            center.x = pos.x;
+            center.y = pos.y;
+            shader.SetVector("center", center);
+        }
+    }
+
     protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if (shader == null)
@@ -136,16 +152,8 @@ public class GaussianBlurHighlight : BasePP
         }
         else
         {
-            if (trackedObject && thisCamera)
-            {
-                Vector3 pos = thisCamera.WorldToScreenPoint(trackedObject.position);
-                center.x = pos.x;
-                center.y = pos.y;
-                shader.SetVector("center", center);
-            }
-            bool resChange = false;
-            CheckResolution(out resChange);
-            if (resChange) SetProperties();
+            CheckResolution(out _);
+            SetupOnRenderImage();
             DispatchWithSource(ref source, ref destination);
         }
     }

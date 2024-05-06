@@ -38,6 +38,23 @@ public class RingHighlight : BasePP
         shader.SetFloat("shade", shade);
     }
 
+    protected override void OnScreenSizeChange()
+    {
+        SetProperties();
+    }
+
+    protected override void SetupOnRenderImage()
+    {
+        if (trackedObject && thisCamera)
+        {
+            var pos = thisCamera.WorldToScreenPoint(trackedObject.position);
+            center.x = pos.x;
+            center.y = pos.y;
+            shader.SetVector("center", center);
+        }
+    }
+
+
     protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if (!init || shader == null)
@@ -46,18 +63,8 @@ public class RingHighlight : BasePP
         }
         else
         {
-            if (trackedObject && thisCamera)
-            {
-                var pos = thisCamera.WorldToScreenPoint(trackedObject.position);
-                center.x = pos.x;
-                center.y = pos.y;
-                shader.SetVector("center", center);
-            }
-            CheckResolution(out bool resChange);
-            if (resChange)
-            {
-                SetProperties();
-            }
+            CheckResolution(out _);
+            SetupOnRenderImage();
             DispatchWithSource(ref source, ref destination);
         }
     }

@@ -134,6 +134,8 @@ public class BasePP : MonoBehaviour
 
     protected virtual void OnScreenSizeChange() { }
 
+    protected virtual void SetupOnRenderImage() { }
+
     protected virtual void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if (!init || shader == null)
@@ -143,6 +145,7 @@ public class BasePP : MonoBehaviour
         else
         {
             CheckResolution(out _);
+            SetupOnRenderImage();
             DispatchWithSource(ref source, ref destination);
         }
     }
