@@ -15,11 +15,16 @@ public class NightVision : BasePP
     [Range(50, 500)]
     public int lines = 100;
 
+    protected override void Init()
+    {
+        base.Init();
+
+        SetProperties();
+    }
+
     protected override void OnValidate()
     {
         base.OnValidate();
-        
-        SetProperties();
     }
 
     protected void SetProperties()

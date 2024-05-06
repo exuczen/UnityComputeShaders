@@ -26,10 +26,12 @@ public class GaussianBlurHighlight : BasePP
 
     protected override void Init()
     {
-        center = new Vector4();
         kernelName = "Highlight";
         kernelHorzPassID = shader.FindKernel("HorzPass");
         base.Init();
+
+        SetProperties();
+        UpdateWeightsBuffer();
     }
 
     private float[] SetWeightsArray(int radius, float sigma)
@@ -100,10 +102,6 @@ public class GaussianBlurHighlight : BasePP
     protected override void OnValidate()
     {
         base.OnValidate();
-
-        SetProperties();
-
-        UpdateWeightsBuffer();
     }
 
     protected void SetProperties()

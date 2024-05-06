@@ -20,12 +20,15 @@ public class BasePP : MonoBehaviour
 
     protected virtual void Init()
     {
+        if (init)
+        {
+            return;
+        }
         if (!SystemInfo.supportsComputeShaders)
         {
             Debug.LogError("It seems your target Hardware does not support Compute Shaders.");
             return;
         }
-
         if (!shader)
         {
             Debug.LogError("No shader");
@@ -93,16 +96,12 @@ public class BasePP : MonoBehaviour
 
     protected virtual void OnValidate()
     {
-        if (!init)
-        {
-            Init();
-        }
+        Init();
     }
 
     protected virtual void OnEnable()
     {
         Init();
-        OnValidate();
     }
 
     protected virtual void OnDisable()

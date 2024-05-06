@@ -15,11 +15,16 @@ public class Challenge3 : BasePP
     public float tintStrength;
     public Color tintColor = Color.white;
 
+    protected override void Init()
+    {
+        base.Init();
+
+        SetProperties();
+    }
+
     protected override void OnValidate()
     {
         base.OnValidate();
-
-        SetProperties();
     }
 
     protected void SetProperties()

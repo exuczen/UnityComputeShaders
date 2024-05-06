@@ -19,13 +19,13 @@ public class RingHighlight : BasePP
     {
         kernelName = "Highlight";
         base.Init();
+
+        SetProperties();
     }
 
     protected override void OnValidate()
     {
         base.OnValidate();
-        
-        SetProperties();
     }
 
     protected void SetProperties()

@@ -25,10 +25,11 @@ public class BlurHighlight : BasePP
 
     protected override void Init()
     {
-        center = new Vector4();
         kernelName = "Highlight";
         kernelHorzPassID = shader.FindKernel("HorzPass");
         base.Init();
+
+        SetProperties();
     }
 
     protected override void CreateTextures()
@@ -53,8 +54,6 @@ public class BlurHighlight : BasePP
     protected override void OnValidate()
     {
         base.OnValidate();
-        
-        SetProperties();
     }
 
     private void SetShaderTextures()
