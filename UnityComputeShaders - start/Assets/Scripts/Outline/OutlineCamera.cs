@@ -16,6 +16,14 @@ public class OutlineCamera : BasePP
     [SerializeField, Range(1, 100)]
     private int LineWidth = 5;
 
+    protected override void OnValidate()
+    {
+        if (!init)
+        {
+            base.Init();
+        }
+    }
+
     protected override void Init()
     {
         base.Init();
@@ -35,6 +43,7 @@ public class OutlineCamera : BasePP
     protected override void ClearTextures()
     {
         base.ClearTextures();
+
         objectCamera.ReleaseTextures();
     }
 

@@ -99,8 +99,7 @@ public class GaussianBlurHighlight : BasePP
 
     protected override void OnValidate()
     {
-        if (!init)
-            Init();
+        base.OnValidate();
 
         SetProperties();
 
@@ -118,8 +117,6 @@ public class GaussianBlurHighlight : BasePP
 
     protected override void DispatchWithSource(ref RenderTexture source, ref RenderTexture destination)
     {
-        if (!init) return;
-
         Graphics.Blit(source, renderedSource);
 
         shader.Dispatch(kernelHorzPassID, groupSize.x, groupSize.y, 1);

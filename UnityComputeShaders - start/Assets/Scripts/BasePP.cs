@@ -42,6 +42,7 @@ public class BasePP : MonoBehaviour
             return;
         }
 
+        ClearTextures();
         CreateTextures();
 
         init = true;
@@ -90,7 +91,13 @@ public class BasePP : MonoBehaviour
         shader.SetTexture(kernelHandle, "output", output);
     }
 
-    protected virtual void OnValidate() { }
+    protected virtual void OnValidate()
+    {
+        if (!init)
+        {
+            Init();
+        }
+    }
 
     protected virtual void OnEnable()
     {
@@ -119,13 +126,12 @@ public class BasePP : MonoBehaviour
         Graphics.Blit(output, destination);
     }
 
-    protected void CheckResolution(out bool resChange)
+    protected void CheckResolution(out bool changed)
     {
-        resChange = false;
+        changed = texSize.x != thisCamera.pixelWidth || texSize.y != thisCamera.pixelHeight;
 
-        if (texSize.x != thisCamera.pixelWidth || texSize.y != thisCamera.pixelHeight)
+        if (changed)
         {
-            resChange = true;
             ClearTextures();
             CreateTextures();
             OnScreenSizeChange();
@@ -138,7 +144,7 @@ public class BasePP : MonoBehaviour
 
     protected void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        if (!init || shader == null)
+        if (!init || !shader)
         {
             Graphics.Blit(source, destination);
         }

@@ -10,10 +10,8 @@ public class HUDOverlay : BasePP
 
     protected override void OnValidate()
     {
-        if (!init)
-        {
-            Init();
-        }
+        base.OnValidate();
+        
         SetProperties();
     }
 

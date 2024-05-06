@@ -17,10 +17,8 @@ public class Challenge3 : BasePP
 
     protected override void OnValidate()
     {
-        if (!init)
-        {
-            Init();
-        }
+        base.OnValidate();
+
         SetProperties();
     }
 

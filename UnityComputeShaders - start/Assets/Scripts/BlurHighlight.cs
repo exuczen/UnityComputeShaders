@@ -52,11 +52,9 @@ public class BlurHighlight : BasePP
 
     protected override void OnValidate()
     {
-        if (!init)
-        {
-            Init();
-        }
-        SetShaderProperties();
+        base.OnValidate();
+        
+        SetProperties();
     }
 
     private void SetShaderTextures()
@@ -73,7 +71,7 @@ public class BlurHighlight : BasePP
         shader.SetBuffer(kernelHandle, "horzBuffer", horzBuffer);
     }
 
-    protected void SetShaderProperties()
+    protected void SetProperties()
     {
         float rad = (radius / 100.0f) * texSize.y;
         shader.SetFloat("radius", rad);
@@ -84,14 +82,9 @@ public class BlurHighlight : BasePP
 
     protected override void DispatchWithSource(ref RenderTexture source, ref RenderTexture destination)
     {
-        if (!init) return;
-
         Graphics.Blit(source, renderedSource);
 
-        //SetShaderTextures();
-
         shader.Dispatch(kernelHorzPassID, groupSize.x, groupSize.y, 1);
-
         shader.Dispatch(kernelHandle, groupSize.x, groupSize.y, 1);
 
         Graphics.Blit(output, destination);
@@ -99,7 +92,7 @@ public class BlurHighlight : BasePP
 
     protected override void OnScreenSizeChange()
     {
-        SetShaderProperties();
+        SetProperties();
     }
 
     protected override void SetupOnRenderImage()
