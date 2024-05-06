@@ -33,19 +33,4 @@ public class Challenge3 : BasePP
         shader.SetFloat("tintStrength", tintStrength);
         shader.SetVector("tintColor", tintColor);
     }
-
-    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
-    {
-        if (!init || shader == null)
-        {
-            Graphics.Blit(source, destination);
-        }
-        else
-        {
-            CheckResolution(out _);
-            SetupOnRenderImage();
-            DispatchWithSource(ref source, ref destination);
-        }
-    }
-
 }

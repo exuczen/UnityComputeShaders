@@ -44,9 +44,4 @@ public class NightVision : BasePP
     {
         shader.SetFloat("time", Time.time);
     }
-
-    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
-    {
-        base.OnRenderImage(source, destination);
-    }
 }

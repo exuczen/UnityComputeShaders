@@ -136,7 +136,7 @@ public class BasePP : MonoBehaviour
 
     protected virtual void SetupOnRenderImage() { }
 
-    protected virtual void OnRenderImage(RenderTexture source, RenderTexture destination)
+    protected void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if (!init || shader == null)
         {

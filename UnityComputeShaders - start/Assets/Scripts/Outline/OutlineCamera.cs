@@ -47,9 +47,4 @@ public class OutlineCamera : BasePP
     {
         shader.SetInt(ShaderData.LineWidthID, LineWidth);
     }
-
-    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
-    {
-        base.OnRenderImage(source, destination);
-    }
 }

@@ -53,19 +53,4 @@ public class RingHighlight : BasePP
             shader.SetVector("center", center);
         }
     }
-
-
-    protected override void OnRenderImage(RenderTexture source, RenderTexture destination)
-    {
-        if (!init || shader == null)
-        {
-            Graphics.Blit(source, destination);
-        }
-        else
-        {
-            CheckResolution(out _);
-            SetupOnRenderImage();
-            DispatchWithSource(ref source, ref destination);
-        }
-    }
 }
