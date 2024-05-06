@@ -15,11 +15,6 @@ public class HUDOverlay : BasePP
         SetProperties();
     }
 
-    protected override void OnValidate()
-    {
-        base.OnValidate();
-    }
-
     protected void SetProperties()
     {
         shader.SetVector("axisColor", axisColor);

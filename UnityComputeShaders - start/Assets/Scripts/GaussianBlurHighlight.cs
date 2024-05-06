@@ -99,11 +99,6 @@ public class GaussianBlurHighlight : BasePP
         horzBuffer = null;
     }
 
-    protected override void OnValidate()
-    {
-        base.OnValidate();
-    }
-
     protected void SetProperties()
     {
         float rad = (radius / 100.0f) * texSize.y;

@@ -51,11 +51,6 @@ public class BlurHighlight : BasePP
         horzBuffer = null;
     }
 
-    protected override void OnValidate()
-    {
-        base.OnValidate();
-    }
-
     private void SetShaderTextures()
     {
         shader.SetTexture(kernelHandle, "source", renderedSource);

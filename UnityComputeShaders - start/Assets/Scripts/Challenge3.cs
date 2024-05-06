@@ -22,11 +22,6 @@ public class Challenge3 : BasePP
         SetProperties();
     }
 
-    protected override void OnValidate()
-    {
-        base.OnValidate();
-    }
-
     protected void SetProperties()
     {
         float tintHeight = height * texSize.y;

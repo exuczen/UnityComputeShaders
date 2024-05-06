@@ -23,11 +23,6 @@ public class RingHighlight : BasePP
         SetProperties();
     }
 
-    protected override void OnValidate()
-    {
-        base.OnValidate();
-    }
-
     protected void SetProperties()
     {
         float rad = (radius / 100.0f) * texSize.y;
