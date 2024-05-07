@@ -18,10 +18,7 @@ public class OutlineCamera : BasePP
 
     protected override void OnValidate()
     {
-        if (!init)
-        {
-            base.Init();
-        }
+        base.Init();
     }
 
     protected override void Init()
@@ -40,9 +37,9 @@ public class OutlineCamera : BasePP
         shader.SetTexture(kernelHandle, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
     }
 
-    protected override void ClearTextures()
+    protected override void ReleaseTextures()
     {
-        base.ClearTextures();
+        base.ReleaseTextures();
 
         objectCamera.ReleaseTextures();
     }

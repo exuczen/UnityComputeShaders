@@ -92,9 +92,9 @@ public class GaussianBlurHighlight : BasePP
         shader.SetBuffer(kernelHandle, "horzBuffer", horzBuffer);
     }
 
-    protected override void ClearTextures()
+    protected override void ReleaseTextures()
     {
-        base.ClearTextures();
+        base.ReleaseTextures();
         horzBuffer?.Dispose();
         horzBuffer = null;
     }

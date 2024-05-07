@@ -44,9 +44,9 @@ public class BlurHighlight : BasePP
         SetShaderTextures();
     }
 
-    protected override void ClearTextures()
+    protected override void ReleaseTextures()
     {
-        base.ClearTextures();
+        base.ReleaseTextures();
         horzBuffer?.Dispose();
         horzBuffer = null;
     }

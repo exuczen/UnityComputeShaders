@@ -45,13 +45,13 @@ public class BasePP : MonoBehaviour
             return;
         }
 
-        ClearTextures();
+        ReleaseTextures();
         CreateTextures();
 
         init = true;
     }
 
-    protected void ClearTexture(ref RenderTexture textureToClear)
+    protected void ReleaseTexture(ref RenderTexture textureToClear)
     {
         if (null != textureToClear)
         {
@@ -60,10 +60,10 @@ public class BasePP : MonoBehaviour
         }
     }
 
-    protected virtual void ClearTextures()
+    protected virtual void ReleaseTextures()
     {
-        ClearTexture(ref output);
-        ClearTexture(ref renderedSource);
+        ReleaseTexture(ref output);
+        ReleaseTexture(ref renderedSource);
     }
 
     protected void CreateTexture(ref RenderTexture textureToMake, int divide = 1)
@@ -106,13 +106,13 @@ public class BasePP : MonoBehaviour
 
     protected virtual void OnDisable()
     {
-        ClearTextures();
+        ReleaseTextures();
         init = false;
     }
 
     protected virtual void OnDestroy()
     {
-        ClearTextures();
+        ReleaseTextures();
         init = false;
     }
 
@@ -131,7 +131,7 @@ public class BasePP : MonoBehaviour
 
         if (changed)
         {
-            ClearTextures();
+            ReleaseTextures();
             CreateTextures();
             OnScreenSizeChange();
         }
