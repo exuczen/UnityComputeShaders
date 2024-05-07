@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR;
 
 [RequireComponent(typeof(Camera))]
 public class OutlineObjectCamera : MonoBehaviour
@@ -24,9 +23,9 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private readonly List<OutlineObject> objects = new();
 
-    public void CreateTextures()
+    public void CreateTextures(Vector2Int size)
     {
-        shapeTexture = new RenderTexture(Screen.width, Screen.height, 0)
+        shapeTexture = new RenderTexture(size.x, size.y, 0)
         {
             name = "OutlineObjectsTexture",
             enableRandomWrite = true
