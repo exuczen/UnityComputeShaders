@@ -78,12 +78,20 @@ public class GaussianBlurHighlight : BasePP
     protected override void CreateTextures()
     {
         base.CreateTextures();
-        shader.SetTexture(kernelHorzPassID, "source", renderedSource);
 
         CreateTexture(ref horzOutput);
 
         horzBuffer?.Dispose();
         horzBuffer = new ComputeBuffer(renderedSource.width * renderedSource.height, 4 * sizeof(float));
+
+        SetShaderTextures();
+    }
+
+    private void SetShaderTextures()
+    {
+        shader.SetTexture(kernelHandle, "output", output);
+        shader.SetTexture(kernelHandle, "source", renderedSource);
+        shader.SetTexture(kernelHorzPassID, "source", renderedSource);
 
         shader.SetTexture(kernelHorzPassID, "horzOutput", horzOutput);
         shader.SetTexture(kernelHandle, "horzOutput", horzOutput);
