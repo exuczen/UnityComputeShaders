@@ -17,11 +17,11 @@ public class BasePP : MonoBehaviour
     protected RenderTexture renderedSource = null;
 
     protected int mainKernelID = -1;
-    protected bool init = false;
+    protected bool initialized = false;
 
     protected virtual void Init()
     {
-        if (init)
+        if (initialized)
         {
             return;
         }
@@ -49,7 +49,7 @@ public class BasePP : MonoBehaviour
         ReleaseTextures();
         CreateTextures();
 
-        init = true;
+        initialized = true;
     }
 
     protected void ReleaseTexture(ref RenderTexture textureToClear)
@@ -121,18 +121,18 @@ public class BasePP : MonoBehaviour
         }
 #endif
         ReleaseTextures();
-        init = false;
+        initialized = false;
     }
 
     protected virtual void OnDestroy()
     {
         ReleaseTextures();
-        init = false;
+        initialized = false;
     }
 
     private void OnAllAssetsPostprocessed()
     {
-        init = false;
+        initialized = false;
         Init();
     }
 
@@ -163,7 +163,7 @@ public class BasePP : MonoBehaviour
 
     protected void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        if (!init || !shader)
+        if (!initialized || !shader)
         {
             Graphics.Blit(source, destination);
         }
