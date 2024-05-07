@@ -15,6 +15,8 @@ public class BlurHighlight : BasePP
     public float shade = 0.5f;
     public Transform trackedObject;
 
+    protected override string MainKernelName => "Highlight";
+
     private RenderTexture horzOutput = null;
 
     private ComputeBuffer horzBuffer = null;
@@ -25,7 +27,6 @@ public class BlurHighlight : BasePP
 
     protected override void Init()
     {
-        kernelName = "Highlight";
         kernelHorzPassID = shader.FindKernel("HorzPass");
         base.Init();
 
@@ -53,16 +54,16 @@ public class BlurHighlight : BasePP
 
     private void SetShaderTextures()
     {
-        shader.SetTexture(kernelHandle, "source", renderedSource);
-        shader.SetTexture(kernelHandle, "output", output);
-        shader.SetTexture(kernelHandle, "horzOutput", horzOutput);
+        shader.SetTexture(mainKernelID, "source", renderedSource);
+        shader.SetTexture(mainKernelID, "output", output);
+        shader.SetTexture(mainKernelID, "horzOutput", horzOutput);
 
         shader.SetTexture(kernelHorzPassID, "source", renderedSource);
         shader.SetTexture(kernelHorzPassID, "output", output);
         shader.SetTexture(kernelHorzPassID, "horzOutput", horzOutput);
 
         shader.SetBuffer(kernelHorzPassID, "horzBuffer", horzBuffer);
-        shader.SetBuffer(kernelHandle, "horzBuffer", horzBuffer);
+        shader.SetBuffer(mainKernelID, "horzBuffer", horzBuffer);
     }
 
     protected void SetProperties()
@@ -79,7 +80,7 @@ public class BlurHighlight : BasePP
         Graphics.Blit(source, renderedSource);
 
         shader.Dispatch(kernelHorzPassID, groupSize.x, groupSize.y, 1);
-        shader.Dispatch(kernelHandle, groupSize.x, groupSize.y, 1);
+        shader.Dispatch(mainKernelID, groupSize.x, groupSize.y, 1);
 
         Graphics.Blit(output, destination);
     }

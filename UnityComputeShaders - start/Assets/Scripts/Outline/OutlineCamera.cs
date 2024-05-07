@@ -34,7 +34,7 @@ public class OutlineCamera : BasePP
 
         objectCamera.CreateTextures(texSize);
 
-        shader.SetTexture(kernelHandle, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
+        shader.SetTexture(mainKernelID, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
     }
 
     protected override void ReleaseTextures()

@@ -7,7 +7,7 @@ public class BasePP : MonoBehaviour
     [SerializeField]
     protected ComputeShader shader = null;
 
-    protected string kernelName = "CSMain";
+    protected virtual string MainKernelName => "CSMain";
 
     protected Vector2Int texSize = Vector2Int.zero;
     protected Vector2Int groupSize = Vector2Int.zero;
@@ -16,7 +16,7 @@ public class BasePP : MonoBehaviour
     protected RenderTexture output = null;
     protected RenderTexture renderedSource = null;
 
-    protected int kernelHandle = -1;
+    protected int mainKernelID = -1;
     protected bool init = false;
 
     protected virtual void Init()
@@ -36,7 +36,7 @@ public class BasePP : MonoBehaviour
             return;
         }
 
-        kernelHandle = shader.FindKernel(kernelName);
+        mainKernelID = shader.FindKernel(MainKernelName);
 
         thisCamera = GetComponent<Camera>();
 
@@ -84,15 +84,15 @@ public class BasePP : MonoBehaviour
 
         if (shader)
         {
-            shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out uint y, out _);
+            shader.GetKernelThreadGroupSizes(mainKernelID, out uint x, out uint y, out _);
             groupSize.x = Mathf.CeilToInt((float)texSize.x / x);
             groupSize.y = Mathf.CeilToInt((float)texSize.y / y);
         }
         CreateTexture(ref output);
         CreateTexture(ref renderedSource);
 
-        shader.SetTexture(kernelHandle, "source", renderedSource);
-        shader.SetTexture(kernelHandle, "output", output);
+        shader.SetTexture(mainKernelID, "source", renderedSource);
+        shader.SetTexture(mainKernelID, "output", output);
     }
 
     protected virtual void OnValidate()
@@ -140,7 +140,7 @@ public class BasePP : MonoBehaviour
     {
         Graphics.Blit(source, renderedSource);
 
-        shader.Dispatch(kernelHandle, groupSize.x, groupSize.y, 1);
+        shader.Dispatch(mainKernelID, groupSize.x, groupSize.y, 1);
 
         Graphics.Blit(output, destination);
     }

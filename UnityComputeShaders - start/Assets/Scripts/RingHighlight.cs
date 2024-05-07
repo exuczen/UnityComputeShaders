@@ -13,11 +13,12 @@ public class RingHighlight : BasePP
     public float shade;
     public Transform trackedObject;
 
+    protected override string MainKernelName => "Highlight";
+
     private Vector4 center;
 
     protected override void Init()
     {
-        kernelName = "Highlight";
         base.Init();
 
         SetProperties();

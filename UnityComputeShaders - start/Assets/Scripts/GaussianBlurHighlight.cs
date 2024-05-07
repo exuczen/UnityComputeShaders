@@ -15,6 +15,8 @@ public class GaussianBlurHighlight : BasePP
     public float shade = 0.5f;
     public Transform trackedObject;
 
+    protected override string MainKernelName => "Highlight";
+
     private Vector4 center = default;
     private ComputeBuffer weightsBuffer = null;
 
@@ -26,7 +28,6 @@ public class GaussianBlurHighlight : BasePP
 
     protected override void Init()
     {
-        kernelName = "Highlight";
         kernelHorzPassID = shader.FindKernel("HorzPass");
         base.Init();
 
@@ -72,7 +73,7 @@ public class GaussianBlurHighlight : BasePP
         weightsBuffer.SetData(blurWeights);
 
         shader.SetBuffer(kernelHorzPassID, "weights", weightsBuffer);
-        shader.SetBuffer(kernelHandle, "weights", weightsBuffer);
+        shader.SetBuffer(mainKernelID, "weights", weightsBuffer);
     }
 
     protected override void CreateTextures()
@@ -89,15 +90,15 @@ public class GaussianBlurHighlight : BasePP
 
     private void SetShaderTextures()
     {
-        shader.SetTexture(kernelHandle, "output", output);
-        shader.SetTexture(kernelHandle, "source", renderedSource);
+        shader.SetTexture(mainKernelID, "output", output);
+        shader.SetTexture(mainKernelID, "source", renderedSource);
         shader.SetTexture(kernelHorzPassID, "source", renderedSource);
 
         shader.SetTexture(kernelHorzPassID, "horzOutput", horzOutput);
-        shader.SetTexture(kernelHandle, "horzOutput", horzOutput);
+        shader.SetTexture(mainKernelID, "horzOutput", horzOutput);
 
         shader.SetBuffer(kernelHorzPassID, "horzBuffer", horzBuffer);
-        shader.SetBuffer(kernelHandle, "horzBuffer", horzBuffer);
+        shader.SetBuffer(mainKernelID, "horzBuffer", horzBuffer);
     }
 
     protected override void ReleaseTextures()
@@ -121,7 +122,7 @@ public class GaussianBlurHighlight : BasePP
         Graphics.Blit(source, renderedSource);
 
         shader.Dispatch(kernelHorzPassID, groupSize.x, groupSize.y, 1);
-        shader.Dispatch(kernelHandle, groupSize.x, groupSize.y, 1);
+        shader.Dispatch(mainKernelID, groupSize.x, groupSize.y, 1);
 
         Graphics.Blit(output, destination);
     }
