@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MustHave;
+using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
 public class BasePP : MonoBehaviour
@@ -17,9 +18,6 @@ public class BasePP : MonoBehaviour
 
     protected int kernelHandle = -1;
     protected bool init = false;
-
-    protected bool editorGainedFocus;
-    protected bool editorGainedFocusPrev;
 
     protected virtual void Init()
     {
@@ -108,8 +106,8 @@ public class BasePP : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
-            MustHave.EditorUtils.UnityEditorFocusChanged -= OnEditorFocus;
-            MustHave.EditorUtils.UnityEditorFocusChanged += OnEditorFocus;
+            EditorAssetPostprocessor.AllAssetsPostprocessed -= OnAllAssetsPostprocessed;
+            EditorAssetPostprocessor.AllAssetsPostprocessed += OnAllAssetsPostprocessed;
         }
 #endif
     }
@@ -119,7 +117,7 @@ public class BasePP : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
-            MustHave.EditorUtils.UnityEditorFocusChanged -= OnEditorFocus;
+            EditorAssetPostprocessor.AllAssetsPostprocessed -= OnAllAssetsPostprocessed;
         }
 #endif
         ReleaseTextures();
@@ -132,10 +130,10 @@ public class BasePP : MonoBehaviour
         init = false;
     }
 
-    private void OnEditorFocus(bool focus)
+    private void OnAllAssetsPostprocessed()
     {
-        editorGainedFocusPrev = false;
-        editorGainedFocus = focus;
+        init = false;
+        Init();
     }
 
     protected virtual void DispatchWithSource(ref RenderTexture source, ref RenderTexture destination)
@@ -173,17 +171,7 @@ public class BasePP : MonoBehaviour
         {
             CheckResolution(out _);
             SetupOnRenderImage();
-#if UNITY_EDITOR
-            if (!Application.isPlaying && editorGainedFocusPrev && !editorGainedFocus)
-            {
-                //Debug.Log($"{GetType().Name}.OnRenderImage: editorGainedFocusPrev && !editorGainedFocus");
-                init = false;
-                Init();
-            }
-#endif
             DispatchWithSource(ref source, ref destination);
         }
-        editorGainedFocusPrev = editorGainedFocus;
-        editorGainedFocus = false;
     }
 }
