@@ -42,7 +42,10 @@ public class OutlineObjectCamera : MonoBehaviour
     {
         camera = GetComponent<Camera>();
 
-        camera.CopyFrom(parentCamera);
+        if (parentCamera)
+        {
+            camera.CopyFrom(parentCamera);
+        }
         camera.targetTexture = shapeTexture;
         camera.backgroundColor = Color.clear;
         camera.cullingMask = Layer.OutlineMask;

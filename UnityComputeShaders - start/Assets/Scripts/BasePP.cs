@@ -19,7 +19,7 @@ public class BasePP : MonoBehaviour
     protected int mainKernelID = -1;
     protected bool initialized = false;
 
-    protected virtual void Init()
+    protected void Init()
     {
         if (initialized)
         {
@@ -49,8 +49,12 @@ public class BasePP : MonoBehaviour
         ReleaseTextures();
         CreateTextures();
 
+        OnInit();
+
         initialized = true;
     }
+
+    protected virtual void OnInit() { }
 
     protected void ReleaseTexture(ref RenderTexture textureToClear)
     {
@@ -97,7 +101,10 @@ public class BasePP : MonoBehaviour
 
     protected virtual void OnValidate()
     {
-        Init();
+        if (initialized)
+        {
+            OnInit();
+        }
     }
 
     protected virtual void OnEnable()

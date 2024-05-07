@@ -8,10 +8,8 @@ public class HUDOverlay : BasePP
     public Color axisColor = new(0.8f, 0.8f, 0.8f, 1);
     public Color sweepColor = new(0.1f, 0.3f, 0.1f, 1);
 
-    protected override void Init()
+    protected override void OnInit()
     {
-        base.Init();
-
         SetProperties();
     }
 

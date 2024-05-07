@@ -25,11 +25,9 @@ public class BlurHighlight : BasePP
 
     private Vector4 center = default;
 
-    protected override void Init()
+    protected override void OnInit()
     {
         kernelHorzPassID = shader.FindKernel("HorzPass");
-        base.Init();
-
         SetProperties();
     }
 

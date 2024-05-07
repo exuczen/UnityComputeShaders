@@ -18,13 +18,11 @@ public class OutlineCamera : BasePP
 
     protected override void OnValidate()
     {
-        base.Init();
+        objectCamera.Setup(null);
     }
 
-    protected override void Init()
+    protected override void OnInit()
     {
-        base.Init();
-
         objectCamera.Setup(thisCamera);
     }
 

@@ -26,10 +26,9 @@ public class GaussianBlurHighlight : BasePP
 
     private int kernelHorzPassID;
 
-    protected override void Init()
+    protected override void OnInit()
     {
         kernelHorzPassID = shader.FindKernel("HorzPass");
-        base.Init();
 
         SetProperties();
         UpdateWeightsBuffer();

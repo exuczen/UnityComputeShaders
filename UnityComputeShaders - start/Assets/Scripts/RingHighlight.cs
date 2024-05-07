@@ -17,10 +17,8 @@ public class RingHighlight : BasePP
 
     private Vector4 center;
 
-    protected override void Init()
+    protected override void OnInit()
     {
-        base.Init();
-
         SetProperties();
     }
 
