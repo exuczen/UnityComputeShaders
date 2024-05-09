@@ -192,7 +192,8 @@ float clipPosCamTexDepth(float4 clipPos)
 {
     float4 screenPos = ComputeScreenPos(clipPos);
     float2 screenUV = screenPos.xy / screenPos.w;
-    float texDepth = UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, screenUV));
+    //float texDepth = UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, screenUV));
+    float texDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, screenUV);
     return texDepth;
 }
 
