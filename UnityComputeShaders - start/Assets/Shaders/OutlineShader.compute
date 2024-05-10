@@ -1,4 +1,5 @@
 ﻿//#define DEBUG_SHAPE_TEXTURE
+//#define DEBUG_DEPTH
 #define EPSILON 0.00001f
 #define COLOR_CLEAR float4(0, 0, 0, 0)
 
@@ -20,13 +21,10 @@ int2 getShapeTexSize()
     return int2(width, height);
 }
 
-bool getShapeColor(int x, int y, int2 c, out float4 color)
+bool getShapePixelColor(int2 xy, out float4 color)
 {
-    x += c.x;
-    y += c.y;
-    int2 xy = int2(x, y);
     bool inBounds = all(xy >= 0 && xy < getShapeTexSize());
-    if (inBounds && shapeTexture[xy].a > EPSILON)
+    if (inBounds && shapeTexture[xy].a > 0)
     {
         color = shapeTexture[xy];
         return true;
@@ -38,49 +36,39 @@ bool getShapeColor(int x, int y, int2 c, out float4 color)
     }
 }
 
-bool getShapeRect4Color(int x, int y, int2 center, out float4 color)
+void getShapeRect4Color(int x, int y, int2 center, inout float4 destColor)
 {
-    color = COLOR_CLEAR;
+    float4 color = COLOR_CLEAR;
     
     for (int i = -1; i <= 1; i += 2)
     {
         for (int j = -1; j <= 1; j += 2)
         {
-            if (getShapeColor(i * x, j * y, center, color))
+            int2 xy = center + int2(i * x, j * y);
+            
+            if (getShapePixelColor(xy, color) && color.w > destColor.w)
             {
-                return true;
+                destColor = color;
             }
         }
     }
-    return false;
 }
 
-bool getShapeRect8Color(int x, int y, int2 center, out float4 color)
+void getShapeRect8Color(int x, int y, int2 center, inout float4 color)
 {
-    color = COLOR_CLEAR;
-    
-    if (getShapeRect4Color(x, y, center, color))
-    {
-        return true;
-    }
-    else
-    {
-        return getShapeRect4Color(y, x, center, color);
-    }
+    getShapeRect4Color(x, y, center, color);
+    getShapeRect4Color(y, x, center, color);
 }
 
-bool getShapeCircleColor(int2 c, int r, out float4 color)
+bool getShapeCircleColor(int2 c, int r, inout float4 color)
 {
     int x = r;
     int y = 0;
     int d = 1 - r;
-    bool result = false;
-
-    color = COLOR_CLEAR;
     
-    while (x >= y && !result)
+    while (x >= y)
     {
-        result = getShapeRect8Color(x, y, c, color);
+        getShapeRect8Color(x, y, c, color);
         y++;
 
         if (d < 0)
@@ -93,7 +81,7 @@ bool getShapeCircleColor(int2 c, int r, out float4 color)
             x--;
         }
     }
-    return result;
+    return color.a > 0;
 }
 
 [numthreads(8, 8, 1)]
@@ -102,17 +90,13 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float4 shapeColor = shapeTexture[id.xy];
 
 #ifdef DEBUG_SHAPE_TEXTURE
-    if (shapeColor.a > EPSILON)
-    {
-        output[id.xy] = shapeTexture[id.xy];
-    }
-    else
-    {
-        output[id.xy] = source[id.xy];
-    }
+    output[id.xy] = shapeColor.a > 0 ? shapeColor : source[id.xy];
+#elif defined DEBUG_DEPTH
+    output[id.xy] = shapeColor.w > 0 ? shapeColor.w : float4(1, 0, 0, 1);
 #else
-    float4 color = shapeColor;
-    if (shapeColor.a < EPSILON && getShapeCircleColor(id.xy, LineWidth, color))
+    float4 color = COLOR_CLEAR;
+    int r = LineWidth;
+    if (shapeColor.a < EPSILON && getShapeCircleColor(id.xy, r, color))
     {
         output[id.xy] = color;
     }

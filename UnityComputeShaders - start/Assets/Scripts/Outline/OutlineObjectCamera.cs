@@ -51,6 +51,7 @@ public class OutlineObjectCamera : MonoBehaviour
         camera.cullingMask = Layer.OutlineMask;
         camera.allowMSAA = false;
         camera.enabled = false;
+        camera.depthTextureMode = DepthTextureMode.Depth;
     }
 
     public void AddOutlineObject(OutlineObject obj)

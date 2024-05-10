@@ -3,6 +3,7 @@ Shader "Unlit/OutlineMeshShader"
     Properties
     {
         _Color("Color", Vector) = (1, 1, 1, 1)
+        [IntRange] _DepthMlp("Depth Mlp", Range(1, 20)) = 1
     }
     SubShader
     {
@@ -29,6 +30,7 @@ Shader "Unlit/OutlineMeshShader"
             };
 
             float4 _Color;
+            int _DepthMlp;
 
             v2f vert(appdata v)
             {
@@ -37,9 +39,11 @@ Shader "Unlit/OutlineMeshShader"
                 return o;
             }
 
-            fixed4 frag(v2f i) : SV_Target
+            float4 frag(v2f i) : SV_Target
             {
-                return _Color;
+                float4 clipPos = i.vertex;
+                float depth = clipPos.z / clipPos.w;
+                return float4(_Color.xyz, _DepthMlp * depth + 0.01);
             }
             ENDCG
         }
