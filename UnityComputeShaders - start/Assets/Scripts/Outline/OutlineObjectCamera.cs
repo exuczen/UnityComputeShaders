@@ -25,17 +25,12 @@ public class OutlineObjectCamera : MonoBehaviour
 
     public void CreateTextures(Vector2Int size)
     {
-        shapeTexture = new RenderTexture(size.x, size.y, 0)
-        {
-            name = "OutlineObjectsTexture",
-            enableRandomWrite = true
-        };
-        shapeTexture.Create();
+        shapeTexture = CreateTexture(size, "OutlineObjectsTexture");
     }
 
     public void ReleaseTextures()
     {
-        TextureUtils.Release(ref shapeTexture);
+        ReleaseTexture(ref shapeTexture);
     }
 
     public void Setup(Camera parentCamera)
@@ -67,6 +62,17 @@ public class OutlineObjectCamera : MonoBehaviour
         objects.Remove(obj);
     }
 
+    private RenderTexture CreateTexture(Vector2Int size, string name = "")
+    {
+        var texture = new RenderTexture(size.x, size.y, 0)
+        {
+            name = name,
+            enableRandomWrite = true
+        };
+        texture.Create();
+        return texture;
+    }
+
     private void ReleaseTexture(ref RenderTexture texture)
     {
         if (texture)
@@ -74,6 +80,14 @@ public class OutlineObjectCamera : MonoBehaviour
             texture.Release();
             texture = null;
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        //foreach (OutlineObject obj in objects)
+        //{
+        //    obj.DrawBBoxGizmo();
+        //}
     }
 
     private void OnRenderObject()

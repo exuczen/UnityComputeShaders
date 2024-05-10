@@ -47,6 +47,19 @@ public class OutlineObject : MonoBehaviour
         }
     }
 
+    public void DrawBBoxGizmo()
+    {
+        foreach (var data in renderersData)
+        {
+            var bounds = data.Renderer.bounds;
+            Gizmos.matrix = Matrix4x4.identity;
+            Gizmos.color = new Color(color.r, color.g, color.b, 0.5f);
+            Gizmos.DrawCube(bounds.center, bounds.size);
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireCube(bounds.center, bounds.size);
+        }
+    }
+
     public void Restore()
     {
         foreach (var data in renderersData)

@@ -18,7 +18,10 @@ public class OutlineCamera : BasePP
 
     protected override void OnValidate()
     {
-        objectCamera.Setup(null);
+        if (objectCamera)
+        {
+            objectCamera.Setup(null);
+        }
     }
 
     protected override void OnInit()
