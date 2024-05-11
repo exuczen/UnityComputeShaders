@@ -14,22 +14,6 @@ public class OutlineObject : MonoBehaviour
         public static readonly int ColorID = Shader.PropertyToID("_Color");
     }
 
-    private class RendererData
-    {
-        public Renderer Renderer;
-        public Material[] Materials;
-        public uint LayerMask;
-        public int Layer;
-
-        public void Clear()
-        {
-            Renderer = null;
-            Materials = null;
-            LayerMask = 0;
-            Layer = 0;
-        }
-    }
-
     private static readonly ObjectPool<RendererData> rendererDataPool = new(() => new RendererData(), null, data => data.Clear());
 
     private readonly List<Renderer> renderers = new();
@@ -41,9 +25,14 @@ public class OutlineObject : MonoBehaviour
     {
         foreach (var data in renderersData)
         {
-            data.Renderer.gameObject.layer = layer;
-            data.Renderer.material = material;
-            data.Renderer.material.SetColor(ShaderData.ColorID, Color);
+            var renderer = data.Renderer;
+            data.Setup(material, layer);
+            renderer.material.SetColor(ShaderData.ColorID, Color);
+
+            //float distance = Vector3.Distance(objectCamera.transform.position, renderer.transform.position);
+            //float oneMinusDistance = Mathf.Clamp01(1f - distance / 100f);
+            //renderer.material.SetFloat("_OneMinusMeshCenterDistance", oneMinusDistance);
+            //Debug.Log($"{GetType().Name}.{renderer.name}: {distance}");
         }
     }
 
@@ -64,8 +53,7 @@ public class OutlineObject : MonoBehaviour
     {
         foreach (var data in renderersData)
         {
-            data.Renderer.gameObject.layer = data.Layer;
-            data.Renderer.materials = data.Materials;
+            data.Restore();
         }
     }
 
@@ -85,10 +73,7 @@ public class OutlineObject : MonoBehaviour
         foreach (var renderer in renderers)
         {
             var data = rendererDataPool.Get();
-            data.Renderer = renderer;
-            data.Materials = renderer.materials;
-            data.LayerMask = renderer.renderingLayerMask;
-            data.Layer = renderer.gameObject.layer;
+            data.SetRenderer(renderer);
             renderersData.Add(data);
         }
     }

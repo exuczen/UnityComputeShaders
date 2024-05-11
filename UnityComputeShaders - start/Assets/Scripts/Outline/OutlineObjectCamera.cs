@@ -13,6 +13,8 @@ public class OutlineObjectCamera : MonoBehaviour
     }
 
     public RenderTexture ShapeTexture => shapeTexture;
+    public Material OutlineMeshMaterial => outlineMeshMaterial;
+    public Camera Camera => camera;
 
     [SerializeField]
     private Material outlineMeshMaterial = null;
@@ -64,7 +66,7 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private RenderTexture CreateTexture(Vector2Int size, string name = "")
     {
-        var texture = new RenderTexture(size.x, size.y, 0)
+        var texture = new RenderTexture(size.x, size.y, 0, RenderTextureFormat.ARGB32)
         {
             name = name,
             enableRandomWrite = true
