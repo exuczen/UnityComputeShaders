@@ -3,13 +3,11 @@ Shader "Unlit/OutlineMeshShader"
     Properties
     {
         _Color("Color", Vector) = (1, 1, 1, 1)
-        [IntRange] _DepthMlp("Depth Mlp", Range(1, 20)) = 1
     }
     SubShader
     {
         Tags { "RenderType" = "Opaque" }
         Blend Off
-        LOD 0
 
         Pass
         {
@@ -30,7 +28,7 @@ Shader "Unlit/OutlineMeshShader"
             };
 
             float4 _Color;
-            int _DepthMlp;
+            float _Depth;
 
             v2f vert(appdata v)
             {
@@ -41,9 +39,7 @@ Shader "Unlit/OutlineMeshShader"
 
             float4 frag(v2f i) : SV_Target
             {
-                float4 clipPos = i.vertex;
-                float depth = clipPos.z / clipPos.w;
-                return float4(_Color.xyz, _DepthMlp * depth + 0.01);
+                return float4(_Color.xyz, _Depth);
             }
             ENDCG
         }

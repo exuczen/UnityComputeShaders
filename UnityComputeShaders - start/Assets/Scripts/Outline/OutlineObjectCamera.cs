@@ -105,6 +105,13 @@ public class OutlineObjectCamera : MonoBehaviour
         {
             obj.Setup(outlineMeshMaterial, Layer.OutlineLayer);
         }
+        renderersData.Sort((a, b) => b.CameraDistanceSqr.CompareTo(a.CameraDistanceSqr));
+
+        int count = renderersData.Count;
+        for (int i = 1; i <= count; i++)
+        {
+            renderersData[i - 1].SetDepth((float)i / count);
+        }
         camera.Render();
 
         foreach (OutlineObject obj in objects)

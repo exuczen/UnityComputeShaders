@@ -10,11 +10,6 @@ public class OutlineObject : MonoBehaviour
     [SerializeField]
     private Color color = Color.white;
 
-    private static class ShaderData
-    {
-        public static readonly int ColorID = Shader.PropertyToID("_Color");
-    }
-
     private static readonly ObjectPool<RendererData> rendererDataPool = new(() => new RendererData(), null, data => data.Clear());
 
     private readonly List<Renderer> renderers = new();
@@ -26,14 +21,9 @@ public class OutlineObject : MonoBehaviour
     {
         foreach (var data in renderersData)
         {
-            var renderer = data.Renderer;
             data.Setup(material, layer);
-            renderer.material.SetColor(ShaderData.ColorID, Color);
-
-            //float distance = Vector3.Distance(objectCamera.transform.position, renderer.transform.position);
-            //float oneMinusDistance = Mathf.Clamp01(1f - distance / 100f);
-            //renderer.material.SetFloat("_OneMinusMeshCenterDistance", oneMinusDistance);
-            //Debug.Log($"{GetType().Name}.{renderer.name}: {distance}");
+            data.GetDistanceFromCamera(objectCamera.transform.position);
+            data.SetColor(Color);
         }
     }
 
