@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -57,8 +58,23 @@ public class OutlineObject : MonoBehaviour
         }
     }
 
+    public void ForEachRendererData(Action<RendererData> action)
+    {
+        foreach (var data in renderersData)
+        {
+            action(data);
+        }
+    }
+
     private void OnEnable()
     {
+        GetComponentsInChildren(renderers);
+        foreach (var renderer in renderers)
+        {
+            var data = rendererDataPool.Get();
+            data.SetRenderer(renderer);
+            renderersData.Add(data);
+        }
         var camera = MustHave.CameraUtils.MainOrCurrent;
         if (camera)
         {
@@ -68,13 +84,6 @@ public class OutlineObject : MonoBehaviour
                 objectCamera = outlineCamera.ObjectCamera;
                 objectCamera.AddOutlineObject(this);
             }
-        }
-        GetComponentsInChildren(renderers);
-        foreach (var renderer in renderers)
-        {
-            var data = rendererDataPool.Get();
-            data.SetRenderer(renderer);
-            renderersData.Add(data);
         }
     }
 

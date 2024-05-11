@@ -24,6 +24,7 @@ public class OutlineObjectCamera : MonoBehaviour
     private RenderTexture shapeTexture = null;
 
     private readonly List<OutlineObject> objects = new();
+    private readonly List<RendererData> renderersData = new();
 
     public void CreateTextures(Vector2Int size)
     {
@@ -56,12 +57,18 @@ public class OutlineObjectCamera : MonoBehaviour
         if (!objects.Contains(obj))
         {
             objects.Add(obj);
+            obj.ForEachRendererData(data => {
+                renderersData.Add(data);
+            });
         }
     }
 
     public void RemoveOutlineObject(OutlineObject obj)
     {
         objects.Remove(obj);
+        obj.ForEachRendererData(data => {
+            renderersData.Remove(data);
+        });
     }
 
     private RenderTexture CreateTexture(Vector2Int size, string name = "")
