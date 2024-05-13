@@ -1,4 +1,4 @@
-Shader "Unlit/OutlineMeshShader"
+Shader "Unlit/OutlineShapeShader"
 {
     Properties
     {
