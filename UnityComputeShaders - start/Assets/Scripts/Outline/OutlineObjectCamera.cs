@@ -15,9 +15,12 @@ public class OutlineObjectCamera : MonoBehaviour
     public RenderTexture ShapeTexture => shapeTexture;
     public Material OutlineMeshMaterial => outlineMeshMaterial;
     public Camera Camera => camera;
+    public int LineWidth => lineWidth;
 
     [SerializeField]
     private Material outlineMeshMaterial = null;
+    [SerializeField, Range(1, 100)]
+    private int lineWidth = 5;
 
     private new Camera camera = null;
 

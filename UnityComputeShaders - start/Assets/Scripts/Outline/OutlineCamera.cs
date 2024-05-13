@@ -13,9 +13,6 @@ public class OutlineCamera : BasePP
     [SerializeField]
     private OutlineObjectCamera objectCamera = null;
 
-    [SerializeField, Range(1, 100)]
-    private int LineWidth = 5;
-
     protected override void OnValidate()
     {
         if (objectCamera)
@@ -52,6 +49,6 @@ public class OutlineCamera : BasePP
 
     protected override void SetupOnRenderImage()
     {
-        shader.SetInt(ShaderData.LineWidthID, LineWidth);
+        shader.SetInt(ShaderData.LineWidthID, objectCamera.LineWidth);
     }
 }
