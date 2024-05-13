@@ -17,12 +17,12 @@ public class OutlineObjectCamera : MonoBehaviour
 
     public RenderTexture ShapeTexture => shapeTexture;
     public RenderTexture CircleTexture => circleTexture;
-    public Material OutlineMeshMaterial => outlineMeshMaterial;
+    public Material OutlineShapeMaterial => outlineShapeMaterial;
     public Camera Camera => camera;
     public int LineWidth => lineWidth;
 
     [SerializeField]
-    private Material outlineMeshMaterial = null;
+    private Material outlineShapeMaterial = null;
     [SerializeField]
     private Material circleSpriteMaterial = null;
     [SerializeField]
@@ -164,7 +164,7 @@ public class OutlineObjectCamera : MonoBehaviour
     {
         foreach (OutlineObject obj in objects)
         {
-            obj.Setup(outlineMeshMaterial, Layer.OutlineLayer);
+            obj.Setup(outlineShapeMaterial, Layer.OutlineLayer);
         }
         int count = renderersData.Count;
         for (int i = 0; i < count; i++)

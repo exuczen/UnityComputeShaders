@@ -14,6 +14,18 @@ public class OutlineCamera : BasePP
     [SerializeField]
     private OutlineObjectCamera objectCamera = null;
 
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        objectCamera.enabled = true;
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        objectCamera.enabled = false;
+    }
+
     protected override void OnValidate()
     {
         if (objectCamera)
