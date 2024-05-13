@@ -28,7 +28,7 @@ Shader "Unlit/OutlineMeshShader"
             };
 
             float4 _Color;
-            float _Depth;
+            float _OneMinusDepth;
 
             v2f vert(appdata v)
             {
@@ -39,7 +39,7 @@ Shader "Unlit/OutlineMeshShader"
 
             float4 frag(v2f i) : SV_Target
             {
-                return float4(_Color.xyz, _Depth);
+                return float4(_Color.xyz, _OneMinusDepth);
             }
             ENDCG
         }

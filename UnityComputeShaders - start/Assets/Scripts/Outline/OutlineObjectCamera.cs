@@ -91,26 +91,26 @@ public class OutlineObjectCamera : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    private void SortRenderers()
     {
-        //foreach (OutlineObject obj in objects)
-        //{
-        //    obj.DrawBBoxGizmo();
-        //}
+        foreach (var data in renderersData)
+        {
+            data.GetDistanceFromCamera(camera.transform.position);
+        }
+        renderersData.Sort((a, b) => a.CameraDistanceSqr.CompareTo(b.CameraDistanceSqr));
     }
 
-    private void OnRenderObject()
+    private void RenderShapes()
     {
         foreach (OutlineObject obj in objects)
         {
             obj.Setup(outlineMeshMaterial, Layer.OutlineLayer);
         }
-        renderersData.Sort((a, b) => b.CameraDistanceSqr.CompareTo(a.CameraDistanceSqr));
-
         int count = renderersData.Count;
-        for (int i = 1; i <= count; i++)
+        for (int i = 0; i < count; i++)
         {
-            renderersData[i - 1].SetDepth((float)i / count);
+            //Debug.Log($"{GetType().Name}.{i} | {renderersData[i].CameraDistanceSqr} | {1f - (float)i / count}");
+            renderersData[i].SetMaterialDepth((float)i / count);
         }
         camera.Render();
 
@@ -118,6 +118,25 @@ public class OutlineObjectCamera : MonoBehaviour
         {
             obj.Restore();
         }
+    }
+
+
+    private void Update()
+    {
+        SortRenderers();
+    }
+
+    private void OnRenderObject()
+    {
+        RenderShapes();
+    }
+
+    private void OnDrawGizmos()
+    {
+        //foreach (OutlineObject obj in objects)
+        //{
+        //    obj.DrawBBoxGizmo();
+        //}
     }
 
     private void OnDestroy()

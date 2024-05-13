@@ -5,7 +5,7 @@ public class RendererData
     private static class ShaderData
     {
         public static readonly int ColorID = Shader.PropertyToID("_Color");
-        public static readonly int DepthID = Shader.PropertyToID("_Depth");
+        public static readonly int OneMinusDepthID = Shader.PropertyToID("_OneMinusDepth");
     }
 
     public Renderer Renderer => renderer;
@@ -40,9 +40,9 @@ public class RendererData
         renderer.material = material;
     }
 
-    public void SetDepth(float depth)
+    public void SetMaterialDepth(float depth)
     {
-        renderer.material.SetFloat(ShaderData.DepthID, depth);
+        renderer.material.SetFloat(ShaderData.OneMinusDepthID, 1f - depth);
     }
 
     public void SetColor(Color color)
