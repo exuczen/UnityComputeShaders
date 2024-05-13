@@ -7,6 +7,7 @@ public class OutlineCamera : BasePP
     private readonly struct ShaderData
     {
         public static readonly int ShapeTexID = Shader.PropertyToID("shapeTexture");
+        public static readonly int CircleTexID = Shader.PropertyToID("circleTexture");
         public static readonly int LineWidthID = Shader.PropertyToID("LineWidth");
     }
 
@@ -33,6 +34,7 @@ public class OutlineCamera : BasePP
         objectCamera.CreateTextures(texSize);
 
         shader.SetTexture(mainKernelID, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
+        shader.SetTexture(mainKernelID, ShaderData.CircleTexID, objectCamera.CircleTexture);
     }
 
     protected override void ReleaseTextures()

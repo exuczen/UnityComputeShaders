@@ -1,5 +1,6 @@
 ﻿//#define DEBUG_SHAPE_TEXTURE
 //#define DEBUG_DEPTH
+//#define DEBUG_CIRCLES
 #define EPSILON 0.00001f
 #define COLOR_CLEAR float4(0, 0, 0, 0)
 
@@ -10,6 +11,7 @@
 
 Texture2D<float4> source;
 Texture2D<float4> shapeTexture;
+Texture2D<float4> circleTexture;
 RWTexture2D<float4> output;
 
 int LineWidth;
@@ -60,7 +62,7 @@ void getShapeRect8Color(int x, int y, int2 center, inout float4 color)
     getShapeRect4Color(y, x, center, color);
 }
 
-bool getShapeCircleColor(int2 c, int r, inout float4 color)
+void getShapeCircleColor(int2 c, int r, inout float4 color)
 {
     int x = r;
     int y = 0;
@@ -88,22 +90,31 @@ bool getShapeCircleColor(int2 c, int r, inout float4 color)
             }
         }
     }
-    return color.a > 0;
 }
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     float4 shapeColor = shapeTexture[id.xy];
+    float4 circleColor = circleTexture[id.xy];
 
 #ifdef DEBUG_SHAPE_TEXTURE
     output[id.xy] = shapeColor.a > 0 ? shapeColor : source[id.xy];
 #elif defined DEBUG_DEPTH
-    output[id.xy] = shapeColor.w > 0 ? shapeColor.w : float4(1, 0, 0, 1);
+    output[id.xy] = shapeColor.a > 0 ? shapeColor.a : float4(1, 0, 0, 1);
+#elif defined DEBUG_CIRCLES
+    //output[id.xy] = circleColor;
+    output[id.xy] = circleColor.a > 0 ? circleColor : source[id.xy];
 #else
     float4 color = COLOR_CLEAR;
     int r = LineWidth;
-    if (shapeColor.a < EPSILON && getShapeCircleColor(id.xy, r, color))
+    
+    if (shapeColor.a < EPSILON)
+    {
+        color = circleColor;
+        getShapeCircleColor(id.xy, r, color);
+    }
+    if (color.a > EPSILON)
     {
         output[id.xy] = color;
     }
