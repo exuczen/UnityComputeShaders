@@ -20,7 +20,7 @@ public class OutlineObjectCamera : MonoBehaviour
     public RenderTexture CircleTexture => circleTexture;
     public Material OutlineShapeMaterial => outlineShapeMaterial;
     public Camera Camera => camera;
-    public int LineWidth => lineWidth;
+    public int LineThickness => lineThickness;
 
     [SerializeField]
     private Material outlineShapeMaterial = null;
@@ -31,7 +31,7 @@ public class OutlineObjectCamera : MonoBehaviour
     [SerializeField]
     private Camera circlesCamera = null;
     [SerializeField, Range(1, 100)]
-    private int lineWidth = 5;
+    private int lineThickness = 5;
 
     //TODO: rename to shapeCamera
     private new Camera camera = null;
@@ -185,7 +185,7 @@ public class OutlineObjectCamera : MonoBehaviour
     {
         var circlesCamTransform = circlesCamera.transform;
 
-        float scale = 2f * lineWidth / circlesCamera.pixelHeight;
+        float scale = 2f * lineThickness / circlesCamera.pixelHeight;
 
         int count = renderersData.Count;
         for (int i = 0; i < count; i++)

@@ -8,7 +8,7 @@ public class OutlineCamera : BasePP
     {
         public static readonly int ShapeTexID = Shader.PropertyToID("shapeTexture");
         public static readonly int CircleTexID = Shader.PropertyToID("circleTexture");
-        public static readonly int LineWidthID = Shader.PropertyToID("LineWidth");
+        public static readonly int LineThicknessID = Shader.PropertyToID("LineThickness");
     }
 
     [SerializeField]
@@ -63,6 +63,6 @@ public class OutlineCamera : BasePP
 
     protected override void SetupOnRenderImage()
     {
-        shader.SetInt(ShaderData.LineWidthID, objectCamera.LineWidth);
+        shader.SetInt(ShaderData.LineThicknessID, objectCamera.LineThickness);
     }
 }

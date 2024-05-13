@@ -14,7 +14,7 @@ Texture2D<float4> shapeTexture;
 Texture2D<float4> circleTexture;
 RWTexture2D<float4> output;
 
-int LineWidth;
+int LineThickness;
 
 int2 getShapeTexSize()
 {
@@ -106,7 +106,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     output[id.xy] = circleColor.a > 0 ? circleColor : source[id.xy];
 #else
     float4 color = COLOR_CLEAR;
-    int r = LineWidth;
+    int r = LineThickness;
     
     if (shapeColor.a < EPSILON)
     {
