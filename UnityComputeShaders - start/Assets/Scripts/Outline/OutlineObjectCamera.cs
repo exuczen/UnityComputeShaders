@@ -19,7 +19,7 @@ public class OutlineObjectCamera : MonoBehaviour
     public RenderTexture ShapeTexture => shapeTexture;
     public RenderTexture CircleTexture => circleTexture;
     public Material OutlineShapeMaterial => outlineShapeMaterial;
-    public Camera Camera => camera;
+    public Camera ShapeCamera => shapeCamera;
     public int LineThickness => lineThickness;
 
     [SerializeField]
@@ -29,12 +29,11 @@ public class OutlineObjectCamera : MonoBehaviour
     [SerializeField]
     private MeshFilter quadMeshFilter = null;
     [SerializeField]
-    private Camera circlesCamera = null;
+    private Camera circleCamera = null;
     [SerializeField, Range(1, 100)]
     private int lineThickness = 5;
 
-    //TODO: rename to shapeCamera
-    private new Camera camera = null;
+    private Camera shapeCamera = null;
 
     private RenderTexture shapeTexture = null;
     private RenderTexture circleTexture = null;
@@ -75,27 +74,27 @@ public class OutlineObjectCamera : MonoBehaviour
 
     public void Setup(Camera parentCamera)
     {
-        camera = GetComponent<Camera>();
+        shapeCamera = GetComponent<Camera>();
 
         if (parentCamera)
         {
-            camera.CopyFrom(parentCamera);
+            shapeCamera.CopyFrom(parentCamera);
         }
-        camera.targetTexture = shapeTexture;
-        camera.backgroundColor = Color.clear;
-        camera.cullingMask = Layer.OutlineMask;
-        camera.allowMSAA = false;
-        camera.enabled = false;
-        camera.depthTextureMode = DepthTextureMode.Depth;
+        shapeCamera.targetTexture = shapeTexture;
+        shapeCamera.backgroundColor = Color.clear;
+        shapeCamera.cullingMask = Layer.OutlineMask;
+        shapeCamera.allowMSAA = false;
+        shapeCamera.enabled = false;
+        shapeCamera.depthTextureMode = DepthTextureMode.Depth;
 
         if (parentCamera)
         {
-            circlesCamera.CopyFrom(camera);
+            circleCamera.CopyFrom(shapeCamera);
         }
-        circlesCamera.targetTexture = circleTexture;
-        circlesCamera.orthographic = true;
-        circlesCamera.cullingMask = Layer.OutlineMask;
-        circlesCamera.enabled = Application.isPlaying;
+        circleCamera.targetTexture = circleTexture;
+        circleCamera.orthographic = true;
+        circleCamera.cullingMask = Layer.OutlineMask;
+        circleCamera.enabled = Application.isPlaying;
     }
 
     public void AddOutlineObject(OutlineObject obj)
@@ -124,7 +123,7 @@ public class OutlineObjectCamera : MonoBehaviour
         circlePropertyBlock.SetBuffer("_InstancesData", circleInstanceBuffer);
         circleRenderParams = new RenderParams(circleSpriteMaterial)
         {
-            camera = circlesCamera,
+            camera = circleCamera,
             matProps = circlePropertyBlock,
             layer = Layer.OutlineLayer,
             //renderingLayerMask = (uint)Layer.OutlineMask,
@@ -156,7 +155,7 @@ public class OutlineObjectCamera : MonoBehaviour
     {
         foreach (var data in renderersData)
         {
-            data.GetDistanceFromCamera(camera.transform.position);
+            data.GetDistanceFromCamera(shapeCamera.transform.position);
         }
         renderersData.Sort((a, b) => a.CameraDistanceSqr.CompareTo(b.CameraDistanceSqr));
     }
@@ -173,7 +172,7 @@ public class OutlineObjectCamera : MonoBehaviour
             //Debug.Log($"{GetType().Name}.{i} | {renderersData[i].CameraDistanceSqr} | {1f - (float)i / count}");
             renderersData[i].SetMaterialDepth((float)i / count);
         }
-        camera.Render();
+        shapeCamera.Render();
 
         foreach (OutlineObject obj in objects)
         {
@@ -183,16 +182,16 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void RenderCircles()
     {
-        var circlesCamTransform = circlesCamera.transform;
+        var circlesCamTransform = circleCamera.transform;
 
-        float scale = 2f * lineThickness / circlesCamera.pixelHeight;
+        float scale = 2f * lineThickness / circleCamera.pixelHeight;
 
         int count = renderersData.Count;
         for (int i = 0; i < count; i++)
         {
             var renderer = renderersData[i].Renderer;
             var center = renderer.bounds.center;
-            var viewPoint = camera.WorldToViewportPoint(center);
+            var viewPoint = shapeCamera.WorldToViewportPoint(center);
             //var worldPoint = circlesCamera.ViewportToWorldPoint(viewPoint);
             //objectToWorld.SetTRS(worldPoint, Quaternion.LookRotation(circlesCamTransform.forward, circlesCamTransform.up), Vector3.one);
             var clipPoint = new Vector3()
