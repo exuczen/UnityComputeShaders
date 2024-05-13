@@ -6,6 +6,9 @@ public class FollowTargetAtDistance : MonoBehaviour
     [SerializeField]
     private Transform target = null;
 
+    [SerializeField, Range(0f, 1f)]
+    private float smoothness = 1f;
+
     [SerializeField, Min(0f)]
     private float distance = 10f;
 
@@ -44,7 +47,8 @@ public class FollowTargetAtDistance : MonoBehaviour
         Quaternion rotation;
         if (Application.isPlaying)
         {
-            float transition = Time.deltaTime * 5;
+            float transition = Maths.GetTransition(TransitionType.HYPERBOLIC_DEC, smoothness, 4);
+            transition = Mathf.Lerp(1f, Time.deltaTime * 5, transition);
             position = Vector3.Lerp(transform.position, destPosition, transition);
             rotation = Quaternion.Slerp(transform.rotation, destRotation, transition);
         }
