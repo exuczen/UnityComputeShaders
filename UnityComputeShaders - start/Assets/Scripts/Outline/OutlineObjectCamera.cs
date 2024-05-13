@@ -126,6 +126,10 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void Update()
     {
+        foreach (var obj in objects)
+        {
+            obj.SetRenderersColor();
+        }
         SortRenderers();
     }
 

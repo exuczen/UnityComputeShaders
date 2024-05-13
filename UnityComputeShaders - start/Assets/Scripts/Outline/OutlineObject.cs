@@ -17,13 +17,20 @@ public class OutlineObject : MonoBehaviour
 
     private OutlineObjectCamera objectCamera = null;
 
+    public void SetRenderersColor()
+    {
+        foreach (var data in renderersData)
+        {
+            data.Color = color;
+        }
+    }
+
     public void Setup(Material material, int layer)
     {
         foreach (var data in renderersData)
         {
             data.Setup(material, layer);
-            data.GetDistanceFromCamera(objectCamera.transform.position);
-            data.SetColor(Color);
+            data.SetMaterialColor(Color);
         }
     }
 

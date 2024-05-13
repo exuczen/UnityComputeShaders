@@ -11,6 +11,7 @@ public class RendererData
     public Renderer Renderer => renderer;
     public Material Material => renderer.material;
     public float CameraDistanceSqr => cameraDistanceSqr;
+    public Color Color { get; set; } = Color.white;
 
     private Renderer renderer;
     private Material[] materials;
@@ -45,7 +46,7 @@ public class RendererData
         renderer.material.SetFloat(ShaderData.OneMinusDepthID, 1f - depth);
     }
 
-    public void SetColor(Color color)
+    public void SetMaterialColor(Color color)
     {
         renderer.material.SetColor(ShaderData.ColorID, color);
     }
