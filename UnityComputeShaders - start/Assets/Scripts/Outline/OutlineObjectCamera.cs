@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Camera))]
 public class OutlineObjectCamera : MonoBehaviour
@@ -216,6 +217,9 @@ public class OutlineObjectCamera : MonoBehaviour
 
         Graphics.RenderMeshPrimitives(circleRenderParams, quadMeshFilter.sharedMesh, 0, renderersData.Count);
         //Graphics.RenderMeshInstanced(circleRenderParams, quadMeshFilter.sharedMesh, 0, circleInstanceData, renderersData.Count);
+        //Graphics.DrawMeshInstancedProcedural(quadMeshFilter.sharedMesh, 0, circleSpriteMaterial,
+        //    circleRenderParams.worldBounds, renderersData.Count, circlePropertyBlock,
+        //    ShadowCastingMode.Off, false, Layer.OutlineLayer, circlesCamera);
     }
 
     private void Update()
@@ -225,11 +229,11 @@ public class OutlineObjectCamera : MonoBehaviour
             obj.SetRenderersColor();
         }
         SortRenderers();
+        RenderCircles();
     }
 
     private void OnRenderObject()
     {
-        RenderCircles();
         RenderShapes();
     }
 

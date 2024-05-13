@@ -34,6 +34,7 @@ Shader "Unlit/OutlineShapeShader"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
+                o.vertex.z = _OneMinusDepth;
                 return o;
             }
 

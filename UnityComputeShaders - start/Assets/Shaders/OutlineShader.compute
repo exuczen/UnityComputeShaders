@@ -103,7 +103,6 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 #elif defined DEBUG_DEPTH
     output[id.xy] = shapeColor.a > 0 ? shapeColor.a : float4(1, 0, 0, 1);
 #elif defined DEBUG_CIRCLES
-    //output[id.xy] = circleColor;
     output[id.xy] = circleColor.a > 0 ? circleColor : source[id.xy];
 #else
     float4 color = COLOR_CLEAR;
