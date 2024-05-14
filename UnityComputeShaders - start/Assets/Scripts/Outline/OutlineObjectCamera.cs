@@ -1,4 +1,5 @@
-﻿using MustHave.Utils;
+﻿using MustHave;
+using MustHave.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -12,8 +13,16 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private readonly struct Layer
     {
-        public static readonly int OutlineLayer = LayerMask.NameToLayer("Outline");
-        public static readonly int OutlineMask = LayerMask.GetMask("Outline");
+        public const string OutlineLayerName = "Outline-MustHave";
+
+        public static int OutlineLayer = LayerMask.NameToLayer(OutlineLayerName);
+        public static int OutlineMask = LayerMask.GetMask(OutlineLayerName);
+
+        public static void Refresh()
+        {
+            OutlineLayer = LayerMask.NameToLayer(OutlineLayerName);
+            OutlineMask = LayerMask.GetMask(OutlineLayerName);
+        }
     }
 
     public RenderTexture ShapeTexture => shapeTexture;
@@ -36,6 +45,8 @@ public class OutlineObjectCamera : MonoBehaviour
     private Camera circleCamera = null;
     [SerializeField, Range(1, 100)]
     private int lineThickness = 5;
+    [SerializeField]
+    private bool layerAdded = false;
 
     private Camera shapeCamera = null;
 
@@ -81,6 +92,17 @@ public class OutlineObjectCamera : MonoBehaviour
 
     public void Setup(Camera parentCamera)
     {
+#if UNITY_EDITOR
+        if (!layerAdded)
+        {
+            layerAdded = EditorUtils.AddLayer(Layer.OutlineLayerName, out bool layerExists) || layerExists;
+
+            if (layerAdded)
+            {
+                Layer.Refresh();
+            }
+        }
+#endif
         shapeCamera = GetComponent<Camera>();
 
         if (parentCamera)
