@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
+[ExecuteInEditMode]
 public class OutlineObject : MonoBehaviour
 {
     public Color Color { get => color; set => color = value; }

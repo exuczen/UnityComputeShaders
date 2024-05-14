@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(Camera))]
 public class OutlineObjectCamera : MonoBehaviour
 {
-    private const int CicleInstanceCapacity = 1 << 10;
+    private const int RenderersCapacity = 1 << 10;
 
     private readonly struct Layer
     {
@@ -21,6 +21,10 @@ public class OutlineObjectCamera : MonoBehaviour
     public Material OutlineShapeMaterial => outlineShapeMaterial;
     public Camera ShapeCamera => shapeCamera;
     public int LineThickness => lineThickness;
+    public bool CircleInstancingInitiated => circleInstanceBuffer != null;
+
+    private int RenderersCount => Mathf.Min(RenderersCapacity, renderersData.Count);
+    private int ObjectsCount => Mathf.Min(RenderersCapacity, objects.Count);
 
     [SerializeField]
     private Material outlineShapeMaterial = null;
@@ -41,7 +45,8 @@ public class OutlineObjectCamera : MonoBehaviour
     private readonly List<OutlineObject> objects = new();
     private readonly List<RendererData> renderersData = new();
 
-    private readonly InstanceData[] circleInstanceData = new InstanceData[CicleInstanceCapacity];
+    private readonly InstanceData[] circleInstanceData = new InstanceData[RenderersCapacity];
+    private readonly Material[] shapeMaterials = new Material[RenderersCapacity];
 
     private GraphicsBuffer circleInstanceBuffer = null;
     private MaterialPropertyBlock circlePropertyBlock = null;
@@ -55,21 +60,23 @@ public class OutlineObjectCamera : MonoBehaviour
         public float scale;
     }
 
-    private void Start()
+    public void CreateRuntimeAssets(Vector2Int texSize)
     {
+        shapeTexture = CreateTexture(texSize, "OutlineObjectsShapeTexture");
+        circleTexture = CreateTexture(texSize, "OutlineObjectsCircleTexture");
+        circleTexture.filterMode = FilterMode.Point;
+
+        CreateMaterials();
+
         InitCircleInstancing();
     }
 
-    public void CreateTextures(Vector2Int size)
-    {
-        shapeTexture = CreateTexture(size, "OutlineObjectsShapeTexture");
-        circleTexture = CreateTexture(size, "OutlineObjectsCircleTexture");
-        circleTexture.filterMode = FilterMode.Point;
-    }
-
-    public void ReleaseTextures()
+    public void DestroyRuntimeAssets()
     {
         ReleaseTexture(ref shapeTexture);
+
+        circleInstanceBuffer?.Release();
+        circleInstanceBuffer = null;
     }
 
     public void Setup(Camera parentCamera)
@@ -94,7 +101,7 @@ public class OutlineObjectCamera : MonoBehaviour
         circleCamera.targetTexture = circleTexture;
         circleCamera.orthographic = true;
         circleCamera.cullingMask = Layer.OutlineMask;
-        circleCamera.enabled = Application.isPlaying;
+        circleCamera.enabled = true;
     }
 
     public void AddOutlineObject(OutlineObject obj)
@@ -116,8 +123,20 @@ public class OutlineObjectCamera : MonoBehaviour
         });
     }
 
+    private void CreateMaterials()
+    {
+        if (!shapeMaterials[0])
+        {
+            for (int i = 0; i < shapeMaterials.Length; i++)
+            {
+                shapeMaterials[i] = new Material(outlineShapeMaterial);
+            }
+        }
+    }
+
     private void InitCircleInstancing()
     {
+        circleInstanceBuffer?.Release();
         circleInstanceBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, circleInstanceData.Length, Marshal.SizeOf<InstanceData>());
         circlePropertyBlock = new MaterialPropertyBlock();
         circlePropertyBlock.SetBuffer("_InstancesData", circleInstanceBuffer);
@@ -160,13 +179,13 @@ public class OutlineObjectCamera : MonoBehaviour
         renderersData.Sort((a, b) => a.CameraDistanceSqr.CompareTo(b.CameraDistanceSqr));
     }
 
-    private void RenderShapes()
+    public void RenderShapes()
     {
-        foreach (OutlineObject obj in objects)
+        for (int i = 0; i < ObjectsCount; i++)
         {
-            obj.Setup(outlineShapeMaterial, Layer.OutlineLayer);
+            objects[i].Setup(shapeMaterials[i], Layer.OutlineLayer);
         }
-        int count = renderersData.Count;
+        int count = RenderersCount;
         for (int i = 0; i < count; i++)
         {
             //Debug.Log($"{GetType().Name}.{i} | {renderersData[i].CameraDistanceSqr} | {1f - (float)i / count}");
@@ -182,11 +201,16 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void RenderCircles()
     {
+        int count = RenderersCount;
+
+        if (count <= 0)
+        {
+            return;
+        }
         var circlesCamTransform = circleCamera.transform;
 
         float scale = 2f * lineThickness / circleCamera.pixelHeight;
 
-        int count = renderersData.Count;
         for (int i = 0; i < count; i++)
         {
             var renderer = renderersData[i].Renderer;
@@ -221,7 +245,7 @@ public class OutlineObjectCamera : MonoBehaviour
         //    ShadowCastingMode.Off, false, Layer.OutlineLayer, circlesCamera);
     }
 
-    private void Update()
+    public void OnUpdate()
     {
         foreach (var obj in objects)
         {
@@ -229,11 +253,6 @@ public class OutlineObjectCamera : MonoBehaviour
         }
         SortRenderers();
         RenderCircles();
-    }
-
-    private void OnRenderObject()
-    {
-        RenderShapes();
     }
 
     private void OnDrawGizmos()
@@ -246,8 +265,6 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void OnDestroy()
     {
-        ReleaseTextures();
-
-        circleInstanceBuffer?.Release();
+        DestroyRuntimeAssets();
     }
 }

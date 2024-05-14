@@ -14,6 +14,7 @@ public class RendererData
     public Color Color { get; set; } = Color.white;
 
     private Renderer renderer;
+    private Material sharedMaterial;
     private Material[] materials;
     private uint layerMask;
     private int layer;
@@ -22,6 +23,7 @@ public class RendererData
     public void Clear()
     {
         renderer = null;
+        sharedMaterial = null;
         materials = null;
         layerMask = 0;
         layer = 0;
@@ -30,25 +32,40 @@ public class RendererData
     public void SetRenderer(Renderer renderer)
     {
         this.renderer = renderer;
-        materials = renderer.materials;
+        sharedMaterial = renderer.sharedMaterial;
         layerMask = renderer.renderingLayerMask;
         layer = renderer.gameObject.layer;
+
+        if (Application.isPlaying)
+        {
+            materials = renderer.materials;
+        }
     }
 
     public void Setup(Material material, int layer)
     {
         renderer.gameObject.layer = layer;
-        renderer.material = material;
+
+        if (Application.isPlaying)
+        {
+            renderer.material = material;
+        }
+        else
+        {
+            renderer.sharedMaterial = material;
+        }
     }
 
     public void SetMaterialDepth(float depth)
     {
-        renderer.material.SetFloat(ShaderData.OneMinusDepthID, 1f - depth);
+        var material = Application.isPlaying ? renderer.material : renderer.sharedMaterial;
+        material.SetFloat(ShaderData.OneMinusDepthID, 1f - depth);
     }
 
     public void SetMaterialColor(Color color)
     {
-        renderer.material.SetColor(ShaderData.ColorID, color);
+        var material = Application.isPlaying ? renderer.material : renderer.sharedMaterial;
+        material.SetColor(ShaderData.ColorID, color);
     }
 
     public void GetDistanceFromCamera(Vector3 camPos)
@@ -59,6 +76,13 @@ public class RendererData
     public void Restore()
     {
         renderer.gameObject.layer = layer;
-        renderer.materials = materials;
+        if (Application.isPlaying)
+        {
+            renderer.materials = materials;
+        }
+        else
+        {
+            renderer.sharedMaterial = sharedMaterial;
+        }
     }
 }

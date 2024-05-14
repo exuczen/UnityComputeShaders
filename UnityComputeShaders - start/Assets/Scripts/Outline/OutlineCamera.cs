@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[ExecuteInEditMode]
 public class OutlineCamera : BasePP
 {
     public OutlineObjectCamera ObjectCamera => objectCamera;
@@ -13,6 +14,11 @@ public class OutlineCamera : BasePP
 
     [SerializeField]
     private OutlineObjectCamera objectCamera = null;
+
+    private void Update()
+    {
+        objectCamera.OnUpdate();
+    }
 
     protected override void OnEnable()
     {
@@ -43,7 +49,7 @@ public class OutlineCamera : BasePP
     {
         base.CreateTextures();
 
-        objectCamera.CreateTextures(texSize);
+        objectCamera.CreateRuntimeAssets(texSize);
 
         shader.SetTexture(mainKernelID, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
         shader.SetTexture(mainKernelID, ShaderData.CircleTexID, objectCamera.CircleTexture);
@@ -53,7 +59,7 @@ public class OutlineCamera : BasePP
     {
         base.ReleaseTextures();
 
-        objectCamera.ReleaseTextures();
+        objectCamera.DestroyRuntimeAssets();
     }
 
     protected override void OnScreenSizeChange()
@@ -63,6 +69,8 @@ public class OutlineCamera : BasePP
 
     protected override void SetupOnRenderImage()
     {
+        objectCamera.RenderShapes();
+
         shader.SetInt(ShaderData.LineThicknessID, objectCamera.LineThickness);
     }
 }
