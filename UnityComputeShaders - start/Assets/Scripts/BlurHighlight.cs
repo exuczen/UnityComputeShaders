@@ -23,8 +23,6 @@ public class BlurHighlight : BasePP
 
     private int kernelHorzPassID;
 
-    private Vector4 center = default;
-
     protected override void OnInit()
     {
         kernelHorzPassID = shader.FindKernel("HorzPass");
@@ -92,9 +90,7 @@ public class BlurHighlight : BasePP
     {
         if (trackedObject && thisCamera)
         {
-            Vector3 pos = thisCamera.WorldToScreenPoint(trackedObject.position);
-            center.x = pos.x;
-            center.y = pos.y;
+            Vector2 center = thisCamera.WorldToScreenPoint(trackedObject.position);
             shader.SetVector("center", center);
         }
     }

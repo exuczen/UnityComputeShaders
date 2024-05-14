@@ -17,7 +17,6 @@ public class GaussianBlurHighlight : BasePP
 
     protected override string MainKernelName => "Highlight";
 
-    private Vector4 center = default;
     private ComputeBuffer weightsBuffer = null;
 
     private RenderTexture horzOutput = null;
@@ -135,9 +134,7 @@ public class GaussianBlurHighlight : BasePP
     {
         if (trackedObject && thisCamera)
         {
-            Vector3 pos = thisCamera.WorldToScreenPoint(trackedObject.position);
-            center.x = pos.x;
-            center.y = pos.y;
+            Vector2 center = thisCamera.WorldToScreenPoint(trackedObject.position);
             shader.SetVector("center", center);
         }
     }

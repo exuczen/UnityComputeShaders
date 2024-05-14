@@ -15,8 +15,6 @@ public class RingHighlight : BasePP
 
     protected override string MainKernelName => "Highlight";
 
-    private Vector4 center;
-
     protected override void OnInit()
     {
         SetProperties();
@@ -39,9 +37,7 @@ public class RingHighlight : BasePP
     {
         if (trackedObject && thisCamera)
         {
-            var pos = thisCamera.WorldToScreenPoint(trackedObject.position);
-            center.x = pos.x;
-            center.y = pos.y;
+            Vector2 center = thisCamera.WorldToScreenPoint(trackedObject.position);
             shader.SetVector("center", center);
         }
     }

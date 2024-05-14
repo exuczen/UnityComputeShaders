@@ -8,14 +8,14 @@ RWTexture2D<float4> output;
 float radius;
 float edgeWidth;
 float shade;
-float4 center;
+float2 center;
 
 [numthreads(8, 8, 1)]
 void Highlight(uint3 id : SV_DispatchThreadID)
 {
     float4 sourceColor = source[id.xy];
     float4 shadedSrcColor = sourceColor * shade;
-    float4 color = lerpCircleColor(shadedSrcColor, sourceColor, id.xy, center.xy, radius, edgeWidth);
+    float4 color = lerpCircleColor(shadedSrcColor, sourceColor, id.xy, center, radius, edgeWidth);
     
     output[id.xy] = color;
 }
