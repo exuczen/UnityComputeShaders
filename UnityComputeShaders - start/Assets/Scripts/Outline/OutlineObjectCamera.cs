@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(Camera))]
 public class OutlineObjectCamera : MonoBehaviour
 {
+    private const int LineMaxThickness = 100;
     private const int RenderersCapacity = 1 << 10;
 
     private readonly struct Layer
@@ -43,7 +44,7 @@ public class OutlineObjectCamera : MonoBehaviour
     private MeshFilter quadMeshFilter = null;
     [SerializeField]
     private Camera circleCamera = null;
-    [SerializeField, Range(1, 100)]
+    [SerializeField, Range(1, LineMaxThickness)]
     private int lineThickness = 5;
     [SerializeField]
     private bool layerAdded = false;
@@ -85,6 +86,7 @@ public class OutlineObjectCamera : MonoBehaviour
     public void DestroyRuntimeAssets()
     {
         ReleaseTexture(ref shapeTexture);
+        ReleaseTexture(ref circleTexture);
 
         circleInstanceBuffer?.Release();
         circleInstanceBuffer = null;

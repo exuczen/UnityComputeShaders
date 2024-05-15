@@ -62,6 +62,11 @@ public class OutlineCamera : BasePP
         objectCamera.DestroyRuntimeAssets();
     }
 
+    protected override void OnCameraPropertyChange()
+    {
+        objectCamera.Setup(thisCamera);
+    }
+
     protected override void OnScreenSizeChange()
     {
         objectCamera.Setup(thisCamera);

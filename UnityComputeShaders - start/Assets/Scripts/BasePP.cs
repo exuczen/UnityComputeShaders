@@ -11,7 +11,9 @@ public class BasePP : MonoBehaviour
 
     protected Vector2Int texSize = Vector2Int.zero;
     protected Vector2Int groupSize = Vector2Int.zero;
-    protected Camera thisCamera;
+
+    protected Camera thisCamera = null;
+    protected CameraChangeListener cameraChangeListener = null;
 
     protected RenderTexture output = null;
     protected RenderTexture renderedSource = null;
@@ -27,22 +29,23 @@ public class BasePP : MonoBehaviour
         }
         if (!SystemInfo.supportsComputeShaders)
         {
-            Debug.LogError("It seems your target Hardware does not support Compute Shaders.");
+            Debug.LogError($"{GetType().Name}.Init: It seems your target Hardware does not support Compute Shaders.");
             return;
         }
         if (!shader)
         {
-            Debug.LogError("No shader");
+            Debug.LogError($"{GetType().Name}.Init: No shader.");
             return;
         }
 
         mainKernelID = shader.FindKernel(MainKernelName);
 
         thisCamera = GetComponent<Camera>();
+        cameraChangeListener = GetComponent<CameraChangeListener>();
 
         if (!thisCamera)
         {
-            Debug.LogError("Object has no Camera");
+            Debug.LogError($"{GetType().Name}.Init: Object has no Camera.");
             return;
         }
 
@@ -117,6 +120,11 @@ public class BasePP : MonoBehaviour
             EditorAssetPostprocessor.AllAssetsPostprocessed += OnAllAssetsPostprocessed;
         }
 #endif
+        if (cameraChangeListener)
+        {
+            cameraChangeListener.PropertyChanged -= OnCameraPropertyChange;
+            cameraChangeListener.PropertyChanged += OnCameraPropertyChange;
+        }
     }
 
     protected virtual void OnDisable()
@@ -127,6 +135,10 @@ public class BasePP : MonoBehaviour
             EditorAssetPostprocessor.AllAssetsPostprocessed -= OnAllAssetsPostprocessed;
         }
 #endif
+        if (cameraChangeListener)
+        {
+            cameraChangeListener.PropertyChanged -= OnCameraPropertyChange;
+        }
         ReleaseTextures();
         initialized = false;
     }
@@ -163,6 +175,8 @@ public class BasePP : MonoBehaviour
             OnScreenSizeChange();
         }
     }
+
+    protected virtual void OnCameraPropertyChange() { }
 
     protected virtual void OnScreenSizeChange() { }
 
