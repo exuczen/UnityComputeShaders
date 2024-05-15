@@ -58,7 +58,9 @@ public class OutlineCamera : BasePP
     {
         base.CreateTextures();
 
-        objectCamera.CreateRuntimeAssets(texSize, LineMaxThickness, out var shapeTexSize, out var shapeTexOffset);
+        var shapeTexSize = GetShapeTexSize(out var shapeTexOffset);
+
+        objectCamera.CreateRuntimeAssets(shapeTexSize);
 
         shader.SetTexture(mainKernelID, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
         shader.SetTexture(mainKernelID, ShaderData.CircleTexID, objectCamera.CircleTexture);
@@ -89,5 +91,32 @@ public class OutlineCamera : BasePP
         objectCamera.RenderShapes();
 
         shader.SetInt(ShaderData.LineThicknessID, lineThickness);
+    }
+
+    private Vector2Int GetShapeTexSize(out Vector2Int shapeTexOffset)
+    {
+        Vector2Int extendedSize = default;
+        Vector2Int texOffset = default;
+        int offset = LineMaxThickness;
+
+        if (texSize.x > texSize.y)
+        {
+            extendedSize.y = texSize.y + 2 * offset;
+            extendedSize.x = extendedSize.y * texSize.x / texSize.y;
+
+            texOffset.y = offset;
+            texOffset.x = (int)(texOffset.y * texSize.x / texSize.y + 0.5f);
+        }
+        else
+        {
+            extendedSize.x = texSize.x + 2 * offset;
+            extendedSize.y = extendedSize.x * texSize.y / texSize.x;
+
+            texOffset.x = offset;
+            texOffset.y = (int)(texOffset.x * texSize.y / texSize.x + 0.5f);
+        }
+        shapeTexOffset = texOffset;
+
+        return extendedSize;
     }
 }

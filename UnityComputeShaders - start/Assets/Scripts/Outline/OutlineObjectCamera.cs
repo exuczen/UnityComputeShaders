@@ -68,9 +68,9 @@ public class OutlineObjectCamera : MonoBehaviour
         public float scale;
     }
 
-    public void CreateRuntimeAssets(Vector2Int texSize, int offset, out Vector2Int shapeTexSize, out Vector2Int shapeTexOffset)
+    public void CreateRuntimeAssets(Vector2Int texSize)
     {
-        CreateTextures(texSize, offset, out shapeTexSize, out shapeTexOffset);
+        CreateTextures(texSize);
 
         CreateMaterials();
 
@@ -179,29 +179,8 @@ public class OutlineObjectCamera : MonoBehaviour
     }
 
 
-    private void CreateTextures(Vector2Int texSize, int offset, out Vector2Int shapeTexSize, out Vector2Int shapeTexOffset)
+    private void CreateTextures(Vector2Int texSize)
     {
-        Vector2Int extendedSize = default;
-        Vector2Int texOffset = default;
-        if (texSize.x > texSize.y)
-        {
-            extendedSize.y = texSize.y + 2 * offset;
-            extendedSize.x = extendedSize.y * texSize.x / texSize.y;
-
-            texOffset.y = offset;
-            texOffset.x = (int)(texOffset.y * texSize.x / texSize.y + 0.5f);
-        }
-        else
-        {
-            extendedSize.x = texSize.x + 2 * offset;
-            extendedSize.y = extendedSize.x * texSize.y / texSize.x;
-
-            texOffset.x = offset;
-            texOffset.y = (int)(texOffset.x * texSize.y / texSize.x + 0.5f);
-        }
-        shapeTexOffset = texOffset;
-        texSize = shapeTexSize = extendedSize;
-
         shapeTexture = CreateTexture(texSize, "OutlineObjectsShapeTexture");
         circleTexture = CreateTexture(texSize, "OutlineObjectsCircleTexture");
         circleTexture.filterMode = FilterMode.Point;
