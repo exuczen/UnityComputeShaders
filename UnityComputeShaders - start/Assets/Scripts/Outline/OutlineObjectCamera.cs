@@ -234,8 +234,6 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void SortRenderers()
     {
-        objects.Sort((a, b) => a.ColorRGBA.CompareTo(b.ColorRGBA));
-
         foreach (var data in renderersData)
         {
             data.GetDistanceFromCamera(shapeCamera.transform.position);
@@ -252,21 +250,11 @@ public class OutlineObjectCamera : MonoBehaviour
         }
         CreateMissingShapeMaterials(10);
 
-        int prevColorRGBA = objects[0].ColorRGBA;
-        int matIndex = 0;
-
-        // At this point objects are sorted by ColorRGBA
         for (int i = 0; i < count; i++)
         {
-            var obj = objects[i];
-            if (prevColorRGBA != obj.ColorRGBA)
-            {
-                matIndex++;
-            }
-            obj.Setup(shapeMaterials[matIndex], Layer.OutlineLayer);
-            prevColorRGBA = obj.ColorRGBA;
-            //Debug.Log($"{GetType().Name}.RenderShapes: matIndex: {matIndex}");
+            objects[i].Setup(shapeMaterials[i], Layer.OutlineLayer);
         }
+        // At this point renderers are sorted by distance from camera
         count = RenderersCount;
         for (int i = 0; i < count; i++)
         {
