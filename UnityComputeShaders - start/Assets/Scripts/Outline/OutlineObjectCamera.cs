@@ -1,10 +1,7 @@
 ﻿using MustHave;
-using MustHave.Utils;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Camera))]
 public class OutlineObjectCamera : MonoBehaviour
@@ -72,7 +69,7 @@ public class OutlineObjectCamera : MonoBehaviour
     {
         CreateTextures(texSize);
 
-        CreateMaterials();
+        CreateMissingShapeMaterials(10);
 
         InitCircleInstancing();
     }
@@ -186,13 +183,15 @@ public class OutlineObjectCamera : MonoBehaviour
         circleTexture.filterMode = FilterMode.Point;
     }
 
-    private void CreateMaterials()
+    private void CreateMissingShapeMaterials(int excess)
     {
-        if (!shapeMaterials[0])
+        int matIndex = Mathf.Min(shapeMaterials.Length, objects.Count) - 1;
+        if (matIndex >= 0 && !shapeMaterials[matIndex])
         {
-            for (int i = 0; i < shapeMaterials.Length; i++)
+            matIndex = Mathf.Min(shapeMaterials.Length, objects.Count + excess) - 1;
+            while (matIndex >= 0 && !shapeMaterials[matIndex])
             {
-                shapeMaterials[i] = new Material(outlineShapeMaterial);
+                shapeMaterials[matIndex--] = new Material(outlineShapeMaterial);
             }
         }
     }
@@ -235,6 +234,8 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void SortRenderers()
     {
+        objects.Sort((a, b) => a.ColorRGBA.CompareTo(b.ColorRGBA));
+
         foreach (var data in renderersData)
         {
             data.GetDistanceFromCamera(shapeCamera.transform.position);
@@ -244,11 +245,29 @@ public class OutlineObjectCamera : MonoBehaviour
 
     public void RenderShapes()
     {
-        for (int i = 0; i < ObjectsCount; i++)
+        int count = ObjectsCount;
+        if (count <= 0)
         {
-            objects[i].Setup(shapeMaterials[i], Layer.OutlineLayer);
+            return;
         }
-        int count = RenderersCount;
+        CreateMissingShapeMaterials(10);
+
+        int prevColorRGBA = objects[0].ColorRGBA;
+        int matIndex = 0;
+
+        // At this point objects are sorted by ColorRGBA
+        for (int i = 0; i < count; i++)
+        {
+            var obj = objects[i];
+            if (prevColorRGBA != obj.ColorRGBA)
+            {
+                matIndex++;
+            }
+            obj.Setup(shapeMaterials[matIndex], Layer.OutlineLayer);
+            prevColorRGBA = obj.ColorRGBA;
+            //Debug.Log($"{GetType().Name}.RenderShapes: matIndex: {matIndex}");
+        }
+        count = RenderersCount;
         for (int i = 0; i < count; i++)
         {
             //Debug.Log($"{GetType().Name}.{i} | {renderersData[i].CameraDistanceSqr} | {1f - (float)i / count}");
@@ -274,6 +293,7 @@ public class OutlineObjectCamera : MonoBehaviour
 
         float scale = 2f * radius / circleCamera.pixelHeight;
 
+        // At this point renderers are sorted by distance from camera
         for (int i = 0; i < count; i++)
         {
             var renderer = renderersData[i].Renderer;
