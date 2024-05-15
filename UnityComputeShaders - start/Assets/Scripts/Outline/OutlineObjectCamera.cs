@@ -1,5 +1,6 @@
 ﻿using MustHave;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -185,12 +186,13 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void CreateMissingShapeMaterials(int excess)
     {
-        int matIndex = Mathf.Min(shapeMaterials.Length, objects.Count) - 1;
-        if (matIndex >= 0 && !shapeMaterials[matIndex])
+        int matIndex = Mathf.Clamp(objects.Count - 1, 0, shapeMaterials.Length - 1);
+        if (!shapeMaterials[matIndex])
         {
-            matIndex = Mathf.Min(shapeMaterials.Length, objects.Count + excess) - 1;
+            matIndex = Mathf.Clamp(objects.Count + excess - 1, 0, shapeMaterials.Length - 1);
             while (matIndex >= 0 && !shapeMaterials[matIndex])
             {
+                //Debug.Log($"{GetType().Name}.CreateMissingShapeMaterials: {matIndex}");
                 shapeMaterials[matIndex--] = new Material(outlineShapeMaterial);
             }
         }
