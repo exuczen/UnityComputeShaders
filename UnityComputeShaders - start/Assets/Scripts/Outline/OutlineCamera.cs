@@ -51,12 +51,12 @@ public class OutlineCamera : BasePP
     {
         base.CreateTextures();
 
-        objectCamera.CreateRuntimeAssets(texSize, out var shapeTexOffset);
+        objectCamera.CreateRuntimeAssets(texSize, out var shapeTexSize, out var shapeTexOffset);
 
         shader.SetTexture(mainKernelID, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
         shader.SetTexture(mainKernelID, ShaderData.CircleTexID, objectCamera.CircleTexture);
 
-        shader.SetInts(ShaderData.ShapeTexSizeID, texSize.x, texSize.y);
+        shader.SetInts(ShaderData.ShapeTexSizeID, shapeTexSize.x, shapeTexSize.y);
         shader.SetInts(ShaderData.ShapeTexOffsetID, shapeTexOffset.x, shapeTexOffset.y);
     }
 

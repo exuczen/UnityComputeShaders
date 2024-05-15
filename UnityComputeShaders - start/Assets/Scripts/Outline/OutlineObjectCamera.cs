@@ -72,9 +72,9 @@ public class OutlineObjectCamera : MonoBehaviour
         public float scale;
     }
 
-    public void CreateRuntimeAssets(Vector2Int texSize, out Vector2Int shapeTexOffset)
+    public void CreateRuntimeAssets(Vector2Int texSize, out Vector2Int shapeTexSize, out Vector2Int shapeTexOffset)
     {
-        CreateTextures(texSize, out shapeTexOffset);
+        CreateTextures(texSize, out shapeTexSize, out shapeTexOffset);
 
         CreateMaterials();
 
@@ -183,7 +183,7 @@ public class OutlineObjectCamera : MonoBehaviour
     }
 
 
-    private void CreateTextures(Vector2Int texSize, out Vector2Int shapeTexOffset)
+    private void CreateTextures(Vector2Int texSize, out Vector2Int shapeTexSize, out Vector2Int shapeTexOffset)
     {
         Vector2Int extendedSize = default;
         Vector2Int texOffset = default;
@@ -204,7 +204,7 @@ public class OutlineObjectCamera : MonoBehaviour
             texOffset.y = (int)(texOffset.x * texSize.y / texSize.x + 0.5f);
         }
         shapeTexOffset = texOffset;
-        texSize = extendedSize;
+        texSize = shapeTexSize = extendedSize;
 
         shapeTexture = CreateTexture(texSize, "OutlineObjectsShapeTexture");
         circleTexture = CreateTexture(texSize, "OutlineObjectsCircleTexture");
