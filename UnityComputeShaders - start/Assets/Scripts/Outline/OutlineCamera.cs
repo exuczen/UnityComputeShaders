@@ -3,7 +3,11 @@
 [ExecuteInEditMode]
 public class OutlineCamera : BasePP
 {
+    public const int LineMaxThickness = 100;
+
     public OutlineObjectCamera ObjectCamera => objectCamera;
+    public int LineThickness => lineThickness;
+
 
     private readonly struct ShaderData
     {
@@ -17,9 +21,12 @@ public class OutlineCamera : BasePP
     [SerializeField]
     private OutlineObjectCamera objectCamera = null;
 
+    [SerializeField, Range(1, LineMaxThickness)]
+    private int lineThickness = 5;
+
     private void Update()
     {
-        objectCamera.OnUpdate();
+        objectCamera.OnUpdate(this);
     }
 
     protected override void OnEnable()
@@ -51,7 +58,7 @@ public class OutlineCamera : BasePP
     {
         base.CreateTextures();
 
-        objectCamera.CreateRuntimeAssets(texSize, out var shapeTexSize, out var shapeTexOffset);
+        objectCamera.CreateRuntimeAssets(texSize, LineMaxThickness, out var shapeTexSize, out var shapeTexOffset);
 
         shader.SetTexture(mainKernelID, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
         shader.SetTexture(mainKernelID, ShaderData.CircleTexID, objectCamera.CircleTexture);
@@ -81,6 +88,6 @@ public class OutlineCamera : BasePP
     {
         objectCamera.RenderShapes();
 
-        shader.SetInt(ShaderData.LineThicknessID, objectCamera.LineThickness);
+        shader.SetInt(ShaderData.LineThicknessID, lineThickness);
     }
 }
