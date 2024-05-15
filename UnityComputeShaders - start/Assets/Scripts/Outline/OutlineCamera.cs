@@ -8,6 +8,8 @@ public class OutlineCamera : BasePP
     private readonly struct ShaderData
     {
         public static readonly int ShapeTexID = Shader.PropertyToID("shapeTexture");
+        public static readonly int ShapeTexSizeID = Shader.PropertyToID("ShapeTexSize");
+        public static readonly int ShapeTexOffsetID = Shader.PropertyToID("ShapeTexOffset");
         public static readonly int CircleTexID = Shader.PropertyToID("circleTexture");
         public static readonly int LineThicknessID = Shader.PropertyToID("LineThickness");
     }
@@ -42,17 +44,20 @@ public class OutlineCamera : BasePP
 
     protected override void OnInit()
     {
-        objectCamera.Setup(thisCamera);
+        objectCamera.Setup(this);
     }
 
     protected override void CreateTextures()
     {
         base.CreateTextures();
 
-        objectCamera.CreateRuntimeAssets(texSize);
+        objectCamera.CreateRuntimeAssets(texSize, out var shapeTexOffset);
 
         shader.SetTexture(mainKernelID, ShaderData.ShapeTexID, objectCamera.ShapeTexture);
         shader.SetTexture(mainKernelID, ShaderData.CircleTexID, objectCamera.CircleTexture);
+
+        shader.SetInts(ShaderData.ShapeTexSizeID, texSize.x, texSize.y);
+        shader.SetInts(ShaderData.ShapeTexOffsetID, shapeTexOffset.x, shapeTexOffset.y);
     }
 
     protected override void ReleaseTextures()
@@ -64,12 +69,12 @@ public class OutlineCamera : BasePP
 
     protected override void OnCameraPropertyChange()
     {
-        objectCamera.Setup(thisCamera);
+        objectCamera.Setup(this);
     }
 
     protected override void OnScreenSizeChange()
     {
-        objectCamera.Setup(thisCamera);
+        objectCamera.Setup(this);
     }
 
     protected override void SetupOnRenderImage()

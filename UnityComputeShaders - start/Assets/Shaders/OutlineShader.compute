@@ -15,6 +15,8 @@ Texture2D<float4> circleTexture;
 RWTexture2D<float4> output;
 
 int LineThickness;
+int2 ShapeTexSize;
+int2 ShapeTexOffset;
 
 int2 getShapeTexSize()
 {
@@ -25,7 +27,7 @@ int2 getShapeTexSize()
 
 bool getShapePixelColor(int2 xy, out float4 color)
 {
-    bool inBounds = all(xy >= 0 && xy < getShapeTexSize());
+    bool inBounds = all(xy >= 0 && xy < ShapeTexSize);
     if (inBounds && shapeTexture[xy].a > 0)
     {
         color = shapeTexture[xy];
@@ -62,7 +64,7 @@ void getShapeRect8Color(int x, int y, int2 center, inout float4 color)
     getShapeRect4Color(y, x, center, color);
 }
 
-void getShapeCircleColor(int2 c, int r, inout float4 color)
+void getShapeCircleIsecColor(int2 c, int r, inout float4 color)
 {
     int x = r;
     int y = 0;
@@ -95,8 +97,9 @@ void getShapeCircleColor(int2 c, int r, inout float4 color)
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float4 shapeColor = shapeTexture[id.xy];
-    float4 circleColor = circleTexture[id.xy];
+    int2 shapeXY = ShapeTexOffset + id.xy;
+    float4 shapeColor = shapeTexture[shapeXY];
+    float4 circleColor = circleTexture[shapeXY];
 
 #ifdef DEBUG_SHAPE_TEXTURE
     output[id.xy] = shapeColor.a > 0 ? shapeColor : source[id.xy];
@@ -111,7 +114,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (shapeColor.a < EPSILON)
     {
         color = circleColor;
-        getShapeCircleColor(id.xy, r, color);
+        getShapeCircleIsecColor(shapeXY, r, color);
     }
     if (color.a > EPSILON)
     {

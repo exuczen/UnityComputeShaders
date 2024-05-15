@@ -46,7 +46,7 @@ public class OutlineObjectCamera : MonoBehaviour
     private Camera circleCamera = null;
     [SerializeField, Range(1, LineMaxThickness)]
     private int lineThickness = 5;
-    [SerializeField]
+    [SerializeField, HideInInspector]
     private bool layerAdded = false;
 
     private Camera shapeCamera = null;
@@ -72,11 +72,9 @@ public class OutlineObjectCamera : MonoBehaviour
         public float scale;
     }
 
-    public void CreateRuntimeAssets(Vector2Int texSize)
+    public void CreateRuntimeAssets(Vector2Int texSize, out Vector2Int shapeTexOffset)
     {
-        shapeTexture = CreateTexture(texSize, "OutlineObjectsShapeTexture");
-        circleTexture = CreateTexture(texSize, "OutlineObjectsCircleTexture");
-        circleTexture.filterMode = FilterMode.Point;
+        CreateTextures(texSize, out shapeTexOffset);
 
         CreateMaterials();
 
@@ -92,7 +90,7 @@ public class OutlineObjectCamera : MonoBehaviour
         circleInstanceBuffer = null;
     }
 
-    public void Setup(Camera parentCamera)
+    public void Setup(OutlineCamera outlineCamera)
     {
 #if UNITY_EDITOR
         if (!layerAdded)
@@ -107,9 +105,12 @@ public class OutlineObjectCamera : MonoBehaviour
 #endif
         shapeCamera = GetComponent<Camera>();
 
-        if (parentCamera)
+        if (outlineCamera)
         {
+            var parentCamera = outlineCamera.Camera;
             shapeCamera.CopyFrom(parentCamera);
+            shapeCamera.fieldOfView = GetExtendedFieldOfView(parentCamera);
+            //Debug.Log($"{GetType().Name}.Setup: srcFov: {parentCamera.fieldOfView:f2} dstFov: {shapeCamera.fieldOfView:f2}");
         }
         shapeCamera.targetTexture = shapeTexture;
         shapeCamera.backgroundColor = Color.clear;
@@ -118,7 +119,7 @@ public class OutlineObjectCamera : MonoBehaviour
         shapeCamera.enabled = false;
         shapeCamera.depthTextureMode = DepthTextureMode.Depth;
 
-        if (parentCamera)
+        if (outlineCamera)
         {
             circleCamera.CopyFrom(shapeCamera);
         }
@@ -145,6 +146,69 @@ public class OutlineObjectCamera : MonoBehaviour
         obj.ForEachRendererData(data => {
             renderersData.Remove(data);
         });
+    }
+
+    private float GetExtendedFieldOfView(Camera parentCamera)
+    {
+        // tanHalfFov = 0.5 * h / r
+        // r = 0.5 * h / tanHalfFov
+        // r = 0.5 * (h + dh) / tanHalfFov2
+        // h / tanHalfFov = (h + dh) / tanHalfFov2
+        // h / (h + dh) = tanHalfFov / tanHalfFov2
+        // tanHalfFov2 = tanHalfFov * (h + dh) / h
+
+        float aspect = parentCamera.aspect;
+        float w = parentCamera.pixelWidth;
+        float h = parentCamera.pixelHeight;
+        float destFovVerti;
+
+        if (w > h)
+        {
+            float dh = LineMaxThickness << 1;
+            float tanHalfFovVerti = parentCamera.GetTanHalfFovVerti();
+            float destHalfFovVerti = Mathf.Atan2(tanHalfFovVerti * (h + dh), h);
+
+            destFovVerti = destHalfFovVerti * 2f * Mathf.Rad2Deg;
+        }
+        else
+        {
+            float dw = LineMaxThickness << 1;
+            float tanHalfFovHori = parentCamera.GetTanHalfFovHori();
+            float destHalfFovHori = Mathf.Atan2(tanHalfFovHori * (w + dw), w);
+
+            float destFovHori = destHalfFovHori * 2f * Mathf.Rad2Deg;
+            destFovVerti = Camera.HorizontalToVerticalFieldOfView(destFovHori, aspect);
+        }
+        return destFovVerti;
+    }
+
+
+    private void CreateTextures(Vector2Int texSize, out Vector2Int shapeTexOffset)
+    {
+        Vector2Int extendedSize = default;
+        Vector2Int texOffset = default;
+        if (texSize.x > texSize.y)
+        {
+            extendedSize.y = texSize.y + 2 * LineMaxThickness;
+            extendedSize.x = extendedSize.y * texSize.x / texSize.y;
+
+            texOffset.y = LineMaxThickness;
+            texOffset.x = (int)(texOffset.y * texSize.x / texSize.y + 0.5f);
+        }
+        else
+        {
+            extendedSize.x = texSize.x + 2 * LineMaxThickness;
+            extendedSize.y = extendedSize.x * texSize.y / texSize.x;
+
+            texOffset.x = LineMaxThickness;
+            texOffset.y = (int)(texOffset.x * texSize.y / texSize.x + 0.5f);
+        }
+        shapeTexOffset = texOffset;
+        texSize = extendedSize;
+
+        shapeTexture = CreateTexture(texSize, "OutlineObjectsShapeTexture");
+        circleTexture = CreateTexture(texSize, "OutlineObjectsCircleTexture");
+        circleTexture.filterMode = FilterMode.Point;
     }
 
     private void CreateMaterials()

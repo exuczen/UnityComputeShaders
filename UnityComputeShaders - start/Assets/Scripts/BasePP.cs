@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class BasePP : MonoBehaviour
 {
+    public Camera Camera => thisCamera;
+
     [SerializeField]
     protected ComputeShader shader = null;
 
