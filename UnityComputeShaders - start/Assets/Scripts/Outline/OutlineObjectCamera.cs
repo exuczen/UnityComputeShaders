@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Camera))]
 public class OutlineObjectCamera : MonoBehaviour
@@ -294,27 +295,7 @@ public class OutlineObjectCamera : MonoBehaviour
         // At this point renderers are sorted by distance from camera
         for (int i = 0; i < count; i++)
         {
-            var data = renderersData[i];
-            var renderer = data.Renderer;
-            var center = renderer.bounds.center;
-            var viewPoint = shapeCamera.WorldToViewportPoint(center);
-            //var worldPoint = circlesCamera.ViewportToWorldPoint(viewPoint);
-            //objectToWorld.SetTRS(worldPoint, Quaternion.LookRotation(circlesCamTransform.forward, circlesCamTransform.up), Vector3.one);
-            var clipPoint = new Vector3()
-            {
-                x = (viewPoint.x - 0.5f) * 2f,
-                y = (viewPoint.y - 0.5f) * 2f,
-                z = data.Depth
-            };
-            var color = data.GetColorWithAlphaDepth(minDepth);
-            //Debug.Log($"{GetType().Name}.{i} | {data.CameraDistanceSqr} | {clipPoint.z}");
-            circleInstanceData[i] = new InstanceData()
-            {
-                objectToWorld = Matrix4x4.identity,
-                clipPosition = clipPoint,
-                color = color,
-                scale = scale
-            };
+            SetCircleInstanceData(i, scale, minDepth);
         }
         circleInstanceBuffer.SetData(circleInstanceData, 0, 0, renderersData.Count);
         circleRenderParams.material.SetFloat("_MinDepth", minDepth);
@@ -324,7 +305,32 @@ public class OutlineObjectCamera : MonoBehaviour
         //Graphics.RenderMeshInstanced(circleRenderParams, quadMeshFilter.sharedMesh, 0, circleInstanceData, renderersData.Count);
         //Graphics.DrawMeshInstancedProcedural(quadMeshFilter.sharedMesh, 0, circleSpriteMaterial,
         //    circleRenderParams.worldBounds, renderersData.Count, circlePropertyBlock,
-        //    ShadowCastingMode.Off, false, Layer.OutlineLayer, circlesCamera);
+        //    ShadowCastingMode.Off, false, Layer.OutlineLayer, circleCamera);
+    }
+
+    private void SetCircleInstanceData(int i, float scale, float minDepth)
+    {
+        var data = renderersData[i];
+        var renderer = data.Renderer;
+        var center = renderer.bounds.center;
+        var viewPoint = shapeCamera.WorldToViewportPoint(center);
+        //var worldPoint = circlesCamera.ViewportToWorldPoint(viewPoint);
+        //objectToWorld.SetTRS(worldPoint, Quaternion.LookRotation(circlesCamTransform.forward, circlesCamTransform.up), Vector3.one);
+        var clipPoint = new Vector3()
+        {
+            x = (viewPoint.x - 0.5f) * 2f,
+            y = (viewPoint.y - 0.5f) * 2f,
+            z = data.Depth
+        };
+        var color = data.GetColorWithAlphaDepth(minDepth);
+        //Debug.Log($"{GetType().Name}.{i} | {data.CameraDistanceSqr} | {clipPoint.z}");
+        circleInstanceData[i] = new InstanceData()
+        {
+            objectToWorld = Matrix4x4.identity,
+            clipPosition = clipPoint,
+            color = color,
+            scale = scale
+        };
     }
 
     public void OnUpdate(OutlineCamera outlineCamera)
