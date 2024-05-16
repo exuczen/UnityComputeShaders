@@ -12,6 +12,7 @@ public class RendererData
     public Material Material => renderer.material;
     public float CameraDistanceSqr => cameraDistanceSqr;
     public Color Color { get; set; } = Color.white;
+    public float OneMinusDepth { get; set; }
 
     private Renderer renderer;
     private Material sharedMaterial;
@@ -44,6 +45,9 @@ public class RendererData
 
     public void Setup(Material material, int layer)
     {
+        material.SetColor(ShaderData.ColorID, Color);
+        material.SetFloat(ShaderData.OneMinusDepthID, OneMinusDepth);
+
         renderer.gameObject.layer = layer;
 
         if (Application.isPlaying)
@@ -54,18 +58,6 @@ public class RendererData
         {
             renderer.sharedMaterial = material;
         }
-    }
-
-    public void SetMaterialDepth(float depth)
-    {
-        var material = Application.isPlaying ? renderer.material : renderer.sharedMaterial;
-        material.SetFloat(ShaderData.OneMinusDepthID, 1f - depth);
-    }
-
-    public void SetMaterialColor(Color color)
-    {
-        var material = Application.isPlaying ? renderer.material : renderer.sharedMaterial;
-        material.SetColor(ShaderData.ColorID, color);
     }
 
     public void GetDistanceFromCamera(Vector3 camPos)

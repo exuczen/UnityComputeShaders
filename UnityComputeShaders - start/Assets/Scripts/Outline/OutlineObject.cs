@@ -9,7 +9,6 @@ public class OutlineObject : MonoBehaviour
 {
     public Color32 Color32 { get => color; set => color = value; }
     public Color Color { get => color; set => color = value; }
-    public int ColorRGBA { get; private set; }
 
     [SerializeField]
     private Color color = Color.white;
@@ -26,16 +25,6 @@ public class OutlineObject : MonoBehaviour
         foreach (var data in renderersData)
         {
             data.Color = color;
-        }
-        ColorRGBA = color.ToRGBA();
-    }
-
-    public void Setup(Material material, int layer)
-    {
-        foreach (var data in renderersData)
-        {
-            data.Setup(material, layer);
-            data.SetMaterialColor(Color);
         }
     }
 

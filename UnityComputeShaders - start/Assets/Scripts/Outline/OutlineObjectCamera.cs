@@ -30,7 +30,6 @@ public class OutlineObjectCamera : MonoBehaviour
     public bool CircleInstancingInitiated => circleInstanceBuffer != null;
 
     private int RenderersCount => Mathf.Min(RenderersCapacity, renderersData.Count);
-    private int ObjectsCount => Mathf.Min(RenderersCapacity, objects.Count);
 
     [SerializeField]
     private Material outlineShapeMaterial = null;
@@ -186,10 +185,10 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void CreateMissingShapeMaterials(int excess)
     {
-        int matIndex = Mathf.Clamp(objects.Count - 1, 0, shapeMaterials.Length - 1);
+        int matIndex = Mathf.Clamp(renderersData.Count - 1, 0, shapeMaterials.Length - 1);
         if (!shapeMaterials[matIndex])
         {
-            matIndex = Mathf.Clamp(objects.Count + excess - 1, 0, shapeMaterials.Length - 1);
+            matIndex = Mathf.Clamp(renderersData.Count + excess - 1, 0, shapeMaterials.Length - 1);
             while (matIndex >= 0 && !shapeMaterials[matIndex])
             {
                 //Debug.Log($"{GetType().Name}.CreateMissingShapeMaterials: {matIndex}");
@@ -243,39 +242,39 @@ public class OutlineObjectCamera : MonoBehaviour
         renderersData.Sort((a, b) => a.CameraDistanceSqr.CompareTo(b.CameraDistanceSqr));
     }
 
+    private void SetSortedRenderersDepth()
+    {
+        int count = renderersData.Count;
+        for (int i = 0; i < count; i++)
+        {
+            renderersData[i].OneMinusDepth = 1f - (float)i / count;
+        }
+    }
+
     public void RenderShapes()
     {
-        int count = ObjectsCount;
-        if (count <= 0)
+        if (RenderersCount <= 0)
         {
             return;
         }
         CreateMissingShapeMaterials(10);
 
-        for (int i = 0; i < count; i++)
-        {
-            objects[i].Setup(shapeMaterials[i], Layer.OutlineLayer);
-        }
         // At this point renderers are sorted by distance from camera
-        count = RenderersCount;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < RenderersCount; i++)
         {
-            //Debug.Log($"{GetType().Name}.{i} | {renderersData[i].CameraDistanceSqr} | {1f - (float)i / count}");
-            renderersData[i].SetMaterialDepth((float)i / count);
+            renderersData[i].Setup(shapeMaterials[i], Layer.OutlineLayer);
         }
         shapeCamera.Render();
 
-        foreach (OutlineObject obj in objects)
+        foreach (var data in renderersData)
         {
-            obj.Restore();
+            data.Restore();
         }
     }
 
     private void RenderCircles(int radius)
     {
-        int count = RenderersCount;
-
-        if (count <= 0)
+        if (RenderersCount <= 0)
         {
             return;
         }
@@ -284,9 +283,10 @@ public class OutlineObjectCamera : MonoBehaviour
         float scale = 2f * radius / circleCamera.pixelHeight;
 
         // At this point renderers are sorted by distance from camera
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < RenderersCount; i++)
         {
-            var renderer = renderersData[i].Renderer;
+            var data = renderersData[i];
+            var renderer = data.Renderer;
             var center = renderer.bounds.center;
             var viewPoint = shapeCamera.WorldToViewportPoint(center);
             //var worldPoint = circlesCamera.ViewportToWorldPoint(viewPoint);
@@ -295,7 +295,7 @@ public class OutlineObjectCamera : MonoBehaviour
             {
                 x = (viewPoint.x - 0.5f) * 2f,
                 y = -(viewPoint.y - 0.5f) * 2f,
-                z = 1f - (float)i / count
+                z = data.OneMinusDepth // 1f - (float)i / count
             };
             var color = renderersData[i].Color;
             color.a = clipPoint.z;
@@ -325,6 +325,7 @@ public class OutlineObjectCamera : MonoBehaviour
             obj.SetRenderersColor();
         }
         SortRenderers();
+        SetSortedRenderersDepth();
         RenderCircles(outlineCamera.LineThickness);
     }
 
