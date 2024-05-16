@@ -306,8 +306,7 @@ public class OutlineObjectCamera : MonoBehaviour
                 y = (viewPoint.y - 0.5f) * 2f,
                 z = data.Depth
             };
-            var color = data.Color;
-            color.a = Mathf.Clamp01(1f - data.Depth + minDepth);
+            var color = data.GetColorWithAlphaDepth(minDepth);
             //Debug.Log($"{GetType().Name}.{i} | {data.CameraDistanceSqr} | {clipPoint.z}");
             circleInstanceData[i] = new InstanceData()
             {

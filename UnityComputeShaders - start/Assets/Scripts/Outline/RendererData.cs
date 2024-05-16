@@ -40,8 +40,7 @@ public class RendererData
 
     public void Setup(Material material, int layer, float minDepth)
     {
-        var color = Color;
-        color.a = Mathf.Clamp01(1f - Depth + minDepth);
+        var color = GetColorWithAlphaDepth(minDepth);
 
         material.SetColor(ShaderData.ColorID, color);
         material.SetFloat(ShaderData.DepthID, Depth);
@@ -49,6 +48,18 @@ public class RendererData
 
         renderer.gameObject.layer = layer;
         renderer.sharedMaterial = material;
+    }
+
+    public Color GetColorWithAlphaDepth(float minDepth)
+    {
+        var color = Color;
+        color.a = Mathf.Clamp01(1f - Depth + minDepth);
+        return color;
+    }
+
+    public float GetOneMinusDepth(float minDepth)
+    {
+        return Mathf.Clamp01(1f - Depth + minDepth);
     }
 
     public void GetDistanceFromCamera(Vector3 camPos)
