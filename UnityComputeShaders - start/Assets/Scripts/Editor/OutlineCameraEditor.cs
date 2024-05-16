@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using MustHave;
+using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(OutlineCamera))]
@@ -10,11 +11,13 @@ public class OutlineCameraEditor : Editor
 
         EditorGUI.BeginChangeCheck();
 
-        OutlineCamera.DebugShaderMode shaderDebugMode = (OutlineCamera.DebugShaderMode)EditorGUILayout.EnumPopup("Debug Mode", camera.ShaderDebugMode);
+        var shaderDebugMode = (OutlineCamera.DebugShaderMode)EditorGUILayout.EnumPopup("Debug Mode", camera.ShaderDebugMode);
 
         if (EditorGUI.EndChangeCheck())
         {
             camera.ShaderDebugMode = shaderDebugMode;
+
+            //EditorUtils.SetSceneOrObjectDirty(target);
         }
         base.OnInspectorGUI();
     }

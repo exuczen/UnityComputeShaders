@@ -1,8 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using MustHave.Utils;
-using MustHave;
-using log4net.Util;
 
 [CustomEditor(typeof(VolumeCrossSection))]
 public class VolumeCrossSectionEditor : Editor

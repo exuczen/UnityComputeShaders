@@ -6,7 +6,11 @@ public class OutlineCamera : BasePP
     public const int LineMaxThickness = 100;
 
     public OutlineObjectCamera ObjectCamera => objectCamera;
-    public int LineThickness => lineThickness;
+    public int LineThickness
+    {
+        get => lineThickness;
+        set => lineThickness = Mathf.Clamp(value, 1, LineMaxThickness);
+    }
     public DebugShaderMode ShaderDebugMode { get => debugShaderMode; set => SetDebugShaderMode(value); }
 
     public enum DebugShaderMode
