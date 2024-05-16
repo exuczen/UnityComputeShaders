@@ -7,7 +7,7 @@
 #include "Utils/Easing.cginc"
 
 Texture2D<float4> Source;
-RWTexture2D<float4> output;
+RWTexture2D<float4> Output;
 float time;
 float4 axisColor;
 float4 sweepColor;
@@ -100,5 +100,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float alpha = saturate(color.r + color.g + color.b);
     float3 finalColor = lerp(Source[id.xy].rgb, color, alpha);
 
-    output[id.xy] = float4(finalColor, 1.0);
+    Output[id.xy] = float4(finalColor, 1.0);
 }

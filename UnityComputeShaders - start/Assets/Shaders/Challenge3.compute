@@ -2,7 +2,7 @@
 #pragma kernel CSMain
 
 Texture2D<float4> Source;
-RWTexture2D<float4> output;
+RWTexture2D<float4> Output;
 float tintHeight;
 float shade;
 float edgeWidth;
@@ -26,9 +26,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     {
         color = srcColor;
     }
-    output[id.xy] = color;
+    Output[id.xy] = color;
     
     //float tint = (1 - smoothstep(tintHeight - edgeWidth, tintHeight, (float)id.y)) * tintStrength;
     //float4 shadedTindColor = float4(tintColor.rgb * shade, 1);
-    //output[id.xy] = lerp(srcColor, shadedTindColor, tint);
+    //Output[id.xy] = lerp(srcColor, shadedTindColor, tint);
 }

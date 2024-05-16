@@ -5,7 +5,7 @@
 #include "Utils/Geometry.cginc"
 
 Texture2D<float4> Source;
-RWTexture2D<float4> output;
+RWTexture2D<float4> Output;
 float radius;
 float edgeWidth;
 int lines;
@@ -42,5 +42,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float inVision = saturate(leftLense + rightLense);
     finalColor = lerp(blackColor, finalColor, inVision);
 
-    output[id.xy] = float4(finalColor, 1);
+    Output[id.xy] = float4(finalColor, 1);
 }

@@ -51,11 +51,11 @@ public class BlurHighlight : BasePP
     private void SetShaderTextures()
     {
         shader.SetTexture(mainKernelID, "Source", renderedSource);
-        shader.SetTexture(mainKernelID, "output", output);
+        shader.SetTexture(mainKernelID, "Output", output);
         shader.SetTexture(mainKernelID, "horzOutput", horzOutput);
 
         shader.SetTexture(kernelHorzPassID, "Source", renderedSource);
-        shader.SetTexture(kernelHorzPassID, "output", output);
+        shader.SetTexture(kernelHorzPassID, "Output", output);
         shader.SetTexture(kernelHorzPassID, "horzOutput", horzOutput);
 
         shader.SetBuffer(kernelHorzPassID, "horzBuffer", horzBuffer);
