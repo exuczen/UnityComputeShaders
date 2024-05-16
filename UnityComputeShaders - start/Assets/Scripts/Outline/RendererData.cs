@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MustHave.Utils;
+using UnityEngine;
 
 public class RendererData
 {
@@ -6,12 +7,14 @@ public class RendererData
     {
         public static readonly int ColorID = Shader.PropertyToID("_Color");
         public static readonly int OneMinusDepthID = Shader.PropertyToID("_OneMinusDepth");
+        public static readonly int DepthID = Shader.PropertyToID("_Depth");
+        public static readonly int MinDepthID = Shader.PropertyToID("_MinDepth");
     }
 
     public Renderer Renderer => renderer;
     public float CameraDistanceSqr => cameraDistanceSqr;
     public Color Color { get; set; } = Color.white;
-    public float OneMinusDepth { get; set; }
+    public float Depth { get; set; }
 
     private Renderer renderer;
     private Material sharedMaterial;
@@ -35,10 +38,14 @@ public class RendererData
         layer = renderer.gameObject.layer;
     }
 
-    public void Setup(Material material, int layer)
+    public void Setup(Material material, int layer, float minDepth)
     {
-        material.SetColor(ShaderData.ColorID, Color);
-        material.SetFloat(ShaderData.OneMinusDepthID, OneMinusDepth);
+        var color = Color;
+        color.a = Mathf.Clamp01(1f - Depth + minDepth);
+
+        material.SetColor(ShaderData.ColorID, color);
+        material.SetFloat(ShaderData.DepthID, Depth);
+        material.SetFloat(ShaderData.MinDepthID, minDepth);
 
         renderer.gameObject.layer = layer;
         renderer.sharedMaterial = material;

@@ -245,24 +245,31 @@ public class OutlineObjectCamera : MonoBehaviour
     private void SetSortedRenderersDepth()
     {
         int count = renderersData.Count;
-        for (int i = 0; i < count; i++)
+        if (count <= 0)
         {
-            renderersData[i].OneMinusDepth = 1f - (float)i / count;
+            return;
+        }
+        for (int i = 1; i <= count; i++)
+        {
+            renderersData[i - 1].Depth = (float)i / count;
         }
     }
 
     public void RenderShapes()
     {
-        if (RenderersCount <= 0)
+        int count = RenderersCount;
+        if (count <= 0)
         {
             return;
         }
         CreateMissingShapeMaterials(10);
 
+        float minDepth = 1f / count;
+
         // At this point renderers are sorted by distance from camera
-        for (int i = 0; i < RenderersCount; i++)
+        for (int i = 0; i < count; i++)
         {
-            renderersData[i].Setup(shapeMaterials[i], Layer.OutlineLayer);
+            renderersData[i].Setup(shapeMaterials[i], Layer.OutlineLayer, minDepth);
         }
         shapeCamera.Render();
 
@@ -274,16 +281,18 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private void RenderCircles(int radius)
     {
-        if (RenderersCount <= 0)
+        int count = RenderersCount;
+        if (count <= 0)
         {
             return;
         }
         var circlesCamTransform = circleCamera.transform;
 
         float scale = 2f * radius / circleCamera.pixelHeight;
+        float minDepth = 1f / count;
 
         // At this point renderers are sorted by distance from camera
-        for (int i = 0; i < RenderersCount; i++)
+        for (int i = 0; i < count; i++)
         {
             var data = renderersData[i];
             var renderer = data.Renderer;
@@ -294,12 +303,12 @@ public class OutlineObjectCamera : MonoBehaviour
             var clipPoint = new Vector3()
             {
                 x = (viewPoint.x - 0.5f) * 2f,
-                y = -(viewPoint.y - 0.5f) * 2f,
-                z = data.OneMinusDepth // 1f - (float)i / count
+                y = (viewPoint.y - 0.5f) * 2f,
+                z = data.Depth
             };
-            var color = renderersData[i].Color;
-            color.a = clipPoint.z;
-            //Debug.Log($"{GetType().Name}.{i} | {renderersData[i].CameraDistanceSqr} | {clipPoint.z}");
+            var color = data.Color;
+            color.a = Mathf.Clamp01(1f - data.Depth + minDepth);
+            //Debug.Log($"{GetType().Name}.{i} | {data.CameraDistanceSqr} | {clipPoint.z}");
             circleInstanceData[i] = new InstanceData()
             {
                 objectToWorld = Matrix4x4.identity,
@@ -309,6 +318,7 @@ public class OutlineObjectCamera : MonoBehaviour
             };
         }
         circleInstanceBuffer.SetData(circleInstanceData, 0, 0, renderersData.Count);
+        circleRenderParams.material.SetFloat("_MinDepth", minDepth);
         circleRenderParams.worldBounds = new Bounds(circlesCamTransform.position, Vector3.one);
 
         Graphics.RenderMeshPrimitives(circleRenderParams, quadMeshFilter.sharedMesh, 0, renderersData.Count);

@@ -33,14 +33,16 @@
 				matrix objectToWorld;
 				float3 clipPosition;
 				float4 color;
-				float scale;
+				float scale; //TODO: make it float2
 			};
 
-			static const float ScreenRatio = _ScreenParams.y / _ScreenParams.x;
+			static const float ScreenAspect = _ScreenParams.y / _ScreenParams.x;
 
 			StructuredBuffer<InstanceData> _InstancesData;
 
 			sampler2D _MainTex;
+
+			float _MinDepth;
 
 			struct appdata
 			{
@@ -62,19 +64,26 @@
 				v2f o;// = (v2f)0;
 
 				InstanceData instance = _InstancesData[instanceID];
+				float3 iClipPos = instance.clipPosition;
+				float iScale = instance.scale;
+
+				//float2 xy = v.vertex.xy * 2;
+				float2 xy = (v.texcoord - 0.5) * 2;
+
+				#if UNITY_REVERSED_Z
+				iClipPos.z = saturate(1 - iClipPos.z + _MinDepth);
+				#endif
+
+				#if UNITY_UV_STARTS_AT_TOP
+				iClipPos.y *= -1;
+				xy.y *= -1;
+				#endif
+				xy.x *= ScreenAspect;
 
 				/* UnityObjectToClipPos must be called and used for Graphics.RenderMeshInstanced to work */
 				float4 clipPos = UnityObjectToClipPos(v.vertex);
 
-				//float2 xy = v.vertex.xy * 2;
-				float2 xy = (v.texcoord - 0.5) * 2;
-				xy.y *= -1;
-				xy.x *= ScreenRatio;
-
-				float3 instanceClipPos = instance.clipPosition;
-				float instanceScale = instance.scale;
-
-				o.position = float4(instanceClipPos.xy + xy * instanceScale, instanceClipPos.z, clipPos.w);
+				o.position = float4(iClipPos.xy + xy * iScale, iClipPos.z, clipPos.w);
 				o.color =  instance.color;
 				o.uv = v.texcoord;
 

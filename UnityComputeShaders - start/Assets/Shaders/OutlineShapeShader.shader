@@ -28,19 +28,24 @@ Shader "Unlit/OutlineShapeShader"
             };
 
             float4 _Color;
-            float _OneMinusDepth;
+            float _Depth;
+            float _MinDepth;
 
             v2f vert(appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.vertex.z = _OneMinusDepth;
+                #if UNITY_REVERSED_Z
+                o.vertex.z = saturate(1 - _Depth + _MinDepth);
+                #else
+                o.vertex.z = _Depth;
+                #endif
                 return o;
             }
 
             float4 frag(v2f i) : SV_Target
             {
-                return float4(_Color.xyz, _OneMinusDepth);
+                return _Color;
             }
             ENDCG
         }
