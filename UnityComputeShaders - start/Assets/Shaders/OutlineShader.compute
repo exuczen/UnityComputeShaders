@@ -1,9 +1,7 @@
-﻿//#define DEBUG_SHAPE_TEXTURE
-//#define DEBUG_DEPTH
-//#define DEBUG_CIRCLES
-#define EPSILON 0.00001f
+﻿#define EPSILON 0.00001f
 #define COLOR_CLEAR float4(0, 0, 0, 0)
 
+#pragma multi_compile __ DEBUG_SHAPES DEBUG_CIRCLES DEBUG_DEPTH
 #pragma kernel CSMain
 
 #include "Utils/Random.cginc"
@@ -101,7 +99,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float4 shapeColor = shapeTexture[shapeXY];
     float4 circleColor = circleTexture[shapeXY];
 
-#ifdef DEBUG_SHAPE_TEXTURE
+#ifdef DEBUG_SHAPES
     output[id.xy] = shapeColor.a > 0 ? shapeColor : source[id.xy];
 #elif defined DEBUG_DEPTH
     output[id.xy] = shapeColor.a > 0 ? shapeColor.a : float4(1, 0, 0, 1);

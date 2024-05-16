@@ -7,7 +7,15 @@ public class OutlineCamera : BasePP
 
     public OutlineObjectCamera ObjectCamera => objectCamera;
     public int LineThickness => lineThickness;
+    public DebugShaderMode ShaderDebugMode { get => debugShaderMode; set => SetDebugShaderMode(value); }
 
+    public enum DebugShaderMode
+    {
+        NONE,
+        DEBUG_SHAPES,
+        DEBUG_CIRCLES,
+        DEBUG_DEPTH
+    }
 
     private readonly struct ShaderData
     {
@@ -20,6 +28,9 @@ public class OutlineCamera : BasePP
 
     [SerializeField]
     private OutlineObjectCamera objectCamera = null;
+
+    [SerializeField, HideInInspector]
+    private DebugShaderMode debugShaderMode = default;
 
     [SerializeField, Range(1, LineMaxThickness)]
     private int lineThickness = 5;
@@ -118,5 +129,12 @@ public class OutlineCamera : BasePP
         shapeTexOffset = texOffset;
 
         return extendedSize;
+    }
+
+    private void SetDebugShaderMode(DebugShaderMode debugMode)
+    {
+        Shader.DisableKeyword(debugShaderMode.ToString());
+        debugShaderMode = debugMode;
+        Shader.EnableKeyword(debugShaderMode.ToString());
     }
 }
