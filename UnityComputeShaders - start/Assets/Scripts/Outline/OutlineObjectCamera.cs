@@ -154,26 +154,26 @@ public class OutlineObjectCamera : MonoBehaviour
         float aspect = parentCamera.aspect;
         float w = parentCamera.pixelWidth;
         float h = parentCamera.pixelHeight;
-        float destFovVerti;
+        float destFovY;
 
         if (w > h)
         {
             float dh = pixelOffset << 1;
-            float tanHalfFovVerti = parentCamera.GetTanHalfFovVerti();
-            float destHalfFovVerti = Mathf.Atan2(tanHalfFovVerti * (h + dh), h);
+            float tanHalfFovY = parentCamera.GetTanHalfFovVerti();
+            float destHalfFovY = Mathf.Atan2(tanHalfFovY * (h + dh), h);
 
-            destFovVerti = destHalfFovVerti * 2f * Mathf.Rad2Deg;
+            destFovY = destHalfFovY * 2f * Mathf.Rad2Deg;
         }
         else
         {
             float dw = pixelOffset << 1;
-            float tanHalfFovHori = parentCamera.GetTanHalfFovHori();
-            float destHalfFovHori = Mathf.Atan2(tanHalfFovHori * (w + dw), w);
+            float tanHalfFovX = parentCamera.GetTanHalfFovHori();
+            float destHalfFovX = Mathf.Atan2(tanHalfFovX * (w + dw), w);
 
-            float destFovHori = destHalfFovHori * 2f * Mathf.Rad2Deg;
-            destFovVerti = Camera.HorizontalToVerticalFieldOfView(destFovHori, aspect);
+            float destFovX = destHalfFovX * 2f * Mathf.Rad2Deg;
+            destFovY = Camera.HorizontalToVerticalFieldOfView(destFovX, aspect);
         }
-        return destFovVerti;
+        return destFovY;
     }
 
 
