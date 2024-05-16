@@ -37,6 +37,7 @@
 			};
 
 			static const float ScreenAspect = _ScreenParams.y / _ScreenParams.x;
+			static const float AbsNearClip = abs(UNITY_NEAR_CLIP_VALUE);
 
 			StructuredBuffer<InstanceData> _InstancesData;
 
@@ -71,7 +72,9 @@
 				float2 xy = (v.texcoord - 0.5) * 2;
 
 				#if UNITY_REVERSED_Z
-				iClipPos.z = saturate(1 - iClipPos.z + _MinDepth);
+				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE - iClipPos.z + _MinDepth, -AbsNearClip, AbsNearClip);
+				#else
+				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE + iClipPos.z, -AbsNearClip, AbsNearClip);
 				#endif
 
 				#if UNITY_UV_STARTS_AT_TOP

@@ -57,11 +57,6 @@ public class RendererData
         return color;
     }
 
-    public float GetOneMinusDepth(float minDepth)
-    {
-        return Mathf.Clamp01(1f - Depth + minDepth);
-    }
-
     public void GetDistanceFromCamera(Vector3 camPos)
     {
         cameraDistanceSqr = (renderer.transform.position - camPos).sqrMagnitude;
