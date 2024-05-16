@@ -6,7 +6,7 @@
 #include "Utils/Geometry.cginc"
 #include "Utils/Easing.cginc"
 
-Texture2D<float4> source;
+Texture2D<float4> Source;
 RWTexture2D<float4> output;
 float time;
 float4 axisColor;
@@ -65,7 +65,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 {
     float width; //= source.Length.x;
     float height; //= source.Length.y;
-    source.GetDimensions(width, height);
+    Source.GetDimensions(width, height);
     
     float3 white = 1;
     
@@ -98,7 +98,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     color += polygon(uv, float2(center.x - offset, center.y), 0.008, 3, PI, 0.001) * white;
     
     float alpha = saturate(color.r + color.g + color.b);
-    float3 finalColor = lerp(source[id.xy].rgb, color, alpha);
+    float3 finalColor = lerp(Source[id.xy].rgb, color, alpha);
 
     output[id.xy] = float4(finalColor, 1.0);
 }

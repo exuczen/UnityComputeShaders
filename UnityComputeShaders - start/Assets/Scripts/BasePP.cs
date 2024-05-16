@@ -100,7 +100,7 @@ public class BasePP : MonoBehaviour
         CreateTexture(ref output);
         CreateTexture(ref renderedSource);
 
-        shader.SetTexture(mainKernelID, "source", renderedSource);
+        shader.SetTexture(mainKernelID, "Source", renderedSource);
         shader.SetTexture(mainKernelID, "output", output);
     }
 

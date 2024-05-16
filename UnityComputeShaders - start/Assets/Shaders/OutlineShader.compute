@@ -7,7 +7,7 @@
 #include "Utils/Random.cginc"
 #include "Utils/Geometry.cginc"
 
-Texture2D<float4> source;
+Texture2D<float4> Source;
 Texture2D<float4> shapeTexture;
 Texture2D<float4> circleTexture;
 RWTexture2D<float4> output;
@@ -100,11 +100,11 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float4 circleColor = circleTexture[shapeXY];
 
 #ifdef DEBUG_SHAPES
-    output[id.xy] = shapeColor.a > 0 ? shapeColor : source[id.xy];
+    output[id.xy] = shapeColor.a > 0 ? shapeColor : Source[id.xy];
 #elif defined DEBUG_DEPTH
     output[id.xy] = shapeColor.a > 0 ? shapeColor.a : float4(0, 1, 0, 1);
 #elif defined DEBUG_CIRCLES
-    output[id.xy] = circleColor.a > 0 ? circleColor : source[id.xy];
+    output[id.xy] = circleColor.a > 0 ? circleColor : Source[id.xy];
 #else
     float4 color = COLOR_CLEAR;
     int r = LineThickness;
@@ -120,7 +120,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     }
     else
     {
-        output[id.xy] = source[id.xy];
+        output[id.xy] = Source[id.xy];
     }
 #endif
 }

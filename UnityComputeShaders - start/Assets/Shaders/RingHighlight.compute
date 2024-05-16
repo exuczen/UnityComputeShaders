@@ -3,7 +3,7 @@
 
 #include "Utils/Geometry.cginc"
 
-Texture2D<float4> source;
+Texture2D<float4> Source;
 RWTexture2D<float4> output;
 float radius;
 float edgeWidth;
@@ -13,7 +13,7 @@ float2 center;
 [numthreads(8, 8, 1)]
 void Highlight(uint3 id : SV_DispatchThreadID)
 {
-    float4 sourceColor = source[id.xy];
+    float4 sourceColor = Source[id.xy];
     float4 shadedSrcColor = sourceColor * shade;
     float4 color = lerpCircleColor(shadedSrcColor, sourceColor, id.xy, center, radius, edgeWidth);
     

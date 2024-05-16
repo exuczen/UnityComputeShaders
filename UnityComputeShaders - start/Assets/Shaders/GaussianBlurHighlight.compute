@@ -6,7 +6,7 @@
 
 #include "Utils/Geometry.cginc"
 
-shared Texture2D<float4> source;
+shared Texture2D<float4> Source;
 shared RWTexture2D<float4> horzOutput;
 RWTexture2D<float4> output;
 float radius;
@@ -22,7 +22,7 @@ shared RWStructuredBuffer<float4> horzBuffer;
 [numthreads(8, 8, 1)]
 void HorzPass(uint3 id : SV_DispatchThreadID)
 {
-    int width = source.Length.x;
+    int width = Source.Length.x;
     int left = max(0, (int)id.x - blurRadius);
     int count = min(blurRadius, (int)id.x) + min(blurRadius, width - (int)id.x);
     float4 color = 0;
@@ -32,7 +32,7 @@ void HorzPass(uint3 id : SV_DispatchThreadID)
     [unroll(100)]
     for (int x = 0; x < count; x++)
     {
-        color += source[index] * weights[x];
+        color += Source[index] * weights[x];
         index.x++;
     }
 
@@ -46,12 +46,12 @@ void HorzPass(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void Highlight(uint3 id : SV_DispatchThreadID)
 {
-    int width = source.Length.x;
-    int height = source.Length.y;
+    int width = Source.Length.x;
+    int height = Source.Length.y;
     //Vert blur
     int begY = max(0, (int)id.y - blurRadius);
     int count = min(blurRadius, (int)id.y) + min(blurRadius, height - (int)id.y);
-    float4 blurColor = (1 - sign(count)) * source[id.xy];
+    float4 blurColor = (1 - sign(count)) * Source[id.xy];
 
 #if USE_HORIZONTAL_BUFFER
     int index = id.x + width * begY;
@@ -73,7 +73,7 @@ void Highlight(uint3 id : SV_DispatchThreadID)
     }
 #endif
 
-    float4 sourceColor = source[id.xy];
+    float4 sourceColor = Source[id.xy];
     float4 shadedBlurColor = blurColor * shade;
     float4 color = lerpCircleColor(shadedBlurColor, sourceColor, id.xy, center, radius, edgeWidth);
 
