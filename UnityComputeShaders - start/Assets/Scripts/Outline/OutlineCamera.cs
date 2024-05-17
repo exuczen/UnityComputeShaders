@@ -1,4 +1,5 @@
-﻿using MustHave.Utils;
+﻿using MustHave;
+using MustHave.Utils;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -153,11 +154,8 @@ public class OutlineCamera : BasePP
     {
         base.OnDestroy();
 
-        DestroyGameObject(objectCamera);
-        DestroyComponent(cameraChangeListener);
-
-        objectCamera = null;
-        cameraChangeListener = null;
+        ObjectUtils.DestroyGameObject(ref objectCamera);
+        ObjectUtils.DestroyComponent(ref cameraChangeListener);
     }
 
     private Vector2Int GetShapeTexSize(out Vector2Int shapeTexOffset)
@@ -193,35 +191,5 @@ public class OutlineCamera : BasePP
         Shader.DisableKeyword(debugShaderMode.ToString());
         debugShaderMode = debugMode;
         Shader.EnableKeyword(debugShaderMode.ToString());
-    }
-
-    private void DestroyComponent(MonoBehaviour component)
-    {
-        if (component)
-        {
-            if (Application.isPlaying)
-            {
-                Destroy(component);
-            }
-            else
-            {
-                DestroyImmediate(component);
-            }
-        }
-    }
-
-    private void DestroyGameObject(MonoBehaviour component)
-    {
-        if (component)
-        {
-            if (Application.isPlaying)
-            {
-                Destroy(component.gameObject);
-            }
-            else
-            {
-                DestroyImmediate(component.gameObject);
-            }
-        }
     }
 }
