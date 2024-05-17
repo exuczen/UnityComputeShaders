@@ -97,7 +97,7 @@ MonoBehaviour:
     type: 2}
   quadMeshFilter: {fileID: 8163909569428046519}
   circleCamera: {fileID: 8163909569494346248}
-  layerAdded: 1
+  layerAdded: 0
 --- !u!1 &8163909569428046515
 GameObject:
   m_ObjectHideFlags: 0

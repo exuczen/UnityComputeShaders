@@ -46,7 +46,7 @@ public class OutlineObjectCamera : MonoBehaviour
     private MeshFilter quadMeshFilter = null;
     [SerializeField]
     private Camera circleCamera = null;
-    [SerializeField, HideInInspector]
+    [SerializeField]
     private bool layerAdded = false;
 
     private Camera shapeCamera = null;
