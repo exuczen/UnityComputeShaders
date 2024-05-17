@@ -21,7 +21,7 @@ public class OutlineCameraEditor : Editor
             {
                 camera.ShaderDebugMode = shaderDebugMode;
 
-                //EditorUtils.SetSceneOrObjectDirty(target);
+                EditorUtils.SetSceneOrObjectDirty(target);
             }
         }
     }

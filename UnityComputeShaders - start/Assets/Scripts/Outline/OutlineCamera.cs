@@ -41,6 +41,9 @@ public class OutlineCamera : BasePP
     [SerializeField, HideInInspector]
     private DebugShaderMode debugShaderMode = default;
 
+    [SerializeField, HideInInspector]
+    private DebugShaderMode debugShaderModeOnInit = default;
+
     [SerializeField, Range(1, LineMaxThickness)]
     private int lineThickness = 5;
 
@@ -106,6 +109,8 @@ public class OutlineCamera : BasePP
     protected override void OnInit()
     {
         objectCamera.Setup(this);
+
+        SetDebugShaderMode(debugShaderModeOnInit = debugShaderMode);
     }
 
     protected override void CreateTextures()
@@ -156,6 +161,8 @@ public class OutlineCamera : BasePP
 
         ObjectUtils.DestroyGameObject(ref objectCamera);
         ObjectUtils.DestroyComponent(ref cameraChangeListener);
+
+        SetDebugShaderMode(debugShaderModeOnInit);
     }
 
     private Vector2Int GetShapeTexSize(out Vector2Int shapeTexOffset)
