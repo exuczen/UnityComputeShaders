@@ -12,6 +12,7 @@ public class OutlineCamera : BasePP
         set => lineThickness = Mathf.Clamp(value, 1, LineMaxThickness);
     }
     public DebugShaderMode ShaderDebugMode { get => debugShaderMode; set => SetDebugShaderMode(value); }
+    public bool DebugShader => debugShader;
 
     public enum DebugShaderMode
     {
@@ -38,6 +39,9 @@ public class OutlineCamera : BasePP
 
     [SerializeField, Range(1, LineMaxThickness)]
     private int lineThickness = 5;
+
+    [SerializeField]
+    private bool debugShader = false;
 
     private void Update()
     {
