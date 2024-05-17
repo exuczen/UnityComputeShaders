@@ -11,18 +11,23 @@ public class OutlineCameraEditor : Editor
 
         var camera = target as OutlineCamera;
 
+        EditorGUI.BeginChangeCheck();
+
+        camera.DebugShader = EditorGUILayout.Toggle("Debug Shader", camera.DebugShader);
+
+        var shaderDebugMode = camera.ShaderDebugMode;
+
         if (camera.DebugShader)
         {
-            EditorGUI.BeginChangeCheck();
-
-            var shaderDebugMode = (OutlineCamera.DebugShaderMode)EditorGUILayout.EnumPopup("Debug Mode", camera.ShaderDebugMode);
-
-            if (EditorGUI.EndChangeCheck())
+            shaderDebugMode = (OutlineCamera.DebugShaderMode)EditorGUILayout.EnumPopup("Debug Mode", shaderDebugMode);
+        }
+        if (EditorGUI.EndChangeCheck())
+        {
+            if (camera.DebugShader)
             {
                 camera.ShaderDebugMode = shaderDebugMode;
-
-                EditorUtils.SetSceneOrObjectDirty(target);
             }
+            EditorUtils.SetSceneOrObjectDirty(target);
         }
     }
 }

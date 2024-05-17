@@ -14,7 +14,19 @@ public class OutlineCamera : BasePP
         set => lineThickness = Mathf.Clamp(value, 1, LineMaxThickness);
     }
     public DebugShaderMode ShaderDebugMode { get => debugShaderMode; set => SetDebugShaderMode(value); }
-    public bool DebugShader => debugShader;
+    public bool DebugShader
+    {
+        get => debugShader;
+        set
+        {
+            debugShader = value;
+
+            if (!debugShader)
+            {
+                ShaderDebugMode = DebugShaderMode.DEBUG_NONE;
+            }
+        }
+    }
 
     protected override bool SkipDispatch => objectCamera.ObjectsCount == 0;
 
@@ -38,16 +50,16 @@ public class OutlineCamera : BasePP
     [SerializeField]
     private OutlineObjectCamera objectCamera = null;
 
+    [SerializeField, Range(1, LineMaxThickness)]
+    private int lineThickness = 5;
+
     [SerializeField, HideInInspector]
     private DebugShaderMode debugShaderMode = default;
 
     [SerializeField, HideInInspector]
     private DebugShaderMode debugShaderModeOnInit = default;
 
-    [SerializeField, Range(1, LineMaxThickness)]
-    private int lineThickness = 5;
-
-    [SerializeField]
+    [SerializeField, HideInInspector]
     private bool debugShader = false;
 
     private void Update()
