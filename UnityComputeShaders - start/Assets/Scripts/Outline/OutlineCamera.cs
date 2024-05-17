@@ -55,21 +55,30 @@ public class OutlineCamera : BasePP
     {
         if (!objectCamera)
         {
-            var objectCameraPrefab = Resources.Load<OutlineObjectCamera>(OutlineObjectCamera.PrefabName);
-            if (objectCameraPrefab)
-            {
-                objectCamera = Instantiate(objectCameraPrefab, transform);
-                objectCamera.name = OutlineObjectCamera.PrefabName;
-                objectCamera.transform.Reset();
+            objectCamera = GetComponentInChildren<OutlineObjectCamera>();
 
-                shader = objectCamera.ComputeShader;
-            }
-            else
+            if (!objectCamera)
             {
-                Debug.LogError($"{GetType().Name}.OnEnable: No {OutlineObjectCamera.PrefabName}.prefab in Resources folder.");
-                enabled = false;
-                return;
+                var objectCameraPrefab = Resources.Load<OutlineObjectCamera>(OutlineObjectCamera.PrefabName);
+                if (objectCameraPrefab)
+                {
+#if UNITY_EDITOR
+                    objectCamera = UnityEditor.PrefabUtility.InstantiatePrefab(objectCameraPrefab, transform) as OutlineObjectCamera;
+#else
+                    objectCamera = Instantiate(objectCameraPrefab, transform);
+#endif
+                    objectCamera.name = OutlineObjectCamera.PrefabName;
+                }
+                else
+                {
+                    Debug.LogError($"{GetType().Name}.OnEnable: No {OutlineObjectCamera.PrefabName}.prefab in Resources folder.");
+                    enabled = false;
+                    return;
+                }
             }
+            objectCamera.transform.Reset();
+
+            shader = objectCamera.ComputeShader;
         }
         base.OnEnable();
         objectCamera.enabled = true;
@@ -146,6 +155,9 @@ public class OutlineCamera : BasePP
 
         DestroyGameObject(objectCamera);
         DestroyComponent(cameraChangeListener);
+
+        objectCamera = null;
+        cameraChangeListener = null;
     }
 
     private Vector2Int GetShapeTexSize(out Vector2Int shapeTexOffset)
