@@ -51,6 +51,10 @@ public class BasePP : MonoBehaviour
             Debug.LogError($"{GetType().Name}.Init: Object has no Camera.");
             return;
         }
+        if (!cameraChangeListener)
+        {
+            cameraChangeListener = gameObject.AddComponent<CameraChangeListener>();
+        }
 
         ReleaseTextures();
         CreateTextures();

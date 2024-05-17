@@ -1,7 +1,7 @@
 ﻿#define EPSILON 0.00001f
 #define COLOR_CLEAR float4(0, 0, 0, 0)
 
-#pragma multi_compile __ DEBUG_SHAPES DEBUG_CIRCLES DEBUG_DEPTH
+#pragma multi_compile __ DEBUG_NONE DEBUG_SHAPES DEBUG_CIRCLES DEBUG_DEPTH
 #pragma kernel CSMain
 
 #include "Utils/Random.cginc"

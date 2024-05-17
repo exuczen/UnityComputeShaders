@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MustHave.Utils;
+using UnityEngine;
 
 [ExecuteInEditMode]
 public class OutlineCamera : BasePP
@@ -18,7 +19,7 @@ public class OutlineCamera : BasePP
 
     public enum DebugShaderMode
     {
-        NONE,
+        DEBUG_NONE,
         DEBUG_SHAPES,
         DEBUG_CIRCLES,
         DEBUG_DEPTH
@@ -52,6 +53,24 @@ public class OutlineCamera : BasePP
 
     protected override void OnEnable()
     {
+        if (!objectCamera)
+        {
+            var objectCameraPrefab = Resources.Load<OutlineObjectCamera>(OutlineObjectCamera.PrefabName);
+            if (objectCameraPrefab)
+            {
+                objectCamera = Instantiate(objectCameraPrefab, transform);
+                objectCamera.name = OutlineObjectCamera.PrefabName;
+                objectCamera.transform.Reset();
+
+                shader = objectCamera.ComputeShader;
+            }
+            else
+            {
+                Debug.LogError($"{GetType().Name}.OnEnable: No {OutlineObjectCamera.PrefabName}.prefab in Resources folder.");
+                enabled = false;
+                return;
+            }
+        }
         base.OnEnable();
         objectCamera.enabled = true;
     }
@@ -59,7 +78,11 @@ public class OutlineCamera : BasePP
     protected override void OnDisable()
     {
         base.OnDisable();
-        objectCamera.enabled = false;
+
+        if (objectCamera)
+        {
+            objectCamera.enabled = false;
+        }
     }
 
     protected override void OnValidate()
@@ -94,7 +117,10 @@ public class OutlineCamera : BasePP
     {
         base.ReleaseTextures();
 
-        objectCamera.DestroyRuntimeAssets();
+        if (objectCamera)
+        {
+            objectCamera.DestroyRuntimeAssets();
+        }
     }
 
     protected override void OnCameraPropertyChange()
@@ -112,6 +138,14 @@ public class OutlineCamera : BasePP
         objectCamera.RenderShapes();
 
         shader.SetInt(ShaderData.LineThicknessID, lineThickness);
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        DestroyGameObject(objectCamera);
+        DestroyComponent(cameraChangeListener);
     }
 
     private Vector2Int GetShapeTexSize(out Vector2Int shapeTexOffset)
@@ -143,8 +177,39 @@ public class OutlineCamera : BasePP
 
     private void SetDebugShaderMode(DebugShaderMode debugMode)
     {
+        //Debug.Log($"{GetType().Name}.SetDebugShaderMode: {debugMode}");
         Shader.DisableKeyword(debugShaderMode.ToString());
         debugShaderMode = debugMode;
         Shader.EnableKeyword(debugShaderMode.ToString());
+    }
+
+    private void DestroyComponent(MonoBehaviour component)
+    {
+        if (component)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(component);
+            }
+            else
+            {
+                DestroyImmediate(component);
+            }
+        }
+    }
+
+    private void DestroyGameObject(MonoBehaviour component)
+    {
+        if (component)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(component.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(component.gameObject);
+            }
+        }
     }
 }

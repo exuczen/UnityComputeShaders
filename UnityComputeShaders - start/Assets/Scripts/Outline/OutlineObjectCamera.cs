@@ -9,6 +9,8 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(Camera))]
 public class OutlineObjectCamera : MonoBehaviour
 {
+    public const string PrefabName = "OutlineObjectCamera";
+
     private const int RenderersCapacity = 1 << 10;
 
     private readonly struct Layer
@@ -25,6 +27,7 @@ public class OutlineObjectCamera : MonoBehaviour
         }
     }
 
+    public ComputeShader ComputeShader => computeShader;
     public RenderTexture ShapeTexture => shapeTexture;
     public RenderTexture CircleTexture => circleTexture;
     public Material OutlineShapeMaterial => outlineShapeMaterial;
@@ -33,6 +36,8 @@ public class OutlineObjectCamera : MonoBehaviour
 
     private int RenderersCount => Mathf.Min(RenderersCapacity, renderersData.Count);
 
+    [SerializeField]
+    private ComputeShader computeShader = null;
     [SerializeField]
     private Material outlineShapeMaterial = null;
     [SerializeField]
