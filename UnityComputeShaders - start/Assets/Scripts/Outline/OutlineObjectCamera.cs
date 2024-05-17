@@ -1,4 +1,5 @@
 ﻿using MustHave;
+using MustHave.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -28,7 +29,7 @@ public class OutlineObjectCamera : MonoBehaviour
     public RenderTexture CircleTexture => circleTexture;
     public Material OutlineShapeMaterial => outlineShapeMaterial;
     public Camera ShapeCamera => shapeCamera;
-    public bool CircleInstancingInitiated => circleInstanceBuffer != null;
+    public int ObjectsCount => objects.Count;
 
     private int RenderersCount => Mathf.Min(RenderersCapacity, renderersData.Count);
 
@@ -140,6 +141,11 @@ public class OutlineObjectCamera : MonoBehaviour
         obj.ForEachRendererData(data => {
             renderersData.Remove(data);
         });
+        if (objects.Count == 0)
+        {
+            circleTexture.Clear();
+            shapeTexture.Clear();
+        }
     }
 
     private float GetExtendedFieldOfView(Camera parentCamera, int pixelOffset)

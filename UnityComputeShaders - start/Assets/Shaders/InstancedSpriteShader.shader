@@ -72,7 +72,7 @@
 				#if UNITY_REVERSED_Z
 				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE - iClipPos.z + _MinDepth, -1, 1);
 				#else
-				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE + iClipPos.z, -1, 1);
+				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE + iClipPos.z - EPSILON, -1, 1);
 				#endif
 
 				#if UNITY_UV_STARTS_AT_TOP

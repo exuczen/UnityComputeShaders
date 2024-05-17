@@ -10,6 +10,7 @@ public class BasePP : MonoBehaviour
     protected ComputeShader shader = null;
 
     protected virtual string MainKernelName => "CSMain";
+    protected virtual bool SkipDispatch => false;
 
     protected Vector2Int texSize = Vector2Int.zero;
     protected Vector2Int groupSize = Vector2Int.zero;
@@ -186,7 +187,7 @@ public class BasePP : MonoBehaviour
 
     protected void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        if (!initialized || !shader)
+        if (!initialized || !shader || SkipDispatch)
         {
             Graphics.Blit(source, destination);
         }

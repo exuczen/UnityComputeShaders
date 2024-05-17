@@ -17,6 +17,8 @@ Shader "Unlit/OutlineShapeShader"
 
             #include "UnityCG.cginc"
 
+            #define EPSILON 0.00001f
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -38,7 +40,7 @@ Shader "Unlit/OutlineShapeShader"
                 #if UNITY_REVERSED_Z
                 o.vertex.z = clamp(UNITY_NEAR_CLIP_VALUE - _Depth + _MinDepth, -1, 1);
                 #else
-                o.vertex.z = clamp(UNITY_NEAR_CLIP_VALUE + _Depth, -1, 1);
+                o.vertex.z = clamp(UNITY_NEAR_CLIP_VALUE + _Depth - EPSILON, -1, 1);
                 #endif
                 return o;
             }

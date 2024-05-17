@@ -14,6 +14,8 @@ public class OutlineCamera : BasePP
     public DebugShaderMode ShaderDebugMode { get => debugShaderMode; set => SetDebugShaderMode(value); }
     public bool DebugShader => debugShader;
 
+    protected override bool SkipDispatch => objectCamera.ObjectsCount == 0;
+
     public enum DebugShaderMode
     {
         NONE,
