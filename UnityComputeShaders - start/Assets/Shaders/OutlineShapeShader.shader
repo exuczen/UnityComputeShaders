@@ -17,8 +17,6 @@ Shader "Unlit/OutlineShapeShader"
 
             #include "UnityCG.cginc"
 
-            static const float AbsNearClip = abs(UNITY_NEAR_CLIP_VALUE);
-
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -38,9 +36,9 @@ Shader "Unlit/OutlineShapeShader"
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 #if UNITY_REVERSED_Z
-                o.vertex.z = clamp(UNITY_NEAR_CLIP_VALUE - _Depth + _MinDepth, -AbsNearClip, AbsNearClip);
+                o.vertex.z = clamp(UNITY_NEAR_CLIP_VALUE - _Depth + _MinDepth, -1, 1);
                 #else
-                o.vertex.z = clamp(UNITY_NEAR_CLIP_VALUE + _Depth, -AbsNearClip, AbsNearClip);
+                o.vertex.z = clamp(UNITY_NEAR_CLIP_VALUE + _Depth, -1, 1);
                 #endif
                 return o;
             }

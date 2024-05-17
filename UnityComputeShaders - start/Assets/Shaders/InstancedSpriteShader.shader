@@ -4,7 +4,6 @@
     {
         _MainTex("Texture", 2D) = "white" {}     
     }  
-
 	SubShader 
 	{
 		Pass 
@@ -37,7 +36,6 @@
 			};
 
 			static const float ScreenAspect = _ScreenParams.y / _ScreenParams.x;
-			static const float AbsNearClip = abs(UNITY_NEAR_CLIP_VALUE);
 
 			StructuredBuffer<InstanceData> _InstancesData;
 
@@ -62,7 +60,7 @@
 		
 			v2f vert(appdata v, uint vertexID: SV_VertexID, uint instanceID : SV_InstanceID)
 			{
-				v2f o;// = (v2f)0;
+				v2f o; //= (v2f)0;
 
 				InstanceData instance = _InstancesData[instanceID];
 				float3 iClipPos = instance.clipPosition;
@@ -72,9 +70,9 @@
 				float2 xy = (v.texcoord - 0.5) * 2;
 
 				#if UNITY_REVERSED_Z
-				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE - iClipPos.z + _MinDepth, -AbsNearClip, AbsNearClip);
+				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE - iClipPos.z + _MinDepth, -1, 1);
 				#else
-				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE + iClipPos.z, -AbsNearClip, AbsNearClip);
+				iClipPos.z = clamp(UNITY_NEAR_CLIP_VALUE + iClipPos.z, -1, 1);
 				#endif
 
 				#if UNITY_UV_STARTS_AT_TOP
