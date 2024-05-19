@@ -206,9 +206,13 @@ public class OutlineCamera : BasePP
 
     private void SetDebugShaderMode(DebugShaderMode debugMode)
     {
+        if (debugShaderMode == debugMode && shader.IsKeywordEnabled(debugMode.ToString()))
+        {
+            return;
+        }
         //Debug.Log($"{GetType().Name}.SetDebugShaderMode: {debugMode}");
-        Shader.DisableKeyword(debugShaderMode.ToString());
+        shader.DisableKeyword(debugShaderMode.ToString());
         debugShaderMode = debugMode;
-        Shader.EnableKeyword(debugShaderMode.ToString());
+        shader.EnableKeyword(debugShaderMode.ToString());
     }
 }
