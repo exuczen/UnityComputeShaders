@@ -32,12 +32,12 @@
 				matrix objectToWorld;
 				float3 clipPosition;
 				float4 color;
-				float scale; //TODO: make it float2
+				float2 scale;
 			};
 
 			static const float ScreenAspect = _ScreenParams.y / _ScreenParams.x;
 
-			StructuredBuffer<InstanceData> _InstancesData;
+			StructuredBuffer<InstanceData> _InstanceBuffer;
 
 			sampler2D _MainTex;
 
@@ -62,9 +62,9 @@
 			{
 				v2f o; //= (v2f)0;
 
-				InstanceData instance = _InstancesData[instanceID];
+				InstanceData instance = _InstanceBuffer[instanceID];
 				float3 iClipPos = instance.clipPosition;
-				float iScale = instance.scale;
+				float2 iScale = instance.scale;
 
 				//float2 xy = v.vertex.xy * 2;
 				float2 xy = (v.texcoord - 0.5) * 2;

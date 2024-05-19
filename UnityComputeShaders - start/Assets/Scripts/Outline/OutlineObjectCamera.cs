@@ -69,7 +69,7 @@ public class OutlineObjectCamera : MonoBehaviour
         public Matrix4x4 objectToWorld;
         public Vector3 clipPosition;
         public Vector4 color;
-        public float scale;
+        public Vector2 scale;
     }
 
     public void CreateRuntimeAssets(Vector2Int texSize)
@@ -214,7 +214,7 @@ public class OutlineObjectCamera : MonoBehaviour
         circleInstanceBuffer?.Release();
         circleInstanceBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, circleInstanceData.Length, Marshal.SizeOf<InstanceData>());
         circlePropertyBlock = new MaterialPropertyBlock();
-        circlePropertyBlock.SetBuffer("_InstancesData", circleInstanceBuffer);
+        circlePropertyBlock.SetBuffer("_InstanceBuffer", circleInstanceBuffer);
         circleRenderParams = new RenderParams(circleSpriteMaterial)
         {
             camera = circleCamera,
@@ -301,12 +301,13 @@ public class OutlineObjectCamera : MonoBehaviour
         var circlesCamTransform = circleCamera.transform;
 
         float scale = 2f * radius / circleCamera.pixelHeight;
+        var scaleXY = scale * Vector2.one;
         float minDepth = 1f / count;
 
         // At this point renderers are sorted by distance from camera
         for (int i = 0; i < count; i++)
         {
-            SetCircleInstanceData(i, scale, minDepth);
+            SetCircleInstanceData(i, scaleXY, minDepth);
         }
         circleInstanceBuffer.SetData(circleInstanceData, 0, 0, renderersData.Count);
         circleRenderParams.material.SetFloat("_MinDepth", minDepth);
@@ -319,7 +320,7 @@ public class OutlineObjectCamera : MonoBehaviour
         //    ShadowCastingMode.Off, false, Layer.OutlineLayer, circleCamera);
     }
 
-    private void SetCircleInstanceData(int i, float scale, float minDepth)
+    private void SetCircleInstanceData(int i, Vector2 scale, float minDepth)
     {
         var data = renderersData[i];
         var renderer = data.Renderer;
