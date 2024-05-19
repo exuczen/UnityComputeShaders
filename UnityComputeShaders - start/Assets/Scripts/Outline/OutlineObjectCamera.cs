@@ -111,6 +111,7 @@ public class OutlineObjectCamera : MonoBehaviour
             var parentCamera = outlineCamera.Camera;
             shapeCamera.CopyFrom(parentCamera);
             shapeCamera.fieldOfView = GetExtendedFieldOfView(parentCamera, OutlineCamera.LineMaxThickness);
+            shapeCamera.orthographicSize = GetExtendedOrthoSize(parentCamera, OutlineCamera.LineMaxThickness);
             //Debug.Log($"{GetType().Name}.Setup: srcFov: {parentCamera.fieldOfView:f2} dstFov: {shapeCamera.fieldOfView:f2}");
         }
         shapeCamera.targetTexture = shapeTexture;
@@ -152,6 +153,11 @@ public class OutlineObjectCamera : MonoBehaviour
             circleTexture.Clear();
             shapeTexture.Clear();
         }
+    }
+
+    private float GetExtendedOrthoSize(Camera parentCamera, int pixelOffset)
+    {
+        return parentCamera.orthographicSize * (1f + 2f * pixelOffset / parentCamera.pixelHeight);
     }
 
     private float GetExtendedFieldOfView(Camera parentCamera, int pixelOffset)
