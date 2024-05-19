@@ -307,7 +307,7 @@ public class OutlineObjectCamera : MonoBehaviour
         }
         var circlesCamTransform = circleCamera.transform;
 
-        float scale = 2f * radius / circleCamera.pixelHeight;
+        float scale = 2f * (radius + 1) / circleCamera.pixelHeight;
         var scaleXY = scale * Vector2.one;
         float minDepth = 1f / count;
 

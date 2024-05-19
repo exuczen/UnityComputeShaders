@@ -62,7 +62,7 @@ void getShapeRect8Color(int x, int y, int2 center, inout float4 color)
     getShapeRect4Color(y, x, center, color);
 }
 
-void getShapeCircleIsecColor(int2 c, int r, inout float4 color)
+void getMidpointCircleIsecColor(int2 c, int r, inout float4 color)
 {
     int x = r;
     int y = 0;
@@ -92,6 +92,34 @@ void getShapeCircleIsecColor(int2 c, int r, inout float4 color)
     }
 }
 
+void getHornCircleIsecColor(int2 c, int r, inout float4 color)
+{
+    int d = -r;
+    int x = r;
+    int y = 0;
+    bool result = false;
+    
+    if (r <= 1)
+    {
+        getShapeRect8Color(x, y, c, color);
+    }
+    else
+    {
+        while (y <= x)
+        {
+            getShapeRect8Color(x, y, c, color);
+            d += (y << 1) + 1;
+            y++;
+        
+            if (d > 0)
+            {
+                d += -(x << 1) + 2;
+                x--;
+            }
+        }
+    }
+}
+
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
@@ -112,7 +140,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (shapeColor.a < EPSILON)
     {
         color = circleColor;
-        getShapeCircleIsecColor(shapeXY, r, color);
+        getMidpointCircleIsecColor(shapeXY, r, color);
+        getHornCircleIsecColor(shapeXY, r, color);
     }
     if (color.a > EPSILON)
     {
