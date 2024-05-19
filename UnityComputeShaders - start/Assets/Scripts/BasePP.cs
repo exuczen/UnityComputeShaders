@@ -1,5 +1,10 @@
 ﻿using MustHave;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 [RequireComponent(typeof(Camera))]
 public class BasePP : MonoBehaviour
@@ -64,7 +69,11 @@ public class BasePP : MonoBehaviour
         initialized = true;
     }
 
-    protected virtual void OnInit() { }
+    protected void ReInit()
+    {
+        initialized = false;
+        Init();
+    }
 
     protected void ReleaseTexture(ref RenderTexture textureToClear)
     {
@@ -73,12 +82,6 @@ public class BasePP : MonoBehaviour
             textureToClear.Release();
             textureToClear = null;
         }
-    }
-
-    protected virtual void ReleaseTextures()
-    {
-        ReleaseTexture(ref output);
-        ReleaseTexture(ref renderedSource);
     }
 
     protected void CreateTexture(ref RenderTexture textureToMake, int divide = 1)
@@ -90,6 +93,11 @@ public class BasePP : MonoBehaviour
         textureToMake.Create();
     }
 
+    protected virtual void ReleaseTextures()
+    {
+        ReleaseTexture(ref output);
+        ReleaseTexture(ref renderedSource);
+    }
 
     protected virtual void CreateTextures()
     {
@@ -109,6 +117,23 @@ public class BasePP : MonoBehaviour
         shader.SetTexture(mainKernelID, "Output", output);
     }
 
+    protected virtual void OnInit() { }
+
+    protected virtual void OnCameraPropertyChange() { }
+
+    protected virtual void OnScreenSizeChange() { }
+
+    protected virtual void SetupOnRenderImage() { }
+
+    protected virtual void DispatchWithSource(ref RenderTexture source, ref RenderTexture destination)
+    {
+        Graphics.Blit(source, renderedSource);
+
+        shader.Dispatch(mainKernelID, groupSize.x, groupSize.y, 1);
+
+        Graphics.Blit(output, destination);
+    }
+
     protected virtual void OnValidate()
     {
         if (initialized)
@@ -123,6 +148,11 @@ public class BasePP : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
+            //EditorSceneManager.sceneOpened -= OnSceneOpened;
+            //EditorSceneManager.sceneOpened += OnSceneOpened;
+            //EditorSceneManager.activeSceneChangedInEditMode -= OnActiveSceneChangedInEditMode;
+            //EditorSceneManager.activeSceneChangedInEditMode += OnActiveSceneChangedInEditMode;
+
             EditorAssetPostprocessor.AllAssetsPostprocessed -= OnAllAssetsPostprocessed;
             EditorAssetPostprocessor.AllAssetsPostprocessed += OnAllAssetsPostprocessed;
         }
@@ -139,6 +169,9 @@ public class BasePP : MonoBehaviour
 #if UNITY_EDITOR
         if (!Application.isPlaying)
         {
+            //EditorSceneManager.sceneOpened -= OnSceneOpened;
+            //EditorSceneManager.activeSceneChangedInEditMode -= OnActiveSceneChangedInEditMode;
+
             EditorAssetPostprocessor.AllAssetsPostprocessed -= OnAllAssetsPostprocessed;
         }
 #endif
@@ -156,39 +189,6 @@ public class BasePP : MonoBehaviour
         initialized = false;
     }
 
-    private void OnAllAssetsPostprocessed()
-    {
-        initialized = false;
-        Init();
-    }
-
-    protected virtual void DispatchWithSource(ref RenderTexture source, ref RenderTexture destination)
-    {
-        Graphics.Blit(source, renderedSource);
-
-        shader.Dispatch(mainKernelID, groupSize.x, groupSize.y, 1);
-
-        Graphics.Blit(output, destination);
-    }
-
-    protected void CheckResolution(out bool changed)
-    {
-        changed = texSize.x != thisCamera.pixelWidth || texSize.y != thisCamera.pixelHeight;
-
-        if (changed)
-        {
-            ReleaseTextures();
-            CreateTextures();
-            OnScreenSizeChange();
-        }
-    }
-
-    protected virtual void OnCameraPropertyChange() { }
-
-    protected virtual void OnScreenSizeChange() { }
-
-    protected virtual void SetupOnRenderImage() { }
-
     protected void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if (!initialized || !shader || SkipDispatch)
@@ -202,4 +202,33 @@ public class BasePP : MonoBehaviour
             DispatchWithSource(ref source, ref destination);
         }
     }
+
+    private void CheckResolution(out bool changed)
+    {
+        changed = texSize.x != thisCamera.pixelWidth || texSize.y != thisCamera.pixelHeight;
+
+        if (changed)
+        {
+            ReleaseTextures();
+            CreateTextures();
+            OnScreenSizeChange();
+        }
+    }
+
+#if UNITY_EDITOR
+    //protected virtual void OnActiveSceneChangedInEditMode(Scene prevScene, Scene scene)
+    //{
+    //    Debug.Log($"{GetType().Name}.OnActiveSceneChangedInEditMode");
+    //}
+
+    //protected virtual void OnSceneOpened(Scene scene, OpenSceneMode mode)
+    //{
+    //    Debug.Log($"{GetType().Name}.OnSceneOpened");
+    //}
+
+    private void OnAllAssetsPostprocessed()
+    {
+        ReInit();
+    }
+#endif
 }
