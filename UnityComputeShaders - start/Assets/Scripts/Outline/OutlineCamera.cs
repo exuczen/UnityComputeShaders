@@ -1,6 +1,7 @@
 ﻿using MustHave;
 using MustHave.Utils;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
 public class OutlineCamera : BasePP
@@ -209,13 +210,28 @@ public class OutlineCamera : BasePP
 
     private void SetDebugShaderMode(DebugShaderMode debugMode)
     {
-        if (debugShaderMode == debugMode && shader.IsKeywordEnabled(debugMode.ToString()))
+        var prevKeyword = new LocalKeyword(shader, debugShaderMode.ToString());
+        var keyword = new LocalKeyword(shader, debugMode.ToString());
+
+        if (!keyword.isValid || !prevKeyword.isValid)
+        {
+            if (!keyword.isValid)
+            {
+                Debug.LogError($"{GetType().Name}.SetDebugShaderMode: Invalid keyword: {keyword}");
+            }
+            if (!prevKeyword.isValid)
+            {
+                Debug.LogError($"{GetType().Name}.SetDebugShaderMode: Invalid keyword: {prevKeyword}");
+            }
+            return;
+        }
+        if (debugShaderMode == debugMode && shader.IsKeywordEnabled(keyword))
         {
             return;
         }
         //Debug.Log($"{GetType().Name}.SetDebugShaderMode: {debugMode}");
-        shader.DisableKeyword(debugShaderMode.ToString());
+        shader.DisableKeyword(prevKeyword);
         debugShaderMode = debugMode;
-        shader.EnableKeyword(debugShaderMode.ToString());
+        shader.EnableKeyword(keyword);
     }
 }
