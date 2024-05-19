@@ -122,7 +122,10 @@ public class OutlineCamera : BasePP
     {
         objectCamera.Setup(this);
 
-        SetDebugShaderMode(debugShaderModeOnInit = debugShaderMode);
+        if (SceneUtils.IsActiveSceneLoadedAndValid())
+        {
+            SetDebugShaderMode(debugShaderModeOnInit = debugShaderMode);
+        }
     }
 
     protected override void CreateTextures()

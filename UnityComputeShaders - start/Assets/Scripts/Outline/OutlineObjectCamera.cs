@@ -46,9 +46,10 @@ public class OutlineObjectCamera : MonoBehaviour
     private MeshFilter quadMeshFilter = null;
     [SerializeField]
     private Camera circleCamera = null;
+#if UNITY_EDITOR
     [SerializeField]
     private bool layerAdded = false;
-
+#endif
     private Camera shapeCamera = null;
 
     private RenderTexture shapeTexture = null;
