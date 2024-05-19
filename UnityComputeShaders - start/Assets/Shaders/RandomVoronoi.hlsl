@@ -109,6 +109,9 @@ bool drawMidpointCircle(int2 c, int r, int id)
 
     while (x >= y)
     {
+        result = result | plot8(x, y, c, id);
+        y++;
+        
         if (d < 0)
         {
             d += (y << 1) + 3;
@@ -118,9 +121,6 @@ bool drawMidpointCircle(int2 c, int r, int id)
             d += ((y - x) << 1) + 5;
             x--;
         }
-        result = result | plot8(x, y, c, id);
-
-        y++;
     }
     return result;
 }
@@ -135,8 +135,8 @@ bool drawMidpoint2Circle(int2 c, int r, int id)
     while (x > y)
     {
         result = result | plot8(x, y, c, id);
-        
         y++;
+        
         if (d <= 0)
         {
             d += (y << 1) + 1;
@@ -160,10 +160,10 @@ bool drawJeskoCircle(int2 c, int r, int id)
     while (x >= y)
     {
         result = result | plot8(x, y, c, id);
-        
         y++;
         t1 += y;
         int t2 = t1 - x;
+        
         if (t2 >= 0)
         {
             t1 = t2;
@@ -183,9 +183,9 @@ bool drawHornCircle(int2 c, int r, int id)
     while (y <= x)
     {
         result = result | plot8(x, y, c, id);
-        
         d += (y << 1) + 1;
         y++;
+        
         if (d > 0)
         {
             d += -(x << 1) + 2;
@@ -204,7 +204,6 @@ bool drawDiamond(int2 c, int r, int id)
     while (x >= y)
     {
         result = result | plot8(x, y, c, id);
-        
         y++;
         x--;
     }

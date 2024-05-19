@@ -52,8 +52,8 @@ void setParticlesAngularPair(uint i, uint j)
 void InitParticles(uint3 id : SV_DispatchThreadID)
 {
     uint i = getParticleIndex(id);
-    //particlesBuffer[i] = getClearParticle(wang_hash(i));
-    particlesBuffer[i] = getClearParticle(lgc_hash(i));
+    //particlesBuffer[i] = getClearParticle(lgc_hash(i));
+    particlesBuffer[i] = getClearParticle(wang_hash(i));
     angularPairBuffer[i * AngularPairsStride] = i;
 }
 
