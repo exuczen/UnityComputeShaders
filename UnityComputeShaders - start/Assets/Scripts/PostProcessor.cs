@@ -8,9 +8,11 @@
 using MustHave;
 using MustHave.Utils;
 using UnityEngine;
+#if USE_EDITOR_SCENE_EVENTS
 using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
+#endif
 #endif
 
 [RequireComponent(typeof(Camera))]

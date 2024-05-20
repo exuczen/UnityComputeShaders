@@ -81,16 +81,16 @@ public class GaussianBlurHighlight : BasePP
         CreateTexture(ref horzOutput);
 
         horzBuffer?.Dispose();
-        horzBuffer = new ComputeBuffer(renderedSource.width * renderedSource.height, 4 * sizeof(float));
+        horzBuffer = new ComputeBuffer(sourceTexture.width * sourceTexture.height, 4 * sizeof(float));
 
         SetShaderTextures();
     }
 
     private void SetShaderTextures()
     {
-        shader.SetTexture(mainKernelID, "Output", output);
-        shader.SetTexture(mainKernelID, "Source", renderedSource);
-        shader.SetTexture(kernelHorzPassID, "Source", renderedSource);
+        shader.SetTexture(mainKernelID, OutputTextureID, outputTexture);
+        shader.SetTexture(mainKernelID, SourceTextureID, sourceTexture);
+        shader.SetTexture(kernelHorzPassID, SourceTextureID, sourceTexture);
 
         shader.SetTexture(kernelHorzPassID, "horzOutput", horzOutput);
         shader.SetTexture(mainKernelID, "horzOutput", horzOutput);
@@ -108,21 +108,21 @@ public class GaussianBlurHighlight : BasePP
 
     protected void SetProperties()
     {
-        float rad = (radius / 100.0f) * texSize.y;
+        float rad = (radius / 100.0f) * textureSize.y;
         shader.SetFloat("radius", rad);
         shader.SetFloat("edgeWidth", rad * softenEdge / 100.0f);
         shader.SetInt("blurRadius", blurRadius);
         shader.SetFloat("shade", shade);
     }
 
-    protected override void DispatchWithSource(ref RenderTexture source, ref RenderTexture destination)
+    protected override void DispatchWithSource(RenderTexture source, RenderTexture destination)
     {
-        Graphics.Blit(source, renderedSource);
+        Graphics.Blit(source, sourceTexture);
 
-        shader.Dispatch(kernelHorzPassID, groupSize.x, groupSize.y, 1);
-        shader.Dispatch(mainKernelID, groupSize.x, groupSize.y, 1);
+        shader.Dispatch(kernelHorzPassID, threadGroups.x, threadGroups.y, 1);
+        shader.Dispatch(mainKernelID, threadGroups.x, threadGroups.y, 1);
 
-        Graphics.Blit(output, destination);
+        Graphics.Blit(outputTexture, destination);
     }
 
     protected override void OnScreenSizeChange()

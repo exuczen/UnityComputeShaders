@@ -22,7 +22,7 @@ public class RingHighlight : BasePP
 
     protected void SetProperties()
     {
-        float rad = (radius / 100.0f) * texSize.y;
+        float rad = (radius / 100.0f) * textureSize.y;
         shader.SetFloat("radius", rad);
         shader.SetFloat("edgeWidth", rad * softenEdge / 100.0f);
         shader.SetFloat("shade", shade);

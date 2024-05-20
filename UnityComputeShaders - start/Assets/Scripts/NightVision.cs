@@ -22,13 +22,13 @@ public class NightVision : BasePP
 
     protected void SetProperties()
     {
-        float rad = (radius / 100.0f) * texSize.y;
+        float rad = (radius / 100.0f) * textureSize.y;
         shader.SetFloat("radius", rad);
         shader.SetFloat("edgeWidth", rad * softenEdge / 100.0f);
         shader.SetVector("tintColor", tint);
         shader.SetFloat("tintStrength", tintStrength);
         shader.SetInt("lines", lines);
-        shader.SetInts("texSize", texSize.x, texSize.y);
+        shader.SetInts("texSize", textureSize.x, textureSize.y);
     }
 
     protected override void OnScreenSizeChange()

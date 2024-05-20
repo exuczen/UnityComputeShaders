@@ -22,7 +22,7 @@ public class Challenge3 : BasePP
 
     protected void SetProperties()
     {
-        float tintHeight = height * texSize.y;
+        float tintHeight = height * textureSize.y;
         shader.SetFloat("tintHeight", tintHeight);
         shader.SetFloat("edgeWidth", tintHeight * softenEdge / 100.0f);
         shader.SetFloat("shade", shade);
