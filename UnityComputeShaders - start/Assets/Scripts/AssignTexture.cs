@@ -6,8 +6,11 @@ public class AssignTexture : MonoBehaviour
 {
     public ComputeShader shader = null;
     public int texResolution = 256;
-
+#if UNITY_EDITOR
     private new Renderer renderer = null;
+#else
+    private Renderer renderer = null;
+#endif
     private RenderTexture outputTexture = null;
     private int kernelHandle;
 

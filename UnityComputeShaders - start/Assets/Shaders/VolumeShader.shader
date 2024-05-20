@@ -176,8 +176,8 @@ Shader "Unlit/VolumeShader"
                 {
                     bool discarding = false;
 
-                    float3 rayDirection;
-                    float3 samplePosition;
+                    float3 rayDirection = 0;
+                    float3 samplePosition = 0;
                     float4 color;
                     float4 colorClear = COLOR_CLEAR;
 

@@ -23,9 +23,11 @@ public abstract class ComputeShaderBehaviour : MonoBehaviour
     protected ComputeShader shader = null;
 
     protected RenderTexture outputTexture = null;
-
+#if UNITY_EDITOR
     protected new Renderer renderer = null;
-
+#else
+    protected Renderer renderer = null;
+#endif
     protected readonly Dictionary<Enum, KernelData> kernelsDict = new();
 
     protected readonly List<ComputeBuffer> computeBuffers = new();
