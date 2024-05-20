@@ -8,8 +8,8 @@
 #include "Utils/Geometry.cginc"
 
 Texture2D<float4> Source;
-Texture2D<float4> shapeTexture;
-Texture2D<float4> circleTexture;
+Texture2D<float4> ShapeTexture;
+Texture2D<float4> CircleTexture;
 RWTexture2D<float4> Output;
 
 int LineThickness;
@@ -19,16 +19,16 @@ int2 ShapeTexOffset;
 int2 getShapeTexSize()
 {
     int width, height;
-    shapeTexture.GetDimensions(width, height);
+    ShapeTexture.GetDimensions(width, height);
     return int2(width, height);
 }
 
 bool getShapePixelColor(int2 xy, out float4 color)
 {
     bool inBounds = all(xy >= 0 && xy < ShapeTexSize);
-    if (inBounds && shapeTexture[xy].a > 0)
+    if (inBounds && ShapeTexture[xy].a > 0)
     {
-        color = shapeTexture[xy];
+        color = ShapeTexture[xy];
         return true;
     }
     else
@@ -124,8 +124,8 @@ void getHornCircleIsecColor(int2 c, int r, inout float4 color)
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     int2 shapeXY = ShapeTexOffset + id.xy;
-    float4 shapeColor = shapeTexture[shapeXY];
-    float4 circleColor = circleTexture[shapeXY];
+    float4 shapeColor = ShapeTexture[shapeXY];
+    float4 circleColor = CircleTexture[shapeXY];
 
 #ifdef DEBUG_SHAPES
     Output[id.xy] = shapeColor.a > 0 ? shapeColor : Source[id.xy];

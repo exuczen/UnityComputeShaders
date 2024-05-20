@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
-public class OutlineCamera : BasePP
+public class OutlineCamera : PostProcessor
 {
     public const int LineMaxThickness = 100;
 
@@ -41,10 +41,10 @@ public class OutlineCamera : BasePP
 
     private readonly struct ShaderData
     {
-        public static readonly int ShapeTexID = Shader.PropertyToID("shapeTexture");
+        public static readonly int ShapeTexID = Shader.PropertyToID("ShapeTexture");
         public static readonly int ShapeTexSizeID = Shader.PropertyToID("ShapeTexSize");
         public static readonly int ShapeTexOffsetID = Shader.PropertyToID("ShapeTexOffset");
-        public static readonly int CircleTexID = Shader.PropertyToID("circleTexture");
+        public static readonly int CircleTexID = Shader.PropertyToID("CircleTexture");
         public static readonly int LineThicknessID = Shader.PropertyToID("LineThickness");
     }
 
@@ -185,6 +185,7 @@ public class OutlineCamera : BasePP
     {
         Vector2Int extendedSize = default;
         Vector2Int texOffset = default;
+        var texSize = textureSize;
         int offset = LineMaxThickness;
 
         if (texSize.x > texSize.y)
