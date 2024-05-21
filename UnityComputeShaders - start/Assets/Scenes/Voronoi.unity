@@ -510,8 +510,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 335970453}
-  m_LocalRotation: {x: -0.5456033, y: 0.2099445, z: 0.23989661, w: -0.775042}
-  m_LocalPosition: {x: -0.01505127, y: 0.46253824, z: 0.17666893}
+  m_LocalRotation: {x: -0.9192462, y: 0.07065658, z: -0.08107993, w: -0.3787086}
+  m_LocalPosition: {x: 0.004776001, y: 0.3157023, z: 0.03143349}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -934,7 +934,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: e7c63fe92ae9b9e40a5c8a9c42311b09, type: 2}
-  interiorMaterial: {fileID: 0}
   crossSection: {fileID: 335970455}
 --- !u!114 &957232164
 MonoBehaviour:
@@ -945,7 +944,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 957232158}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a900953dc6b15d14a9a3a6aa059d6838, type: 3}
+  m_Script: {fileID: 11500000, guid: 03213336868424249ab365c6dbc663b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &963194225
@@ -1026,7 +1025,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: -0.26927668, y: -0.4703541, z: 0.15328126, w: -0.8262941}
-  m_LocalPosition: {x: -81.831245, y: 11.984256, z: 54.409462}
+  m_LocalPosition: {x: -74.647514, y: 5.8919644, z: 58.67486}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1042,7 +1041,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8bf352ef64eb67488380d1116a498ec, type: 3}
+  m_Script: {fileID: 11500000, guid: 43dd0ab021b889b49b2c643cb766b9f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   keyboardMovement: 1
@@ -1050,9 +1049,9 @@ MonoBehaviour:
   keyTranslationMlp: 1
   zoomSpeed: 2
   rotationSpeed: 4
-  distance: 20.34
+  distance: 10
   target: {fileID: 1329787948}
-  targetPlane: {fileID: 1487765977}
+  targetPlane: {fileID: 0}
   camera: {fileID: 963194227}
 --- !u!1 &1053886697
 GameObject:
@@ -1236,7 +1235,6 @@ GameObject:
   - component: {fileID: 1385668698}
   - component: {fileID: 1385668702}
   - component: {fileID: 1385668703}
-  - component: {fileID: 1385668704}
   m_Layer: 0
   m_Name: RandomVoronoiQuad
   m_TagString: Untagged
@@ -1356,18 +1354,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac4d2621950b47a4992cb6621f3af452, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1385668704
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1385668697}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a900953dc6b15d14a9a3a6aa059d6838, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1407444609
@@ -2005,7 +1991,6 @@ GameObject:
   - component: {fileID: 1992548695}
   - component: {fileID: 1992548694}
   - component: {fileID: 1992548699}
-  - component: {fileID: 1992548698}
   m_Layer: 0
   m_Name: OrbitalVoronoiQuad
   m_TagString: Untagged
@@ -2092,18 +2077,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1992548698
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1992548693}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a900953dc6b15d14a9a3a6aa059d6838, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1992548699
 MonoBehaviour:
   m_ObjectHideFlags: 0
