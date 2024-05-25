@@ -1,3 +1,3 @@
 ﻿using MustHave;
 
-public class BasePP : PostProcessor { }
+public class BasePP : RenderPostProcessor { }
