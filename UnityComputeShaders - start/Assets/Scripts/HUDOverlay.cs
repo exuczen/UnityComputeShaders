@@ -21,6 +21,6 @@ public class HUDOverlay : BasePP
 
     protected override void SetupOnRenderImage()
     {
-        shader.SetFloat("time", Time.time);
+        SetShaderFloatTime();
     }
 }

@@ -35,10 +35,6 @@ public class RingHighlight : BasePP
 
     protected override void SetupOnRenderImage()
     {
-        if (trackedObject && thisCamera)
-        {
-            Vector2 center = thisCamera.WorldToScreenPoint(trackedObject.position);
-            shader.SetVector("center", center);
-        }
+        SetShaderVectorCenter(trackedObject);
     }
 }

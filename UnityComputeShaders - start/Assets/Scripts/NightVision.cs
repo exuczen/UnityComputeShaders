@@ -38,6 +38,6 @@ public class NightVision : BasePP
 
     protected override void SetupOnRenderImage()
     {
-        shader.SetFloat("time", Time.time);
+        SetShaderFloatTime();
     }
 }

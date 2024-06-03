@@ -115,14 +115,10 @@ public class GaussianBlurHighlight : BasePP
         shader.SetFloat("shade", shade);
     }
 
-    protected override void DispatchWithSource(RenderTexture source, RenderTexture destination)
+    protected override void DispatchShader()
     {
-        Graphics.Blit(source, sourceTexture);
-
         shader.Dispatch(kernelHorzPassID, threadGroups.x, threadGroups.y, 1);
         shader.Dispatch(mainKernelID, threadGroups.x, threadGroups.y, 1);
-
-        Graphics.Blit(outputTexture, destination);
     }
 
     protected override void OnScreenSizeChange()
@@ -132,11 +128,7 @@ public class GaussianBlurHighlight : BasePP
 
     protected override void SetupOnRenderImage()
     {
-        if (trackedObject && thisCamera)
-        {
-            Vector2 center = thisCamera.WorldToScreenPoint(trackedObject.position);
-            shader.SetVector("center", center);
-        }
+        SetShaderVectorCenter(trackedObject);
     }
 
     protected override void OnEnable()
