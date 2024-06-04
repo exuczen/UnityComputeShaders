@@ -82,7 +82,7 @@ public class BlurHighlight : BasePP
         SetProperties();
     }
 
-    protected override void SetupOnRenderImage()
+    protected override void SetupOnExecute()
     {
         SetShaderVectorCenter(trackedObject);
     }
