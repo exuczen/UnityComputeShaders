@@ -36,7 +36,7 @@ public class NightVision : BasePP
         SetProperties();
     }
 
-    protected override void SetupOnExecute()
+    protected override void OnLateUpdate()
     {
         SetShaderFloatTime();
     }

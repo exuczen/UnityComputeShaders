@@ -126,7 +126,7 @@ public class GaussianBlurHighlight : BasePP
         SetProperties();
     }
 
-    protected override void SetupOnExecute()
+    protected override void OnLateUpdate()
     {
         SetShaderVectorCenter(trackedObject);
     }
