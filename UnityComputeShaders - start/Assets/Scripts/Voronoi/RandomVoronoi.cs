@@ -6,9 +6,7 @@
 
 using UnityEngine;
 using System;
-using MustHave.Utils;
 using MustHave;
-using System.Collections.Generic;
 using MustHave.UI;
 
 [ExecuteInEditMode]

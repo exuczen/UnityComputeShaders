@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using MustHave.Utils;
+using MustHave;
 
 [CustomEditor(typeof(VolumeCrossSection))]
 public class VolumeCrossSectionEditor : Editor
