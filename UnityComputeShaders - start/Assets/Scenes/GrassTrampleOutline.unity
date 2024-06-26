@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.53897846, g: 0.67232066, b: 0.5960391, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -104,7 +103,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -117,17 +116,56 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 23800000, guid: f2fce8c339a1a40c68da56e5db396c29, type: 2}
+--- !u!84 &66589833
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: OutlineObjectsCircleTexture
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 5
+  m_Width: 1047
+  m_Height: 886
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 8
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 0
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1001 &69361361
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 7d6a13dae3724418787752db2029398d,
@@ -190,7 +228,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Archer (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 69361365}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 69361363}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 69361364}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 69361368}
   m_SourcePrefab: {fileID: 100100000, guid: 7d6a13dae3724418787752db2029398d, type: 3}
 --- !u!1 &69361362 stripped
 GameObject:
@@ -271,6 +333,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 7d6a13dae3724418787752db2029398d,
@@ -333,7 +396,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Archer (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 406361129}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 406361127}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 406361128}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 406361132}
   m_SourcePrefab: {fileID: 100100000, guid: 7d6a13dae3724418787752db2029398d, type: 3}
 --- !u!1 &406361126 stripped
 GameObject:
@@ -409,48 +496,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 0, g: 0.038576126, b: 1, a: 1}
---- !u!84 &456494045
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: OutlineObjectsShapeTexture
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 5
-  m_Width: 851
-  m_Height: 775
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 8
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1001 &566606722
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 7d6a13dae3724418787752db2029398d,
@@ -513,7 +564,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Archer (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 566606726}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 566606724}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 566606725}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 566606729}
   m_SourcePrefab: {fileID: 100100000, guid: 7d6a13dae3724418787752db2029398d, type: 3}
 --- !u!1 &566606723 stripped
 GameObject:
@@ -631,9 +706,17 @@ Camera:
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -667,6 +750,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 634673796}
+  serializedVersion: 2
   m_LocalRotation: {x: 0.17364816, y: 0, z: 0, w: 0.9848078}
   m_LocalPosition: {x: 0, y: 3.13, z: -8}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -674,7 +758,6 @@ Transform:
   m_Children:
   - {fileID: 838244037}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 20, y: 0, z: 0}
 --- !u!114 &634673800
 MonoBehaviour:
@@ -791,56 +874,20 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 656956278}
+  serializedVersion: 2
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!84 &659868359
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: OutlineObjectsCircleTexture
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 5
-  m_Width: 851
-  m_Height: 775
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 8
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 0
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1001 &783066119
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 7d6a13dae3724418787752db2029398d,
@@ -904,12 +951,32 @@ PrefabInstance:
       value: Archer
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1500874290}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1500874292}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1500874293}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1500874294}
   m_SourcePrefab: {fileID: 100100000, guid: 7d6a13dae3724418787752db2029398d, type: 3}
 --- !u!1001 &838244035
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 634673799}
     m_Modifications:
     - target: {fileID: 566796444583111364, guid: edf41f702edc2cd4c99c70dd63d28bf2,
@@ -925,13 +992,13 @@ PrefabInstance:
     - target: {fileID: 8163909568474950640, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: field of view
-      value: 75.77781
+      value: 73.42187
       objectReference: {fileID: 0}
     - target: {fileID: 8163909568474950640, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 1675868688}
+      objectReference: {fileID: 1489316920}
     - target: {fileID: 8163909568474950640, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: near clip plane
@@ -940,7 +1007,7 @@ PrefabInstance:
     - target: {fileID: 8163909568474950640, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: orthographic size
-      value: 6.7391305
+      value: 6.457726
       objectReference: {fileID: 0}
     - target: {fileID: 8163909568474950643, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
@@ -1005,13 +1072,13 @@ PrefabInstance:
     - target: {fileID: 8163909569494346248, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: field of view
-      value: 75.77781
+      value: 73.42187
       objectReference: {fileID: 0}
     - target: {fileID: 8163909569494346248, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: m_TargetTexture
       value: 
-      objectReference: {fileID: 659868359}
+      objectReference: {fileID: 1989520446}
     - target: {fileID: 8163909569494346248, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: near clip plane
@@ -1020,9 +1087,12 @@ PrefabInstance:
     - target: {fileID: 8163909569494346248, guid: edf41f702edc2cd4c99c70dd63d28bf2,
         type: 3}
       propertyPath: orthographic size
-      value: 6.7391305
+      value: 6.457726
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: edf41f702edc2cd4c99c70dd63d28bf2, type: 3}
 --- !u!114 &838244036 stripped
 MonoBehaviour:
@@ -1047,6 +1117,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 7d6a13dae3724418787752db2029398d,
@@ -1109,7 +1180,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Archer (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1022648034}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1022648032}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1022648033}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1022648037}
   m_SourcePrefab: {fileID: 100100000, guid: 7d6a13dae3724418787752db2029398d, type: 3}
 --- !u!1 &1022648031 stripped
 GameObject:
@@ -1185,13 +1280,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 0, g: 1, b: 0.33715773, a: 1}
---- !u!84 &1374402480
+--- !u!84 &1186356059
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: OutlineObjectsCircleTexture
+  m_Name: OutlineObjectsShapeTexture
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000
@@ -1199,8 +1294,8 @@ RenderTexture:
   m_DownscaleFallback: 0
   m_IsAlphaChannelOptional: 0
   serializedVersion: 5
-  m_Width: 851
-  m_Height: 775
+  m_Width: 1047
+  m_Height: 886
   m_AntiAliasing: 1
   m_MipCount: -1
   m_DepthStencilFormat: 0
@@ -1211,9 +1306,48 @@ RenderTexture:
   m_UseDynamicScale: 0
   m_BindMS: 0
   m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 1
   m_TextureSettings:
     serializedVersion: 2
-    m_FilterMode: 0
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
+--- !u!84 &1489316920
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: OutlineObjectsShapeTexture
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 5
+  m_Width: 1047
+  m_Height: 886
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 8
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
     m_Aniso: 1
     m_MipBias: 0
     m_WrapU: 1
@@ -1302,48 +1436,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 1, g: 1, b: 1, a: 1}
---- !u!84 &1675868688
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: OutlineObjectsShapeTexture
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 5
-  m_Width: 851
-  m_Height: 775
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 8
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1001 &1807912660
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 7d6a13dae3724418787752db2029398d,
@@ -1406,7 +1504,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Archer (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1807912664}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1807912662}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1807912663}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1807912667}
   m_SourcePrefab: {fileID: 100100000, guid: 7d6a13dae3724418787752db2029398d, type: 3}
 --- !u!1 &1807912661 stripped
 GameObject:
@@ -1482,6 +1604,44 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 0.45153028, g: 0.7735849, b: 0.33935562, a: 1}
+--- !u!84 &1989520446
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: OutlineObjectsCircleTexture
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 5
+  m_Width: 1047
+  m_Height: 886
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 8
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 0
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &2071463608
 GameObject:
   m_ObjectHideFlags: 0
@@ -1580,13 +1740,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2071463608}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &2071463613
 BoxCollider:
@@ -1596,9 +1756,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2071463608}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 10, y: 2.220446e-16, z: 10}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &2105573803
@@ -1606,6 +1774,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 7d6a13dae3724418787752db2029398d,
@@ -1668,7 +1837,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Archer (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2105573807}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2105573805}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2105573806}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7d6a13dae3724418787752db2029398d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2105573810}
   m_SourcePrefab: {fileID: 100100000, guid: 7d6a13dae3724418787752db2029398d, type: 3}
 --- !u!1 &2105573804 stripped
 GameObject:
@@ -1744,3 +1937,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: {r: 0.5471698, g: 0.40991327, b: 0.03355288, a: 1}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 634673799}
+  - {fileID: 656956280}
+  - {fileID: 2071463612}
+  - {fileID: 783066119}
+  - {fileID: 566606722}
+  - {fileID: 2105573803}
+  - {fileID: 1807912660}
+  - {fileID: 1022648030}
+  - {fileID: 406361125}
+  - {fileID: 69361361}
